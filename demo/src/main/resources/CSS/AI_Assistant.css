@@ -31,6 +31,13 @@
     -fx-background-color: #E6EBF0;
     -fx-alignment: center_right;
 }
+.emptyLabel {
+    -fx-font-size: 15px;
+    //-fx-padding: 25 0 0 0;
+    -fx-font-family: "Arial";
+    -fx-text-fill: grey;
+    -fx-text-alignment: center;
+}
 
 /*Prompt field and send button*/
 .main_pane .prompt_area .text-field{

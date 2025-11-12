@@ -1,5 +1,6 @@
 package JavaFX;
 
+import SpringBoot.PortHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -14,9 +15,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class HTTPHandler {
+    public int port = PortHandler.getCurrentPort();
     public void POST(String path, String JSON) {
         try {
-            URL url = new URL("http://localhost:8080/");
+            URL url = new URL("http://localhost:" + port + "/");
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url + path))
@@ -30,7 +32,7 @@ public class HTTPHandler {
         }
     }
     public void DELETE(Long id, String path, String archive) {
-        String url = "http://localhost:8080/" + path + "/" + id + "?archive=".concat(archive);
+        String url = "http://localhost:" + port + "/" + path + "/" + id + "?archive=".concat(archive);
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build();
         HttpClient client = HttpClient.newHttpClient();
         try {
@@ -44,7 +46,7 @@ public class HTTPHandler {
     }
     public <T> List<T> GET (String path, Class<T> objectType){
         try{
-            String url = "http://localhost:8080/" + path ;
+            String url = "http://localhost:" + port + "/" + path ;
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url)).GET().build();
@@ -63,9 +65,9 @@ public class HTTPHandler {
             System.out.println("HTTP: An issue arose with GETTING (ignorable).");
         }   return Collections.emptyList();
     }
-    public boolean GET(String path){ //Lazy solution
+    public boolean GET(String path){
         try {
-            String url = "http://localhost:8080/" + path ;
+            String url = "http://localhost:" + port + "/" + path ;
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url)).GET().build();
@@ -82,7 +84,7 @@ public class HTTPHandler {
     }
     public void UPDATE(String JSON, String path) {
         try {
-            String url = "http://localhost:8080/" + path;
+            String url = "http://localhost:" + port + "/" + path;
             HttpRequest request = HttpRequest.newBuilder() //Building the HTTP request
                     .uri(URI.create(url)).header("Content-Type", "application/json")
                     .PUT(HttpRequest.BodyPublishers.ofString(JSON)).build(); //Attaches json as the body

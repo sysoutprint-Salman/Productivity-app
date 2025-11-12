@@ -26,7 +26,7 @@ public class NotebookFX{
     public MenuBar tabsMenuBar;
     private Timer timer = new Timer();
     private boolean isTaskScheduled = false;
-    private final int DELAY = 700;
+    private final int DELAY = 100;
     private final ObjectMapper mapper = new ObjectMapper();
     private final HTTPHandler httpHandler = new HTTPHandler();
     protected final SwitchScenes handler = new SwitchScenes();

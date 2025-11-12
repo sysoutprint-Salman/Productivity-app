@@ -10,6 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
@@ -45,8 +46,18 @@ public class AI_AssistantFX {
     private NotebookFX notebooks;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
-
+    public VBox placeholderVbox;
+    public Label emptyLogsMessage;
     public AI_AssistantFX(){}
+
+    public void initialize(){
+        userTextField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sendButton.fire();
+            }
+        });
+        sendButton.setDefaultButton(true);
+    }
 
     public String speakToGPT(@NotNull String userPrompt) {
         String gptKey = System.getenv("gptKey");
@@ -83,9 +94,24 @@ public class AI_AssistantFX {
         }
         return "Error";
     }
+    public void onEnterPressed(){
+        userTextField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
+                sendButton.fire();
+            }
+            sendButton.setDefaultButton(true);
+        });
+    }
     public void onSendMessage() {
+        userTextField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
+                sendButton.fire();
+            }
+        });
+
         String prompt = userTextField.getText();
         if (!prompt.isEmpty()) {
+            chatBoxVbox.getChildren().remove(emptyLogsMessage);
             Label userPrompt = new Label(prompt);
             userTextField.clear();
             userPrompt.setWrapText(true);
@@ -93,6 +119,8 @@ public class AI_AssistantFX {
             userPrompt.getStyleClass().add("prompt");
             chatBoxVbox.setAlignment(Pos.CENTER_RIGHT);
             chatBoxVbox.getChildren().add(userPrompt);
+
+            //Automatically scrolls to the bottom on each response.
             chatBoxVbox.heightProperty().addListener((obs, oldVal, newVal) -> {
                 messageScrollPane.setVvalue(1.0);
             });
@@ -128,12 +156,24 @@ public class AI_AssistantFX {
                     throw new RuntimeException(ex);
                 }
             });
+            task.setOnFailed(e -> {
+                //No internet connection message goes here.
+            });
             new Thread(task).start();
         }
     }
     public void GETChatlogs(){
         List<AI> chatLogs = httpHandler.GET("gptresponses/filter?userId=" + user.getUserId(), AI.class);
-        chatLogs.forEach(chat ->{
+        chatBoxVbox.getChildren().removeAll();
+        if (chatLogs.isEmpty()){
+            emptyLogsMessage = new Label("This is your personal AI assistant, ask it whatever you need!");
+            emptyLogsMessage.getStyleClass().add("emptyLabel");
+            emptyLogsMessage.setPrefSize(550,450);
+            emptyLogsMessage.setAlignment(Pos.CENTER);
+            chatBoxVbox.getChildren().add(emptyLogsMessage);
+        }
+        else {
+            chatLogs.forEach(chat ->{
             String prompt = chat.getPrompt();
             Label promptLabel = new Label(prompt);
             promptLabel.setWrapText(true);
@@ -155,7 +195,7 @@ public class AI_AssistantFX {
             chatBoxVbox.heightProperty().addListener((obs, oldVal, newVal) -> {
                 messageScrollPane.setVvalue(1.0);
             });
-        });
+        });}
     }
 
     public void switchToTasks(ActionEvent event) {

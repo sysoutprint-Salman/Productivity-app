@@ -18,7 +18,6 @@ import java.util.Optional;
 @RequiredArgsConstructor //Constructor injection via Lombok
 public class TaskController {
     private final TaskService taskService;
-    private final DeletedTaskService deletedTaskService;
     private final TaskRepository taskRepository;
 
     @GetMapping("/{id}") //GET request
@@ -83,7 +82,8 @@ public class TaskController {
         else {return ResponseEntity.notFound().build();}
     }
 
-    @DeleteMapping("/{id}") //DELETE request
+    //For now deleting tasks isn't important.
+    /*@DeleteMapping("/{id}") //DELETE request
     public ResponseEntity<?> deleteTask(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean archive) {
         try{
             if (archive){
@@ -101,7 +101,7 @@ public class TaskController {
         } catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("SpringBoot: Task couldn't be deleted with id: " + id);
         }
-    }
+    }*/
 }
 @Service
 @RequiredArgsConstructor //constructor (Lombok)

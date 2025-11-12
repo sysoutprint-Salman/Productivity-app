@@ -26,6 +26,13 @@
 .tasks_main .scroll-pane .tasks_vbox {
     -fx-background-color: #f3f3f3;
 }
+.emptyLabel {
+    -fx-font-size: 15px;
+    -fx-padding: 25 0 0 0;
+    -fx-font-family: "Arial";
+    -fx-text-fill: grey;
+    -fx-text-alignment: center;
+}
 
 /* -------Tasks-------*/
 .task {
@@ -71,6 +78,9 @@
 }
 .task .title .radio-button .radio .dot {
     -fx-background-color: transparent;
+}
+.task .title .radio-button .radio:hover{
+    -fx-background-color:  #585858;
 }
 
 

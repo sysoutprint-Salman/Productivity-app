@@ -1,28 +1,25 @@
 package JavaFX;
 
 
-import SpringBoot.Task;
-import javafx.animation.PauseTransition;
+import SpringBoot.Rest;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventTarget;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.util.Duration;
+import javafx.stage.Window;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.function.Consumer;
 
 
 public class SwitchScenes {
 
+    private final String stageTitle = "Productivity App";
     public SwitchScenes(){}
 
     public void switchScene(ActionEvent event, String fxmlPath, Consumer<Object> afterLoad) {
@@ -34,21 +31,30 @@ public class SwitchScenes {
             Object source = event.getSource();
 
             if (source instanceof Node node) {
-                // Buttons, Labels, etc.
+                // Attempting to get the stage from any UI element.
                 stage = (Stage) node.getScene().getWindow();
             } else if (source instanceof MenuItem menuItem) {
-                // Regular MenuItem: get the window from its parent popup
+                // Attempting to get the stage through a menuitem's popup window.
                 if (menuItem.getParentPopup() != null) {
                     stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
                 }
-                // If it's inside a MenuBar (no popup), fallback to target
+                // Attempting to get the stage from the clicked event, likely a button.
                 else if (event.getTarget() instanceof Node node) {
                     stage = (Stage) node.getScene().getWindow();
                 }
             }
 
             if (stage == null) {
-                throw new IllegalStateException("Could not resolve Stage from event source: " + source);
+                System.err.println("Could not resolve Stage from event source: " + source + " (Ignorable)");
+
+                // Attempting to use the first visible stage available
+                stage = (Stage) Stage.getWindows().stream()
+                        .filter(Window::isShowing)
+                        .findFirst()
+                        .orElse(null);
+                if (stage == null) {
+                    return;
+                }
             }
 
             stage.setScene(new Scene(root));
@@ -61,18 +67,24 @@ public class SwitchScenes {
         }
     }
 
-
-
     public void switchToLogin(){
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/login.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root);
             Stage stage = new Stage();
-            stage.setTitle("Task Management App");
+            stage.setTitle(stageTitle);
             stage.setScene(scene);
             stage.centerOnScreen();
             stage.show();
+            //Since login uses a different stage than the rest of the app, an explicit shutdown of SB is needed
+            stage.setOnCloseRequest(e -> {
+                ConfigurableApplicationContext ctx = Rest.getApplicationContext();
+                if (ctx != null) {
+                    ctx.close();
+                    System.exit(0);
+                }
+            });
         } catch (IOException | RuntimeException ex) {
             System.err.println("Error trying to load switchToLogin.");
             ex.printStackTrace();
@@ -84,7 +96,7 @@ public class SwitchScenes {
                 Parent root = loader.load();
                 TaskFX FXHandler = loader.getController();
                 Scene scene = new Scene(root);
-                curStage.setTitle("Task Management App");
+                curStage.setTitle(stageTitle);
                 curStage.setScene(scene);
                 curStage.centerOnScreen();
                 curStage.show();
@@ -94,20 +106,4 @@ public class SwitchScenes {
                 ex.printStackTrace();
             }
     }
-    public void switchToNotebook(MenuItem menuItem){
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
-            Parent root = loader.load();
-            NotebookFX FXHandler = loader.getController();
-            Stage stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.centerOnScreen();
-            stage.show();
-            Platform.runLater(FXHandler::GETNotebooks);
-        } catch (IOException | RuntimeException ex) {
-            System.out.println("Something's up with the scene.");
-        }
-    }
-
 }

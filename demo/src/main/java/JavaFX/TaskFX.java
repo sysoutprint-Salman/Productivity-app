@@ -265,7 +265,25 @@ public class TaskFX{
             mainTaskVbox.getChildren().clear();
             List<Task> tasks = httpHandler.GET("tasks/filter?userId=" + user.getUserId()+ "&status=" + status, Task.class);
             tasks = sort(tasks, currentSortOption); //TODO: Use preference
-            tasks.forEach(task -> {
+
+            if (tasks.isEmpty()) {
+                Label emptyLabel = new Label(
+                        status.equals(Task.Status.POSTED) ? "Your todo list looks empty. You can add some tasks by pressing the \"New Task\" button." :
+                                status.equals(Task.Status.DELETED) ? "Deleted tasks can be recovered here. After 30 days, they will be permanently deleted." :
+                                        "This is where completed tasks are, hooray!");
+                emptyLabel.setWrapText(true);
+                emptyLabel.getStyleClass().add("emptyLabel");
+                mainTaskVbox.getChildren().add(emptyLabel);
+                taskLabel.setText(
+                        status.equals(Task.Status.POSTED) ? "TODO" :
+                                status.equals(Task.Status.COMPLETED) ? "Completed" :
+                                        "Deleted"
+                );
+                sortButton.setVisible(status.equals(Task.Status.POSTED));
+                createTaskButton.setVisible(status.equals(Task.Status.POSTED));
+            }
+            else {
+                tasks.forEach(task -> {
                 TitledPane taskCard = new TitledPane();
                 RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
                 ToggleGroup group = new ToggleGroup();
@@ -305,7 +323,13 @@ public class TaskFX{
                         autoUpdateDescription(descriptionArea,task.getId());
                     });
                     dateButton.setOnAction(e -> { editDate(task.getId());});
-
+                    radio.setOnAction(f -> {
+                        if (radio.isSelected()){
+                            String json = String.format("{\"status\":\"%s\"}", Task.Status.COMPLETED);
+                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            mainTaskVbox.getChildren().remove(taskCard);
+                        }
+                    });
                     ContextMenu rightClickMenu = new ContextMenu();
                     MenuItem completeItem = new MenuItem("Complete");
                     MenuItem editItem = new MenuItem("Edit");
@@ -332,7 +356,7 @@ public class TaskFX{
                     });
                 }
 
-                if (status.equals(Task.Status.DELETED)){
+                else if (status.equals(Task.Status.DELETED)){
                     taskLabel.setText("Deleted");
                     sortButton.setVisible(false);
                     createTaskButton.setVisible(false);
@@ -356,7 +380,7 @@ public class TaskFX{
                     taskCard.setContextMenu(rightClickMenu);
                 }
 
-                if (status.equals(Task.Status.COMPLETED)){
+                else if (status.equals(Task.Status.COMPLETED)){
                     taskLabel.setText("Completed");
                     sortButton.setVisible(false);
                     createTaskButton.setVisible(false);
@@ -370,6 +394,7 @@ public class TaskFX{
                 taskCard.setUserData(task.getId());
                 mainTaskVbox.getChildren().add(taskCard);
             });
+                }
         }catch (Exception e){
             System.err.println("Error occurred trying to load tasks.");
         }

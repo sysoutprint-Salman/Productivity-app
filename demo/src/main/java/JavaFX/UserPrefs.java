@@ -15,6 +15,7 @@ public class UserPrefs {
     private final User user = new User();
     private User savedUser;
 
+
     public UserPrefs(){}
 
     public void saveUser(){
@@ -37,7 +38,7 @@ public class UserPrefs {
         return users.get(0);
     }
 
-    public void registerUser(){
+    /*public void registerUser(){
         if (!username.matches("^(?=.*[A-Za-z])(?=.*\\d).{6,}$")){
             System.err.println("Username needs to be 6 characters long and contain atleast 1 number.");
         } else if (!email.matches("^(?=[A-Za-z0-9._%+-]*[A-Za-z])[A-Za-z0-9._%+-]+@(gmail|hotmail|outlook)\\.com$")) {
@@ -45,7 +46,9 @@ public class UserPrefs {
         } else {
             saveUser();
         }
-    }
+    }*/
+
+
     public void saveToPref(String credential){
         if (credential.matches(".*@(gmail|hotmail|outlook)\\.com$")){
             userPreferences.put("email",credential);
