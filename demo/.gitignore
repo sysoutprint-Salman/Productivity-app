@@ -32,3 +32,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/java/TODO
+/src/main/resources/application.properties
