@@ -28,6 +28,7 @@ public class HTTPHandler {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.statusCode() == 200 ? "Successfully posted." : "Failed to post.");
         } catch (Exception ex) {
+            System.out.println("HTTP: An issue arose with POST request.");
             ex.printStackTrace();
         }
     }
@@ -41,6 +42,7 @@ public class HTTPHandler {
                 System.out.println("Response body: " + response.body());
             } else {System.out.println("Failed to delete.");}
         } catch (IOException | InterruptedException e) {
+            System.out.println("HTTP: An issue arose with DELETE request.");
             e.printStackTrace();
         }
     }
@@ -62,7 +64,7 @@ public class HTTPHandler {
                 return List.of(singleObject);
             }
         }catch(IOException | InterruptedException e){
-            System.out.println("HTTP: An issue arose with GETTING (ignorable).");
+            System.out.println("HTTP: An issue arose with GET request. (ignorable).");
         }   return Collections.emptyList();
     }
     public boolean GET(String path){

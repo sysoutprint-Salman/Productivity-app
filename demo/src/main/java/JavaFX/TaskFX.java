@@ -2,7 +2,9 @@ package JavaFX;
 
 import SpringBoot.Task;
 import SpringBoot.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,9 +16,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Data;
 import org.jetbrains.annotations.UnknownNullability;
+import org.springframework.jmx.export.naming.ObjectNamingStrategy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,7 +41,7 @@ public class TaskFX{
     public Button createTaskButton;
     private Timer timer = new Timer();
     private boolean isTaskScheduled = false;
-    private final int DELAY = 1000;
+    private final int DELAY = 700;
     private final ObjectMapper mapper = new ObjectMapper();
     public enum Sort {A_Z, DUE_DATE, NEWEST}
     private Sort currentSortOption;
@@ -56,36 +60,49 @@ public class TaskFX{
     public RadioMenuItem  Newest;
 
     public TaskFX(){}
+
     public void createTask() {
         Stage createTaskStage = new Stage();
-        createTaskStage.setTitle("Create New Task");
-
         TextField titleField = new TextField();
-        titleField.setPromptText("Task Title");
-
         DatePicker picker = new DatePicker();
-        picker.setPromptText("mm/dd/yyyy");
-
-        picker.setPrefWidth(100);
-
         HBox timeHbox = new HBox(10, picker); //, comboBoxTimes(), am, pm);
-        timeHbox.getStyleClass().add("pickers_hbox");
-
         TextArea descriptionArea = new TextArea();
-        descriptionArea.setPromptText("Description");
-
         Button createButton = new Button("Create");
+
+        createTaskStage.setTitle("Create New Task");
+        titleField.setPromptText("Task Title");
+        picker.setPromptText("mm/dd/yyyy");
+        picker.setPrefWidth(100);
+        picker.setEditable(false);
+        timeHbox.getStyleClass().add("pickers_hbox");
+        descriptionArea.setPromptText("Description");
+        descriptionArea.setWrapText(true);
+
         createButton.setOnAction(event -> {
+            System.out.println("Button pressed");
             String title = titleField.getText();
             LocalDate date = picker.getValue();
             String description = descriptionArea.getText();
-            if (title != null && picker.getValue() != null && descriptionArea.getText() != null) {
-                String taskJson = String.format(
-                        "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\", \"status\":\"POSTED\", \"userId\":\"%s\"}",
-                        title, date != null ? date.toString() : "", description, user.getUserId()
-                );
-                httpHandler.POST("tasks", taskJson);
-            } else {return;}
+
+            try {
+                if (!title.isEmpty() && date != null) {
+                    ObjectNode json = mapper.createObjectNode();
+                    json.put("title", title);
+                    json.put("date", date.toString());
+                    json.put("description", description);
+                    json.put("status", "POSTED");
+                    json.put("userId", user.getUserId());
+                    String taskJson = mapper.writeValueAsString(json);
+                    httpHandler.POST("tasks", taskJson);
+                }
+                else {
+                    //Add error message
+                    return;
+                }
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
             try {
                 Thread.sleep(300);
             } catch (InterruptedException e) {
@@ -105,39 +122,51 @@ public class TaskFX{
         createTaskStage.show();
     }
 
-    public void editTask(Long id) {
+    public void editTask(Long taskId) {
+        List<Task> prevTask = httpHandler.GET("tasks/" + taskId.toString(), Task.class);
+        Task prevInfo = prevTask.get(0);
+
         Stage editStage = new Stage();
-        editStage.setTitle("Edit Task");
-
         TextField editTitle = new TextField();
-        editTitle.setPromptText("Task Title");
-
         DatePicker editPicker = new DatePicker();
-        editPicker.setPromptText("mm/dd/yyyy");
-        editPicker.setPrefWidth(100);
-
         HBox editHBox = new HBox(10, editPicker);
-
         TextArea editDescriptionArea = new TextArea();
-        editDescriptionArea.setPromptText("Description");
         Button editButton = new Button("Edit");
 
+        editStage.setTitle("Edit Task");
+        editTitle.setPromptText("Task Title");
+        editPicker.setPromptText("mm/dd/yyyy");
+        editPicker.setPrefWidth(100);
+        editPicker.setEditable(false);
+        editDescriptionArea.setPromptText("Description");
+
+        editTitle.setText(prevInfo.getTitle());
+        editPicker.setValue(prevInfo.getDate());
+        editDescriptionArea.setText(prevInfo.getDescription());
+
         editButton.setOnAction(event -> {
-            String title = editTitle.getText();
-            LocalDate date = editPicker.getValue();
-            String description = editDescriptionArea.getText();
-            String json = String.format(
-                    "{\"title\":\"%s\", \"date\":\"%s\", \"description\":\"%s\"}",
-                    title,
-                    date != null ? date.toString() : "",
-                    description
-            );
-            if (title != null && date != null && description != null) {
-                httpHandler.UPDATE(json, "tasks/"+id);
-            } else {return;}
             try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
+                String title = editTitle.getText();
+                LocalDate date = editPicker.getValue();
+                String description = editDescriptionArea.getText();
+
+                if (!title.isEmpty() && date != null) {
+                    ObjectNode jsonBlock = mapper.createObjectNode();
+                    jsonBlock.put("title",title);
+                    jsonBlock.put("date", date.toString());
+                    jsonBlock.put("description",description);
+                    String json = mapper.writeValueAsString(jsonBlock);
+                    httpHandler.UPDATE(json, "tasks/"+taskId);
+                } else {
+
+                    return;
+                }
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
             mainTaskVbox.getChildren().clear();
@@ -152,6 +181,7 @@ public class TaskFX{
         editStage.setScene(formScene);
         editStage.show();
     }
+
     public void editDate(Long id){
         Stage editStage = new Stage();
         editStage.setTitle("Edit Date");
@@ -183,6 +213,7 @@ public class TaskFX{
         editStage.setScene(formScene);
         editStage.show();
     }
+
     public void autoUpdateDescription(TextArea notepadArea, Long taskId){
             if (isTaskScheduled) {
                 timer.cancel();
@@ -208,6 +239,7 @@ public class TaskFX{
             timer.schedule(task, DELAY);
             isTaskScheduled = true;
     }
+
     public <T> List<T> sort(List<T> list, Sort sortOption ){
         if (list.isEmpty()) return list;
         if (sortOption == null) return list;
@@ -230,6 +262,7 @@ public class TaskFX{
         }
         return Collections.emptyList();
     }
+
     public void sortTodo(){
         A_Z.setToggleGroup(sortGroup);
         Due_Date.setToggleGroup(sortGroup);
@@ -249,7 +282,8 @@ public class TaskFX{
             getByPosted();
         });
     }
-    public TaskFX.Sort sortConvertor( String sortOption){
+
+    public TaskFX.Sort sortConvertor(String sortOption){
         switch (sortOption){
             case "A_Z":
                 return Sort.A_Z;
@@ -260,6 +294,7 @@ public class TaskFX{
         }
         return null;
     }
+
     public void todo(Task.Status status){
         try{
             mainTaskVbox.getChildren().clear();
@@ -287,12 +322,13 @@ public class TaskFX{
                 TitledPane taskCard = new TitledPane();
                 RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
                 ToggleGroup group = new ToggleGroup();
-                radio.setToggleGroup(group);
+
                 Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
                 Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(Region.USE_COMPUTED_SIZE);
                 TextArea descriptionArea = new TextArea(task.getDescription());
                 HBox taskHbox = new HBox(10);
-
+                VBox taskContent = new VBox();
+                radio.setToggleGroup(group);
                 taskHbox.getStyleClass().add("task_hbox");
                 taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
                 taskHbox.setAlignment(Pos.CENTER);
@@ -300,18 +336,26 @@ public class TaskFX{
                 HBox.setHgrow(taskTitle, Priority.ALWAYS);
                 taskTitle.setMaxWidth(Double.MAX_VALUE);
 
-
                 taskCard.setExpanded(false);
                 taskCard.setGraphic(taskHbox);
                 taskCard.getStyleClass().add("task");
 
-                descriptionArea.setPrefHeight(50);
+                descriptionArea.getStyleClass().add("task_description");
                 descriptionArea.setWrapText(true);
+                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
+                descriptionArea.setPrefHeight(50);
+                descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
+                    double initialHeight = 50;
+                    Text helper = new Text(newText);
+                    helper.setFont(descriptionArea.getFont());
+                    helper.setWrappingWidth(descriptionArea.getWidth() - 20);
+                    double newHeight = helper.getLayoutBounds().getHeight() + 20;
+                    // Prevent shrinking below initial height
+                    descriptionArea.setPrefHeight(Math.max(newHeight, initialHeight));
+                });
 
-                VBox taskContent = new VBox();
                 taskContent.setSpacing(8);
                 taskCard.setContent(taskContent);
-                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
 
                 sortTodo();
                 if (status.equals(Task.Status.POSTED)){
@@ -396,24 +440,28 @@ public class TaskFX{
             });
                 }
         }catch (Exception e){
-            System.err.println("Error occurred trying to load tasks.");
+            System.err.println("JavaFX: Error occurred trying to load tasks.");
         }
     }
     public void getByPosted(){
         todo(Task.Status.POSTED);
     }
+
     public void getByDeleted(){
         todo(Task.Status.DELETED);
     }
+
     public void getByCompleted(){
         todo(Task.Status.COMPLETED);
     }
+
     public void switchToGPT(ActionEvent event) {
         handler.switchScene(event, "AI", consumer->{
             ai = (AI_AssistantFX) consumer;
             ai.GETChatlogs();
         });
     }
+
     public void switchToNotebook(ActionEvent event) {
         handler.switchScene(event, "notebook", consumer->{
             notebooks = (NotebookFX) consumer;

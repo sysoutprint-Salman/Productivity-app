@@ -20,13 +20,13 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskRepository taskRepository;
 
-    @GetMapping("/{id}") //GET request
+    @GetMapping() //GET request
     public List<Task> getAllTasks() {
         return taskService.getAllTasks();
     }
-    @GetMapping("/{status}")
-    public List<Task> findByStatus(@PathVariable Task.Status status){
-        return taskService.findByStatus(status);
+    @GetMapping("/{id}")
+    public Task getTaskById(@PathVariable Long id){
+        return taskService.getTaskById(id);
     }
     @GetMapping("/filter")
     public List<Task> findByIdAndStatus(@RequestParam Long userId, @RequestParam Task.Status status){
@@ -119,7 +119,6 @@ class TaskService {
     }
     public List<Task> findByIdAndStatus(Long userId, Task.Status status){
         return taskRepository.findByUserIdAndStatus(userId, status);
-
     }
     public Task createTask(Task task) {
         return taskRepository.save(task);
