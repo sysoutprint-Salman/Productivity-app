@@ -15,21 +15,30 @@
 }
 .tabs_vbox{
     //-fx-border-color: gray ;
-   -fx-background-color: white;
+   -fx-background-color: #ececec;
 
+}
+.emptyLabel {
+    -fx-font-size: 15px;
+    -fx-padding: 25 0 0 0;
+    -fx-font-family: "Arial";
+    -fx-text-fill: grey;
+    -fx-text-alignment: center;
 }
 
 /* -------Tab header-------*/
+
 .tabs_header .title{
-    -fx-background-color: #F2F2F2;
-    //-fx-border-color: gray;
+    -fx-background-color: #454545;
     -fx-border-color: transparent transparent gray transparent;
 }
 .tabs_header .title .button{
-    -fx-background-color:  #F6F5F5 ;
-    -fx-border-color: gray;
-    -fx-border-radius: 100;
-    -fx-background-radius: 100;
+    -fx-background-color:  white ;
+    -fx-border-radius: 1;
+    -fx-padding: 5.5;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-background-radius:100;
 }
 .tabs_header .title .button:hover{
     -fx-background-color: #C8C7C7;
@@ -49,13 +58,17 @@
     visibility: hidden;
     -fx-pref-width: 0;
 }
+.add_icon{
+}
 
 /* -------Tabs-------*/
 .tab{
-    -fx-pref-height: 30;
+    -fx-pref-height: 40;
+    -fx-pref-width: 200;
     -fx-alignment: baseline-left;
+    -fx-background-color: #f9f9f9;
     -fx-border-color: transparent transparent gray transparent;
-    -fx-background-color: #e8e8e8;
+    -fx-border-width: 0 0 1 4;
 }
 
 .tab:selected, .tab:hover{
@@ -72,4 +85,44 @@
 }
 .notepad_scroll_pane .notebook_textarea .content{
     //-fx-background-color: white;
+}
+/* -------Creation & Edit popup-------*/
+.create_edit_popup{
+
+}
+.popup_vbox{
+    -fx-padding:20;
+    -fx-spacing:15;
+}
+.text_field{
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+    -fx-focus-glow:red;
+}
+.color-picker{
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+    -fx-padding:2;
+}
+.color-picker:pressed{
+
+}
+.color-picker:hover{
+    -fx-background-color: #d1d1d1;
+}
+.color-picker:hover .arrow{
+    -fx-background-color: white;
+}
+.submit_button{
+    -fx-background-color: #454545;
+    -fx-text-fill:white;
+    -fx-pref-width:282;
+}
+.submit_button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.submit_button:pressed {
+    -fx-background-color: #171717;
 }

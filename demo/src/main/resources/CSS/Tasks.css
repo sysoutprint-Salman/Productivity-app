@@ -3,16 +3,17 @@
     -fx-background-color: #f3f3f3;
 }
 .tasks_main .new_task_button { //New Task button
-    -fx-background-color: white;
-    -fx-border-color: gray;
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
 }
 .tasks_main .new_task_button:hover { //New Task button
-    -fx-background-color: #d5d5d5;
+    -fx-background-color: #2e2e2e;
 }
 .tasks_main .new_task_button:pressed {
-    -fx-background-color: #d5d5d5;
+    -fx-background-color: #171717; //previously was #d5d5d5
 }
 .tasks_main .tasks_label{
     -fx-font-family: "Arial";
@@ -74,36 +75,21 @@
     -fx-shape: "M0,0 A1,1 0 1,0 0,-0.01 Z";
 }
 .task .title .radio-button:selected .radio {
-    -fx-background-color: #585858;
+    -fx-background-color: #454545;
 }
 .task .title .radio-button .radio .dot {
     -fx-background-color: transparent;
 }
 .task .title .radio-button .radio:hover{
-    -fx-background-color:  #585858;
+    -fx-background-color:  #454545;
 }
 
-
-/* -------Task creation pop-up-------*/
-.create_task_vbox{
-    -fx-background-color: #EFF2F6;
-}
-.create_task_vbox .button{
-    -fx-border-color: #585858;
-    -fx-background-color: white;
-}
-.create_task_vbox .button:pressed{
-    -fx-background-color: #E8E8E8;
-}
-.create_task_vbox .pickers_hbox .color-picker {
-    -fx-background-color: #E8E8E8;
-}
 
 /* -------Sort button-------*/
 .tasks_main #sortButton {
-    -fx-background-color: white;
+    -fx-background-color: #454545;
+    -fx-font-size: 14;
     -fx-padding: 0 2 0 2;
-    -fx-border-color: gray;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
 }
@@ -114,7 +100,60 @@
 }
 .tasks_main #sortButton:showing,
 .tasks_main #sortButton:hover{
-    -fx-background-color: #d5d5d5;
+    //-fx-background-color: #d5d5d5;
+    -fx-background-color: #2e2e2e;
+}
+.radio-menu-item:focused{
+    -fx-background-color: #454545;
 }
 
 /* -------Code specific-------*/
+.task_description{
+    -fx-background-color: white;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: #cfcfcf;
+}
+
+/* -------Task creation & editing popup-------*/
+.task_creation {
+}
+.task_creation .main_vbox {
+    //-fx-background-color: #e8e8e8;
+
+}
+.title_box {
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+}
+.description_box {
+    -fx-control-inner-background: #e8e8e8;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: #cfcfcf;
+}
+.submit_button {
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+}
+.submit_button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.date_picker {
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cfcfcf;
+}
+.date_picker .text-field {
+    -fx-background-color: #e8e8e8;
+}
+.date_picker .arrow-button {
+    -fx-background-color: #454545;
+}
+.date_picker .arrow-button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.date_picker .arrow-button .arrow{
+    -fx-background-color: white;
+}

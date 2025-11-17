@@ -7,10 +7,13 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="610.0" prefWidth="600.0" styleClass="chatbox_stage" stylesheets="@../CSS/AI_Assistant.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.AI_AssistantFX">
    <children>
@@ -36,10 +39,29 @@
        </MenuBar>
       <BorderPane layoutX="14.0" layoutY="38.0" prefHeight="350.0" prefWidth="572.0" styleClass="main_pane" AnchorPane.bottomAnchor="11.600000000000023" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="38.0">
          <bottom>
-            <HBox fx:id="messageAreaHbox" alignment="CENTER" prefHeight="71.0" prefWidth="572.0" spacing="10.0" styleClass="prompt_area" BorderPane.alignment="CENTER">
+            <HBox fx:id="messageAreaHbox" alignment="CENTER" prefHeight="71.0" prefWidth="486.0" styleClass="hbox_container" BorderPane.alignment="CENTER">
                <children>
-                  <TextField fx:id="userTextField" prefHeight="27.0" prefWidth="439.0" promptText="Ask something to the AI assistant." />
-                  <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" prefHeight="24.0" prefWidth="54.0" text="Send" />
+                  <HBox alignment="CENTER" maxHeight="-Infinity" prefHeight="5.0" prefWidth="474.0" styleClass="prompt_area">
+                     <children>
+                        <TextField fx:id="userTextField" prefHeight="30.0" prefWidth="439.0" promptText="Ask something to the AI assistant." styleClass="prompt_textfield">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </TextField>
+                        <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" prefHeight="34.0" prefWidth="42.0" styleClass="send_button">
+                           <graphic>
+                              <ImageView styleClass="upload_icon">
+                                 <image>
+                                    <Image url="@../Images/up-arrow.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                     </children>
+                     <padding>
+                        <Insets left="8.0" right="2.0" />
+                     </padding>
+                  </HBox>
                </children>
                <BorderPane.margin>
                   <Insets />

@@ -74,12 +74,17 @@ public class TaskFX{
         picker.setPromptText("mm/dd/yyyy");
         picker.setPrefWidth(100);
         picker.setEditable(false);
+        createButton.setPrefSize(320,25);
         timeHbox.getStyleClass().add("pickers_hbox");
         descriptionArea.setPromptText("Description");
         descriptionArea.setWrapText(true);
 
+        titleField.getStyleClass().add("title_box");
+        picker.getStyleClass().add("date_picker");
+        createButton.getStyleClass().add("submit_button");
+        descriptionArea.getStyleClass().add("description_box");
+
         createButton.setOnAction(event -> {
-            System.out.println("Button pressed");
             String title = titleField.getText();
             LocalDate date = picker.getValue();
             String description = descriptionArea.getText();
@@ -118,7 +123,9 @@ public class TaskFX{
         createTaskVbox.getStyleClass().add("create_task_vbox");
 
         Scene createTaskScene = new Scene(createTaskVbox, 350, 300);
+        createTaskScene.getStylesheets().add("CSS/Tasks.css");
         createTaskStage.setScene(createTaskScene);
+        createTaskStage.setResizable(false);
         createTaskStage.show();
     }
 
@@ -138,11 +145,16 @@ public class TaskFX{
         editPicker.setPromptText("mm/dd/yyyy");
         editPicker.setPrefWidth(100);
         editPicker.setEditable(false);
+        editButton.setPrefSize(320,25);
         editDescriptionArea.setPromptText("Description");
-
         editTitle.setText(prevInfo.getTitle());
         editPicker.setValue(prevInfo.getDate());
         editDescriptionArea.setText(prevInfo.getDescription());
+
+        editTitle.getStyleClass().add("title_box");
+        editPicker.getStyleClass().add("date_picker");
+        editButton.getStyleClass().add("submit_button");
+        editDescriptionArea.getStyleClass().add("description_box");
 
         editButton.setOnAction(event -> {
             try {
@@ -179,6 +191,8 @@ public class TaskFX{
 
         Scene formScene = new Scene(editTaskFormLayout, 350, 300);
         editStage.setScene(formScene);
+        editStage.setResizable(false);
+        formScene.getStylesheets().add("CSS/Tasks.css");
         editStage.show();
     }
 

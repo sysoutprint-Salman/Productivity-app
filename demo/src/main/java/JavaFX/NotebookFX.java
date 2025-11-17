@@ -3,6 +3,7 @@ package JavaFX;
 import SpringBoot.Notebook;
 import SpringBoot.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -43,49 +44,84 @@ public class NotebookFX{
 
     public void createNewTab(){
         Stage newTabStage = new Stage();
-        newTabStage.setTitle("Create Tab");
         TextField newTabTitle = new TextField();
+        ColorPicker colorPicker = new ColorPicker();
         Button createTabButton = new Button("Create Tab");
+
+        newTabStage.setTitle("Create Tab");
+        newTabTitle.setPromptText("Tab title");
+        newTabTitle.getStyleClass().add("text_field");
+        colorPicker.getStyleClass().add("color-picker");
+        createTabButton.getStyleClass().add("submit_button");
+
         createTabButton.setOnAction(e ->{
             String title = newTabTitle.getText();
-            String notebookJson = String.format(
-                    "{\"tabTitle\":\"%s\", \"userId\":\"%s\"}", title, user.getUserId());
-            httpHandler.POST("notebooks", notebookJson);
-            newTabStage.close();
-            tabsVbox.getChildren().clear();
-            GETNotebooks();
+            if (!title.isEmpty()){
+                try {
+                    ObjectNode objectNode = mapper.createObjectNode();
+                    objectNode.put("tabTitle",title);
+                    objectNode.put("userId", user.getUserId());
+                    String notebookJson = mapper.writeValueAsString(objectNode);
+                    httpHandler.POST("notebooks", notebookJson);
+                    newTabStage.close();
+                    tabsVbox.getChildren().clear();
+                    GETNotebooks();
+                } catch (Exception ex) {
+                    System.out.println("Notebook tab creation failed.");
+                    ex.printStackTrace();
+                }
+            }
         });
 
-        VBox newTabVbox = new VBox(10, newTabTitle, createTabButton);
+        VBox newTabVbox = new VBox(10, newTabTitle, colorPicker, createTabButton);
         newTabVbox.setPadding(new Insets(20));
 
-        Scene newTabScene = new Scene(newTabVbox, 320, 150);
+        Scene newTabScene = new Scene(newTabVbox, 300, 153);
+        newTabScene.getStylesheets().add("CSS/Notebook.css");
         newTabStage.setScene(newTabScene);
         newTabStage.show();
     }
+
     public void editNewTab(String oldText, Long id, Notebook notebook, ToggleButton tabButton){
         Stage editTabStage = new Stage();
-        editTabStage.setTitle("Edit Tab");
-        TextField editTabTitle = new TextField(); editTabTitle.setPromptText(oldText);
+        TextField editTabTitle = new TextField();
+        ColorPicker editColorPicker = new ColorPicker();
         Button editTabButton = new Button("Edit Tab");
+
+        editTabStage.setTitle("Edit Tab");
+        editTabTitle.setText(oldText);
+        editTabTitle.setPromptText("Tab title");
+        editTabTitle.getStyleClass().add("text_field");
+        editColorPicker.getStyleClass().add("color-picker");
+        editTabButton.getStyleClass().add("submit_button");
+
         editTabButton.setOnAction(e ->{
             String title = editTabTitle.getText();
-            String notebookJson = String.format(
-                    "{\"tabTitle\":\"%s\"}", title);
-            httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
-            notebook.setTabTitle(title);
-            tabButton.setText(notebook.getTabTitle());
-            /*tabsVbox.getChildren().clear();
-            Platform.runLater(this::GETNotebooks);*/
-            editTabStage.close();
+            if (!title.isEmpty()){
+                try {
+                    ObjectNode objectNode = mapper.createObjectNode();
+                    objectNode.put("tabTitle",title);
+                    String notebookJson = mapper.writeValueAsString(objectNode);
+                    httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
+                    notebook.setTabTitle(title);
+                    tabButton.setText(notebook.getTabTitle());
+                    editTabStage.close();
+                } catch (Exception ex) {
+                    System.out.println("Notebook tab creation failed.");
+                    ex.printStackTrace();
+                }
+            }
         });
-        VBox editTabVbox = new VBox(10, editTabTitle, editTabButton);
+
+        VBox editTabVbox = new VBox(10, editTabTitle, editColorPicker, editTabButton);
         editTabVbox.setPadding(new Insets(20));
-        Scene editTabScene = new Scene(editTabVbox, 320, 150);
+
+        Scene editTabScene = new Scene(editTabVbox, 300, 153);
+        editTabScene.getStylesheets().add("CSS/Notebook.css");
         editTabStage.setScene(editTabScene);
         editTabStage.show();
-
     }
+
     public void GETNotebooks(){
         try {
             List<Notebook> notebooks = httpHandler.GET("notebooks/filter?userId=" + user.getUserId(),Notebook.class);
@@ -95,12 +131,19 @@ public class NotebookFX{
             notepadArea.setPromptText("Type anything you want.");
             ToggleGroup tabsGroup = new ToggleGroup();
 
+            if (notebooks.isEmpty()){
+                Label userIndicator = new Label("Your notebook looks empty, try making some tabs by pressing the \"+\" button.");
+                userIndicator.setWrapText(true);
+                userIndicator.getStyleClass().add("emptyLabel");
+                tabsVbox.getChildren().add(userIndicator);
+            } else {
             notebooks.forEach((notebook ->{
                 ToggleButton tabButton = new ToggleButton();
                 tabButton.setText(notebook.getTabTitle());
                 tabButton.setMaxWidth(Double.MAX_VALUE);
                 tabButton.getStyleClass().add("tab");
                 tabButton.setToggleGroup(tabsGroup);
+                tabButton.setWrapText(true);
                 tabButton.setOnMouseClicked(e ->{
                     notepadArea.setText(notebook.getNotebookText());
                     notepadArea.setVisible(true);
@@ -119,7 +162,7 @@ public class NotebookFX{
                     notepadArea.setVisible(false);});
                 tabButton.setContextMenu(contextMenu);
                 tabsVbox.getChildren().add(tabButton);
-            }));
+            }));}
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -186,13 +229,13 @@ public class NotebookFX{
         return new TitledPane();
     } //TODO, work on having tabs be colored
 
-
     public void switchToTasks(ActionEvent event) {
         handler.switchScene(event, "tasks", consumer->{
             taskFX = (TaskFX) consumer;
             taskFX.getByPosted();
         });
     }
+
     public void switchToGPT(ActionEvent event) {
         handler.switchScene(event, "AI", consumer->{
             ai = (AI_AssistantFX) consumer;

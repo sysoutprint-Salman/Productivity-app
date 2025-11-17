@@ -45,8 +45,8 @@
          <font>
             <Font size="24.0" />
          </font></Label>
-      <Button fx:id="createTaskButton" layoutX="25.0" layoutY="45.0" mnemonicParsing="false" onAction="#createTask" prefHeight="27.0" prefWidth="74.0" styleClass="new_task_button" text="New Task" />
-      <MenuButton fx:id="sortButton" layoutX="506.0" layoutY="45.0" mnemonicParsing="false" text="Sort" AnchorPane.rightAnchor="49.200000000000045" AnchorPane.topAnchor="45.0">
+      <Button fx:id="createTaskButton" layoutX="25.0" layoutY="45.0" mnemonicParsing="false" onAction="#createTask" prefHeight="30.0" prefWidth="89.0" styleClass="new_task_button" text="New Task" />
+      <MenuButton fx:id="sortButton" layoutX="506.0" layoutY="45.0" mnemonicParsing="false" text="Sort" textFill="WHITE" AnchorPane.rightAnchor="49.200000000000045" AnchorPane.topAnchor="45.0">
         <items>
             <RadioMenuItem fx:id="A_Z" mnemonicParsing="false" text="A_Z" />
             <RadioMenuItem fx:id="Due_Date" mnemonicParsing="false" text="Due Date" />

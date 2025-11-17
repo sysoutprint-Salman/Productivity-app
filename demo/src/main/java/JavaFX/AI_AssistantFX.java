@@ -16,6 +16,7 @@ import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
+import javax.swing.text.html.ImageView;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -48,6 +49,8 @@ public class AI_AssistantFX {
     private User user = userPrefs.getSavedUser();
     public VBox placeholderVbox;
     public Label emptyLogsMessage;
+    public ImageView uploadIcon;
+
     public AI_AssistantFX(){}
 
     public void initialize(){
@@ -94,6 +97,7 @@ public class AI_AssistantFX {
         }
         return "Error";
     }
+
     public void onEnterPressed(){
         userTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
@@ -102,6 +106,7 @@ public class AI_AssistantFX {
             sendButton.setDefaultButton(true);
         });
     }
+
     public void onSendMessage() {
         userTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
@@ -162,6 +167,7 @@ public class AI_AssistantFX {
             new Thread(task).start();
         }
     }
+
     public void GETChatlogs(){
         List<AI> chatLogs = httpHandler.GET("gptresponses/filter?userId=" + user.getUserId(), AI.class);
         chatBoxVbox.getChildren().removeAll();

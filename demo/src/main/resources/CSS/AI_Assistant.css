@@ -40,16 +40,36 @@
 }
 
 /*Prompt field and send button*/
-.main_pane .prompt_area .text-field{
-    -fx-background-color: white;
-    -fx-border-color: gray;
-    -fx-border-radius:3;
+.hbox_container{
+
 }
-.main_pane .prompt_area .button{
+.prompt_textfield{
     -fx-background-color: white;
-    -fx-border-color: gray;
-    -fx-border-radius:3;
+    //-fx-border-color: #e6e6e6;
+
+    -fx-border-radius:100;
 }
-.main_pane .prompt_area .button:hover{
+.send_button{
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-background-radius:100;
+}
+.send_button:hover{
     -fx-background-color: #E3E3E3;
+    -fx-background-radius:100;
+
+}
+.upload_icon{
+    //-fx-background-color:red;
+    -fx-fit-height:40;
+    -fx-fit-width:40;
+    -fx-opacity: 1;
+}
+.prompt_area{
+    -fx-background-color:white;
+    -fx-border-color: #737373;
+    -fx-border-radius:100;
+    -fx-background-radius:100;
 }
