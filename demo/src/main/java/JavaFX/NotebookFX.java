@@ -17,7 +17,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.util.*;
@@ -38,15 +40,16 @@ public class NotebookFX{
     private ToDoFX toDoFX;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
+    private Stage popupStage;
+    private Scene scene;
 
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
-    public Pane savedPane;
 
     public NotebookFX(){}
 
     public void createNewTab(){
-        Stage newTabStage = new Stage();
+        popupStage = new Stage();
         TextField newTabTitle = new TextField();
         ColorPicker colorPicker = new ColorPicker();
         Button createTabButton = new Button("Create Tab");
@@ -54,7 +57,7 @@ public class NotebookFX{
         CheckBox noColorCB = new CheckBox();
         HBox colorHbox = new HBox(colorPicker, noColorLabel, noColorCB);
 
-        newTabStage.setTitle("Create Tab");
+        popupStage.setTitle("Create Tab");
         newTabTitle.setPromptText("Tab title");
         newTabTitle.getStyleClass().add("text_field");
         colorPicker.getStyleClass().add("color-picker");
@@ -79,7 +82,7 @@ public class NotebookFX{
                     objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
                     httpHandler.POST("notebooks", notebookJson);
-                    newTabStage.close();
+                    popupStage.close();
                     tabsVbox.getChildren().clear();
                     GETNotebooks();
                 } catch (Exception ex) {
@@ -92,14 +95,16 @@ public class NotebookFX{
         VBox newTabVbox = new VBox(10, newTabTitle, colorHbox, createTabButton);
         newTabVbox.setPadding(new Insets(20));
 
-        Scene newTabScene = new Scene(newTabVbox, 300, 153);
-        newTabScene.getStylesheets().add("CSS/Notebook.css");
-        newTabStage.setScene(newTabScene);
-        newTabStage.show();
+        scene = new Scene(newTabVbox, 300, 153);
+        scene.getStylesheets().add("CSS/Notebook.css");
+        popupStage.setScene(scene);
+        popupStage.setResizable(false);
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.show();
     }
 
     public void editNewTab(String oldText, Long id, Notebook notebook, ToggleButton tabButton){
-        Stage editTabStage = new Stage();
+        popupStage = new Stage();
         TextField editTabTitle = new TextField();
         ColorPicker editColorPicker = new ColorPicker();
         Button editTabButton = new Button("Edit Tab");
@@ -107,7 +112,7 @@ public class NotebookFX{
         CheckBox noColorCB = new CheckBox();
         HBox colorHbox = new HBox(editColorPicker, noColorLabel, noColorCB);
 
-        editTabStage.setTitle("Edit Tab");
+        popupStage.setTitle("Edit Tab");
         editTabTitle.setText(oldText);
         editTabTitle.setPromptText("Tab title");
 
@@ -144,7 +149,7 @@ public class NotebookFX{
                     String cssStyle = hexColor != null ? hexColor + ";" : "transparent;";
                     tabButton.setStyle("-fx-border-color: transparent transparent #cfcfcf " + cssStyle);
                     tabButton.setText(notebook.getTabTitle());
-                    editTabStage.close();
+                    popupStage.close();
                 } catch (Exception ex) {
                     System.out.println("Notebook tab creation failed.");
                     ex.printStackTrace();
@@ -155,10 +160,12 @@ public class NotebookFX{
         VBox editTabVbox = new VBox(10, editTabTitle, colorHbox, editTabButton);
         editTabVbox.setPadding(new Insets(20));
 
-        Scene editTabScene = new Scene(editTabVbox, 300, 153);
-        editTabScene.getStylesheets().add("CSS/Notebook.css");
-        editTabStage.setScene(editTabScene);
-        editTabStage.show();
+        scene = new Scene(editTabVbox, 300, 153);
+        scene.getStylesheets().add("CSS/Notebook.css");
+        popupStage.setScene(scene);
+        popupStage.setResizable(false);
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.show();
     }
 
     public void GETNotebooks(){
@@ -229,7 +236,6 @@ public class NotebookFX{
             );
             debouncer.setCycleCount(1); //Performs the above task once each time it fires
         notepadArea.setOnKeyTyped(e -> {
-            savedPane.setVisible(false);
             debouncer.stop(); //Stops any previous running timelines
             debouncer.playFromStart(); //Restarts
         });

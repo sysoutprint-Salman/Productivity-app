@@ -33,6 +33,10 @@ public class UI extends Application {
     public void start(Stage primaryStage) throws IOException {
         try {
             logInFX.autoLogIn(primaryStage);
+            primaryStage.setAlwaysOnTop(true);
+            primaryStage.toFront();
+            primaryStage.requestFocus();
+            primaryStage.setAlwaysOnTop(false);
             // Shutdown on window close
             primaryStage.setOnCloseRequest(event -> shutdown());
 

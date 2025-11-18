@@ -17,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Data;
 
@@ -124,6 +125,7 @@ public class ToDoFX {
         createTaskScene.getStylesheets().add("CSS/Tasks.css");
         createTaskStage.setScene(createTaskScene);
         createTaskStage.setResizable(false);
+        createTaskStage.initModality(Modality.APPLICATION_MODAL);
         createTaskStage.show();
     }
 
@@ -190,6 +192,7 @@ public class ToDoFX {
         Scene formScene = new Scene(editTaskFormLayout, 350, 300);
         editStage.setScene(formScene);
         editStage.setResizable(false);
+        editStage.initModality(Modality.APPLICATION_MODAL);
         formScene.getStylesheets().add("CSS/Tasks.css");
         editStage.show();
     }
@@ -203,8 +206,6 @@ public class ToDoFX {
         editPicker.setPrefWidth(100);
         editPicker.setEditable(false);
 
-        TextArea editDescriptionArea = new TextArea();
-        editDescriptionArea.setPromptText("Description");
         Button editButton = new Button("Edit");
 
         editButton.setOnAction(event -> {
@@ -261,7 +262,7 @@ public class ToDoFX {
             List<Task> taskList = (List<Task>) list;
             switch (sortOption){
                 case A_Z:
-                    taskList.sort(Comparator.comparing(Task::getTitle));
+                    taskList.sort(Comparator.comparing(Task::getTitle, String.CASE_INSENSITIVE_ORDER));
                     break;
                 case DUE_DATE:
                     taskList.sort(Comparator.comparing(Task::getDate));
@@ -455,6 +456,7 @@ public class ToDoFX {
             System.err.println("JavaFX: Error occurred trying to load tasks.");
         }
     }
+
     public void getByPosted(){
         todo(Task.Status.POSTED);
     }

@@ -63,7 +63,6 @@
 }
 .task .title:hover{
     -fx-background-color: #d5d5d5;
-    //-fx-effect: dropshadow(gaussian, rgba(10,0,0,0.5), 10, 0.2, 0, 2);
 }
 .task .title .arrow-button { //code
     visibility: hidden;
@@ -82,6 +81,16 @@
 }
 .task .title .radio-button .radio:hover{
     -fx-background-color:  #454545;
+}
+.stack_pane{
+    -fx-background-color: white;
+}
+.hidden_dateP{
+
+}
+.hidden_dateP .text-field{
+    visibility: hidden;
+    -fx-opacity
 }
 
 
@@ -120,7 +129,6 @@
 }
 .task_creation .main_vbox {
     //-fx-background-color: #e8e8e8;
-
 }
 .title_box {
     -fx-background-color: #e8e8e8;
