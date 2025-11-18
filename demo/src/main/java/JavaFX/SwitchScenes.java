@@ -94,7 +94,7 @@ public class SwitchScenes {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
                 Parent root = loader.load();
-                TaskFX FXHandler = loader.getController();
+                ToDoFX FXHandler = loader.getController();
                 Scene scene = new Scene(root);
                 curStage.setTitle(stageTitle);
                 curStage.setScene(scene);

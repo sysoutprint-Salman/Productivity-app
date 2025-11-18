@@ -1,14 +1,10 @@
 package JavaFX;
 
-import SpringBoot.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -16,11 +12,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -30,7 +22,7 @@ public class LogInFX {
     private final SwitchScenes switchScenes = new SwitchScenes();
     private final HTTPHandler httpHandler = new HTTPHandler();
     private final UserPrefs userPrefs = new UserPrefs();
-    private TaskFX taskFX = new TaskFX();
+    private ToDoFX toDoFX = new ToDoFX();
     //Login
     public TextField userLogInField;
     public Button logInBut;
@@ -90,9 +82,9 @@ public class LogInFX {
         if (existingUser){
             userPrefs.saveToPref(emailOrUsernameCredential); //Saves username in registry for quick login
             switchScenes.switchScene(event, "tasks",controller ->{
-                taskFX = (TaskFX) controller;
-                taskFX.setUser(userPrefs.getSavedUser());
-                taskFX.getByPosted();}
+                toDoFX = (ToDoFX) controller;
+                toDoFX.setUser(userPrefs.getSavedUser());
+                toDoFX.getByPosted();}
             );
         } else {
             if (!loginVbox.getChildren().contains(notFoundMessage)){
@@ -121,9 +113,9 @@ public class LogInFX {
                 if (registerRequirements(username, email)){
                     createUsername.clear(); enterEmail.clear();
                     switchScenes.switchScene(event, "tasks", controller -> {
-                                taskFX = (TaskFX) controller;
-                                taskFX.setUser(userPrefs.getSavedUser());
-                                taskFX.getByPosted();
+                                toDoFX = (ToDoFX) controller;
+                                toDoFX.setUser(userPrefs.getSavedUser());
+                                toDoFX.getByPosted();
                             }
                     );
                 }

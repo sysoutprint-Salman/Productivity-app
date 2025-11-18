@@ -20,6 +20,7 @@ public class Notebook {
     private Long id;
     private Long userId;
     private String tabTitle;
+    private String hexColor;
     @Column(columnDefinition = "TEXT")
     private String notebookText;
 }

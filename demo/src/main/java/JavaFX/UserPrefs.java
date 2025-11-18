@@ -3,7 +3,6 @@ package JavaFX;
 import SpringBoot.User;
 import lombok.Data;
 
-import java.awt.*;
 import java.util.prefs.Preferences;
 
 @Data
@@ -57,7 +56,7 @@ public class UserPrefs {
         }
     }
 
-    public void saveSortOption(TaskFX.Sort sortOption){
+    public void saveSortOption(ToDoFX.Sort sortOption){
         userPreferences.put("sortOption",sortOption.toString());
     }
     public String getSortOption(){

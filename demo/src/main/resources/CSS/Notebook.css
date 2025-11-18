@@ -59,6 +59,7 @@
     -fx-pref-width: 0;
 }
 .add_icon{
+
 }
 
 /* -------Tabs-------*/
@@ -67,7 +68,7 @@
     -fx-pref-width: 200;
     -fx-alignment: baseline-left;
     -fx-background-color: #f9f9f9;
-    -fx-border-color: transparent transparent gray transparent;
+   /*-fx-border-color: transparent transparent gray transparent;*/
     -fx-border-width: 0 0 1 4;
 }
 
@@ -76,6 +77,18 @@
 }
 
 /* -------Notepad-------*/
+.notepad{
+    -fx-background-insets: 0;
+    -fx-background-color:white;
+    -fx-control-inner-background:white;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: #cfcfcf;
+    -fx-padding: 10;
+}
+.notepad .content {
+    -fx-background-color: transparent;
+}
 .notepad_scroll_pane .viewport{
     -fx-background-color: white;
 }
@@ -86,6 +99,8 @@
 .notepad_scroll_pane .notebook_textarea .content{
     //-fx-background-color: white;
 }
+
+
 /* -------Creation & Edit popup-------*/
 .create_edit_popup{
 
@@ -99,6 +114,24 @@
     -fx-focus-color: gray;
     -fx-border-color: #cfcfcf;
     -fx-focus-glow:red;
+}
+.color_hbox{
+    -fx-spacing:10;
+    -fx-alignment:center_left;
+}
+.no_colorLabel{
+    -fx-padding:0 0 0 10;
+}
+.no_color_CB{
+    -fx-focus-color: gray;
+    -fx-faint-focus-color: transparent;
+}
+.no_color_CB:selected{
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.0, 2, 2);
+}
+.no_color_CB .box{
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cfcfcf;
 }
 .color-picker{
     -fx-background-color: #e8e8e8;

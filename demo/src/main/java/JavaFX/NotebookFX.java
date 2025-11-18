@@ -12,13 +12,16 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class NotebookFX{
     public VBox tabsVbox;
@@ -32,7 +35,7 @@ public class NotebookFX{
     private final HTTPHandler httpHandler = new HTTPHandler();
     protected final SwitchScenes handler = new SwitchScenes();
     private AI_AssistantFX ai;
-    private TaskFX taskFX;
+    private ToDoFX toDoFX;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
 
@@ -47,20 +50,33 @@ public class NotebookFX{
         TextField newTabTitle = new TextField();
         ColorPicker colorPicker = new ColorPicker();
         Button createTabButton = new Button("Create Tab");
+        Label noColorLabel = new Label("No Color");
+        CheckBox noColorCB = new CheckBox();
+        HBox colorHbox = new HBox(colorPicker, noColorLabel, noColorCB);
 
         newTabStage.setTitle("Create Tab");
         newTabTitle.setPromptText("Tab title");
         newTabTitle.getStyleClass().add("text_field");
         colorPicker.getStyleClass().add("color-picker");
         createTabButton.getStyleClass().add("submit_button");
+        noColorLabel.getStyleClass().add("no_colorLabel");
+        noColorCB.getStyleClass().add("no_color_CB");
+        colorHbox.getStyleClass().add("color_hbox");
+
+        colorPicker.setDisable(noColorCB.isSelected());
+        noColorCB.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            colorPicker.setDisable(isSelected);
+        });
 
         createTabButton.setOnAction(e ->{
             String title = newTabTitle.getText();
+            String hexColor = colorPicker.isDisabled() ? null : hexColorFormatter(colorPicker.getValue());
             if (!title.isEmpty()){
                 try {
                     ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("tabTitle",title);
                     objectNode.put("userId", user.getUserId());
+                    objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
                     httpHandler.POST("notebooks", notebookJson);
                     newTabStage.close();
@@ -73,7 +89,7 @@ public class NotebookFX{
             }
         });
 
-        VBox newTabVbox = new VBox(10, newTabTitle, colorPicker, createTabButton);
+        VBox newTabVbox = new VBox(10, newTabTitle, colorHbox, createTabButton);
         newTabVbox.setPadding(new Insets(20));
 
         Scene newTabScene = new Scene(newTabVbox, 300, 153);
@@ -87,23 +103,46 @@ public class NotebookFX{
         TextField editTabTitle = new TextField();
         ColorPicker editColorPicker = new ColorPicker();
         Button editTabButton = new Button("Edit Tab");
+        Label noColorLabel = new Label("No Color");
+        CheckBox noColorCB = new CheckBox();
+        HBox colorHbox = new HBox(editColorPicker, noColorLabel, noColorCB);
 
         editTabStage.setTitle("Edit Tab");
         editTabTitle.setText(oldText);
         editTabTitle.setPromptText("Tab title");
+
+        if (notebook.getHexColor() != null){
+            editColorPicker.setValue(Color.web(notebook.getHexColor()));
+        } else {
+            editColorPicker.setDisable(true);
+            noColorCB.setSelected(true);
+        }
         editTabTitle.getStyleClass().add("text_field");
         editColorPicker.getStyleClass().add("color-picker");
         editTabButton.getStyleClass().add("submit_button");
+        noColorLabel.getStyleClass().add("no_colorLabel");
+        noColorCB.getStyleClass().add("no_color_CB");
+        colorHbox.getStyleClass().add("color_hbox");
+
+        editColorPicker.setDisable(noColorCB.isSelected());
+        noColorCB.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            editColorPicker.setDisable(isSelected);
+        });
 
         editTabButton.setOnAction(e ->{
             String title = editTabTitle.getText();
+            String hexColor = editColorPicker.isDisabled() ? null : hexColorFormatter(editColorPicker.getValue());
             if (!title.isEmpty()){
                 try {
                     ObjectNode objectNode = mapper.createObjectNode();
-                    objectNode.put("tabTitle",title);
+                    objectNode.put("tabTitle", title);
+                    objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
                     httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
                     notebook.setTabTitle(title);
+                    notebook.setHexColor(hexColor);
+                    String cssStyle = hexColor != null ? hexColor + ";" : "transparent;";
+                    tabButton.setStyle("-fx-border-color: transparent transparent #cfcfcf " + cssStyle);
                     tabButton.setText(notebook.getTabTitle());
                     editTabStage.close();
                 } catch (Exception ex) {
@@ -113,7 +152,7 @@ public class NotebookFX{
             }
         });
 
-        VBox editTabVbox = new VBox(10, editTabTitle, editColorPicker, editTabButton);
+        VBox editTabVbox = new VBox(10, editTabTitle, colorHbox, editTabButton);
         editTabVbox.setPadding(new Insets(20));
 
         Scene editTabScene = new Scene(editTabVbox, 300, 153);
@@ -129,6 +168,7 @@ public class NotebookFX{
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
             notepadArea.setPromptText("Type anything you want.");
+            notepadArea.getStyleClass().add("notepad");
             ToggleGroup tabsGroup = new ToggleGroup();
 
             if (notebooks.isEmpty()){
@@ -144,6 +184,8 @@ public class NotebookFX{
                 tabButton.getStyleClass().add("tab");
                 tabButton.setToggleGroup(tabsGroup);
                 tabButton.setWrapText(true);
+                tabButton.setStyle("-fx-border-color: transparent transparent #cfcfcf " +
+                        (notebook.getHexColor() != null ? notebook.getHexColor() + ";" : "transparent;"));
                 tabButton.setOnMouseClicked(e ->{
                     notepadArea.setText(notebook.getNotebookText());
                     notepadArea.setVisible(true);
@@ -177,7 +219,6 @@ public class NotebookFX{
                             updateMap.put("notebookText", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
                             httpHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
-                            savedPane.setVisible(true);
                             //notepadArea.setVisible(true);
                             notebook.setNotebookText(updatedText);
 
@@ -194,45 +235,50 @@ public class NotebookFX{
         });
     }
 
-    public TitledPane coloredTabs(TitledPane tab, Label newTabTitle){
-        ColorPicker colorPicker = new ColorPicker();
+    public MenuButton colorOptions(List<Color> colors, Consumer<Color> onColorSelected){
+        //Will likely use in the future, but not important now.
+        MenuButton button = new MenuButton();
+        button.setPrefWidth(40);
+        button.setPrefHeight(30);
 
-        Color color = colorPicker.getValue();
-        String hex = String.format("#%02X%02X%02X",
-                (int) (color.getRed() * 255),
-                (int) (color.getGreen() * 255),
-                (int) (color.getBlue() * 255));
-        double luminance = (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue());
-        String textColor = luminance < 0.5 ? "white" : "black";
+        // default visual
+        Rectangle preview = new Rectangle(20, 20, colors.get(0));
+        preview.setStroke(Color.GRAY);
+        button.setGraphic(preview);
 
-        Label styledText = new Label(newTabTitle.getText());
-        styledText.setStyle("-fx-text-fill: " + textColor + ";");
+        // create swatches
+        for (Color color : colors) {
+            CustomMenuItem item = new CustomMenuItem();
 
-        tab.setGraphic(styledText);
-        tab.setCollapsible(false);
-        tab.setStyle("-fx-background-color: " + hex + ";");
+            Rectangle swatch = new Rectangle(25, 25, color);
+            swatch.setStroke(Color.BLACK);
 
+            item.setContent(swatch);
+            item.setHideOnClick(true);
 
-        Platform.runLater(() -> {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
-            Node titleNode = tab.lookup(".title");
-            if (titleNode != null) {
-                titleNode.setStyle("-fx-background-color: " + hex + ";");
-            } else {
-                System.out.println("Title node not found.");
-            }
-        });
-        return new TitledPane();
-    } //TODO, work on having tabs be colored
+            item.setOnAction(e -> {
+                preview.setFill(color);   // update selected color
+                onColorSelected.accept(color);
+            });
+
+            button.getItems().add(item);
+        }
+
+        return button;
+    }
+
+    public String hexColorFormatter(Color color){
+        return String.format("#%02x%02x%02x",
+                (int)(color.getRed() * 255),
+                (int)(color.getGreen() * 255),
+                (int)(color.getBlue() * 255)
+        );
+    }
 
     public void switchToTasks(ActionEvent event) {
         handler.switchScene(event, "tasks", consumer->{
-            taskFX = (TaskFX) consumer;
-            taskFX.getByPosted();
+            toDoFX = (ToDoFX) consumer;
+            toDoFX.getByPosted();
         });
     }
 

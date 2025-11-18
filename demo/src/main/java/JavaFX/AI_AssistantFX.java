@@ -4,7 +4,6 @@ import SpringBoot.AI;
 import SpringBoot.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -22,10 +21,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +40,7 @@ public class AI_AssistantFX {
     private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
-    private TaskFX taskFX;
+    private ToDoFX toDoFX;
     private NotebookFX notebooks;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
@@ -206,8 +203,8 @@ public class AI_AssistantFX {
 
     public void switchToTasks(ActionEvent event) {
         handler.switchScene(event, "tasks", consumer->{
-            taskFX = (TaskFX) consumer;
-            taskFX.getByPosted();
+            toDoFX = (ToDoFX) consumer;
+            toDoFX.getByPosted();
         });
     }
 

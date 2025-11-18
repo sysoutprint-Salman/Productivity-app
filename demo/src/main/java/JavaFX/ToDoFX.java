@@ -19,15 +19,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Data;
-import org.jetbrains.annotations.UnknownNullability;
-import org.springframework.jmx.export.naming.ObjectNamingStrategy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 @Data
-public class TaskFX{
+public class ToDoFX {
     @FXML
     public VBox mainTaskVbox;
     @FXML
@@ -59,7 +57,7 @@ public class TaskFX{
     public RadioMenuItem  Due_Date;
     public RadioMenuItem  Newest;
 
-    public TaskFX(){}
+    public ToDoFX(){}
 
     public void createTask() {
         Stage createTaskStage = new Stage();
@@ -297,7 +295,7 @@ public class TaskFX{
         });
     }
 
-    public TaskFX.Sort sortConvertor(String sortOption){
+    public ToDoFX.Sort sortConvertor(String sortOption){
         switch (sortOption){
             case "A_Z":
                 return Sort.A_Z;

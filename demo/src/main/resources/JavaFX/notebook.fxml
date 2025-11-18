@@ -14,9 +14,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="610.0" prefWidth="600.0" styleClass="main_stage" stylesheets="@../CSS/Notebook.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NotebookFX">
@@ -66,7 +64,7 @@
                                  </Label>
                                  <Button mnemonicParsing="false" onAction="#createNewTab">
                                     <graphic>
-                                       <ImageView fitHeight="15.0" fitWidth="15.0">
+                                       <ImageView fitHeight="15.0" fitWidth="15.0" styleClass="add_icon">
                                           <image>
                                              <Image url="@../Images/plus%20(5).png" />
                                           </image>
@@ -76,7 +74,7 @@
                            </HBox>
                         </graphic>
                      </TitledPane>
-                     <VBox fx:id="tabsVbox" prefHeight="355.0" prefWidth="168.0" styleClass="tabs_vbox" VBox.vgrow="ALWAYS" />
+                     <VBox fx:id="tabsVbox" prefHeight="72.0" prefWidth="168.0" styleClass="tabs_vbox" VBox.vgrow="ALWAYS" />
                   </children>
                </VBox>
             </content>
@@ -88,19 +86,9 @@
       <center>
          <ScrollPane fx:id="notebookScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="350.0" prefWidth="401.0" styleClass="notepad_scroll_pane" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
             <content>
-               <TextArea prefHeight="200.0" prefWidth="200.0" visible="false" />
+               <TextArea prefHeight="200.0" prefWidth="200.0" styleClass="notepad" visible="false" />
             </content></ScrollPane>
       </center>
    </BorderPane>
-   <Pane fx:id="savedPane" layoutX="585.0" layoutY="1.0" prefHeight="40.0" prefWidth="65.0" visible="false" AnchorPane.rightAnchor="0.4000000000000057" AnchorPane.topAnchor="1.0">
-      <children>
-         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#08e11d" height="40.0" stroke="BLACK" strokeType="INSIDE" width="65.0" />
-         <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="38.0" prefWidth="65.0" text="Saved" textFill="WHITE">
-            <font>
-               <Font size="15.0" />
-            </font>
-         </Label>
-      </children>
-   </Pane>
 
 </AnchorPane>
