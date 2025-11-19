@@ -49,10 +49,7 @@
 .task_hbox .label{
     -fx-font-size: 14;
 }
-.task_hbox .button {
-   -fx-font-size: 12;
-   -fx-background-color: transparent;
-}
+
 .task .title{
     -fx-background-radius: 10px 10px 10px 10px; //Rounded corners
     -fx-background-color: #e8e8e8;
@@ -82,15 +79,78 @@
 .task .title .radio-button .radio:hover{
     -fx-background-color:  #454545;
 }
+/* -------Date section & Calender-------*/
 .stack_pane{
-    -fx-background-color: white;
+    -fx-pref-width:120;
+}
+.task_hbox .button {
+   -fx-font-size: 12;
+   -fx-background-color: transparent;
 }
 .hidden_dateP{
-
+    -fx-opacity:0;
+    -fx-pref-width:120;
 }
+
 .hidden_dateP .text-field{
     visibility: hidden;
-    -fx-opacity
+}
+
+.hidden_dateP .date-picker-popup{ //Border edges
+    -fx-background-color: black;
+}
+
+.hidden_dateP .month-year-pane{
+    -fx-background-color: #454545;
+
+}
+
+.hidden_dateP .month-year-pane .label{ //Month & year
+    -fx-text-fill:white;
+}
+
+.hidden_dateP .month-year-pane .left-button {
+
+}
+.hidden_dateP .month-year-pane .right-button{
+}
+
+.hidden_dateP .day-name-cell{ //Days of the week cells
+    -fx-background-color:#e8e8e8;
+
+}
+.hidden_dateP .day-name-cell:hover{
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+}
+
+.hidden_dateP .calendar-grid{
+}
+
+.hidden_dateP .date-cell{ //Each day cell
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.hidden_dateP .date-cell:previous-month{
+    -fx-text-fill: white;
+
+}
+.hidden_dateP .date-cell:hover{
+    -fx-background-color: #6a6a6a;
+}
+
+.hidden_dateP .date-cell.today {
+    -fx-border-color: #454545;
+    -fx-border-width: 1;
+
+    -fx-background-color: transparent; /* keep normal background */
+}
+
+.hidden_dateP .date-cell:selected:focus{
+    -fx-background-color: red;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
 }
 
 
@@ -152,6 +212,35 @@
 .date_picker {
     -fx-background-color: #e8e8e8;
     -fx-border-color: #cfcfcf;
+}
+.date_picker .date-picker-popup{
+
+}
+.date_picker .month-year-pane{
+    -fx-background-color: #454545;
+
+}
+.date_picker .month-year-pane .label{ //Month & year
+    -fx-text-fill:white;
+}
+
+.date_picker .day-name-cell{ //Days of the week cells
+    -fx-background-color:#e8e8e8;
+}
+.date_picker .day-name-cell:hover{
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+}
+
+.date_picker .date-cell{ //Each day cell
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.date_picker .date-cell:previous-month{
+    -fx-text-fill: white;
+}
+.date_picker .date-cell:hover{
+    -fx-background-color: #6a6a6a;
 }
 .date_picker .text-field {
     -fx-background-color: #e8e8e8;

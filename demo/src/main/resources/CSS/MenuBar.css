@@ -1,0 +1,103 @@
+/* ---------------------------------------------------------
+   MENUBAR BASE STYLE
+--------------------------------------------------------- */
+.menu-bar {
+    -fx-background-color: white;
+    -fx-padding: 0 10px;
+}
+
+/* Menu base state — reserve 2px for underline */
+.menu-bar .menu {
+    -fx-padding: 8px 14px;
+    -fx-border-width: 0 0 2 0;      /* KEEP constant */
+    -fx-border-color: transparent;  /* Transparent until hover */
+    -fx-border-insets: 0 3 0 3;     /* Side spacing */
+    -fx-background-color: transparent;
+}
+
+.menu-bar .menu > .label {
+    -fx-text-fill: black;
+    -fx-font-size: 14px;
+        -fx-translate-y: 2px;
+}
+
+/* ---------------------------------------------------------
+   UNDERLINE HOVER
+--------------------------------------------------------- */
+.menu-bar .menu:hover {
+    -fx-border-color: black;        /* Only color changes, thickness stays same */
+    -fx-background-insets: 0 3 0 3;
+    -fx-border-insets: 0 3 0 3;
+}
+
+.menu-bar .menu:hover > .label {
+    -fx-text-fill: black;
+}
+/* Keep underline when the menu is opened */
+.menu-bar .menu:showing {
+    -fx-border-color: #454545;
+    -fx-background-insets: 0 3 0 3;
+    -fx-border-insets: 0 3 0 3;
+}
+
+/* ---------------------------------------------------------
+   MENU POPUP
+--------------------------------------------------------- */
+.context-menu {
+    -fx-background-color: white;
+    -fx-padding: 6 0;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color: #ececec;
+}
+
+/* Menu-item container */
+.context-menu .menu-item {
+    -fx-padding: 6 20;
+}
+
+/* Menu-item text */
+.context-menu .menu-item .label {
+    -fx-text-fill: black;
+    -fx-font-size: 14px;
+}
+
+/* Hover / selected menu-item */
+.context-menu .menu-item:hover,
+.context-menu .menu-item:focused {
+    -fx-background-color: #454545;
+}
+
+.context-menu .menu-item:hover .label,
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+/* ---------------------------------------------------------
+   BASE MENU-ITEM STYLE (fallback)
+--------------------------------------------------------- */
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 18px;
+}
+
+.menu-item .label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+}
+
+.menu-item:hover {
+    -fx-background-color: rgba(255,255,255,0.10);
+}
+
+.menu-item:hover .label {
+    -fx-text-fill: white;
+}
+
+.menu-item:armed {
+    -fx-background-color: rgba(255,255,255,0.18);
+}
+
+.menu-item:armed .label {
+    -fx-text-fill: white;
+}

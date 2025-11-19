@@ -12,10 +12,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -71,7 +69,7 @@ public class ToDoFX {
         createTaskStage.setTitle("Create New Task");
         titleField.setPromptText("Task Title");
         picker.setPromptText("mm/dd/yyyy");
-        picker.setPrefWidth(100);
+        picker.setPrefWidth(120);
         picker.setEditable(false);
         createButton.setPrefSize(320,25);
         timeHbox.getStyleClass().add("pickers_hbox");
@@ -82,6 +80,13 @@ public class ToDoFX {
         picker.getStyleClass().add("date_picker");
         createButton.getStyleClass().add("submit_button");
         descriptionArea.getStyleClass().add("description_box");
+
+        titleField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                createButton.fire();
+            }
+        });
+        createButton.setDefaultButton(true);
 
         createButton.setOnAction(event -> {
             String title = titleField.getText();
@@ -143,7 +148,7 @@ public class ToDoFX {
         editStage.setTitle("Edit Task");
         editTitle.setPromptText("Task Title");
         editPicker.setPromptText("mm/dd/yyyy");
-        editPicker.setPrefWidth(100);
+        editPicker.setPrefWidth(120);
         editPicker.setEditable(false);
         editButton.setPrefSize(320,25);
         editDescriptionArea.setPromptText("Description");
@@ -155,6 +160,14 @@ public class ToDoFX {
         editPicker.getStyleClass().add("date_picker");
         editButton.getStyleClass().add("submit_button");
         editDescriptionArea.getStyleClass().add("description_box");
+
+        editTitle.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                editButton.fire();
+            }
+        });
+        editButton.setDefaultButton(true);
+
 
         editButton.setOnAction(event -> {
             try {
@@ -197,34 +210,16 @@ public class ToDoFX {
         editStage.show();
     }
 
-    public void editDate(Long id){
-        Stage editStage = new Stage();
-        editStage.setTitle("Edit Date");
-
-        DatePicker editPicker = new DatePicker();
-        editPicker.setPromptText("mm/dd/yyyy");
-        editPicker.setPrefWidth(100);
-        editPicker.setEditable(false);
-
-        Button editButton = new Button("Edit");
-
-        editButton.setOnAction(event -> {
-            LocalDate date = editPicker.getValue();
+    public void editDate(Long id, LocalDate selectedEditDate, Button container){
             String updatedJson = String.format(
-                    "{\"date\":\"%s\"}", date != null ? date.toString() : "");
-            if (date != null) {httpHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");}
-            else {return;}
-            mainTaskVbox.getChildren().clear();
-            Platform.runLater(this::getByPosted);
-            editStage.close();
-        });
-
-        VBox editTaskFormLayout = new VBox(10, editPicker, editButton);
-        editTaskFormLayout.setPadding(new Insets(20));
-
-        Scene formScene = new Scene(editTaskFormLayout, 200, 100);
-        editStage.setScene(formScene);
-        editStage.show();
+                    "{\"date\":\"%s\"}", selectedEditDate != null ? selectedEditDate.toString() : "");
+            if (selectedEditDate != null) {
+                httpHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");
+                container.setText("Due: " + selectedEditDate.format(dateFormatter));
+            }
+            else return;
+            //mainTaskVbox.getChildren().clear();
+            //Platform.runLater(this::getByPosted);
     }
 
     public void autoUpdateDescription(TextArea notepadArea, Long taskId){
@@ -335,15 +330,17 @@ public class ToDoFX {
                 TitledPane taskCard = new TitledPane();
                 RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
                 ToggleGroup group = new ToggleGroup();
-
+                DatePicker datePicker = new DatePicker();
                 Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
                 Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(Region.USE_COMPUTED_SIZE);
                 TextArea descriptionArea = new TextArea(task.getDescription());
-                HBox taskHbox = new HBox(10);
                 VBox taskContent = new VBox();
+                StackPane stackPane = new StackPane(dateButton, datePicker);
+                HBox taskHbox = new HBox(10, radio, taskTitle, stackPane);
+
+                datePicker.getStyleClass().add("hidden_dateP");
                 radio.setToggleGroup(group);
                 taskHbox.getStyleClass().add("task_hbox");
-                taskHbox.getChildren().addAll(radio, taskTitle, dateButton);
                 taskHbox.setAlignment(Pos.CENTER);
                 taskHbox.prefWidthProperty().bind(taskCard.widthProperty().subtract(35));
                 HBox.setHgrow(taskTitle, Priority.ALWAYS);
@@ -379,7 +376,9 @@ public class ToDoFX {
                     descriptionArea.setOnKeyReleased(e->{
                         autoUpdateDescription(descriptionArea,task.getId());
                     });
-                    dateButton.setOnAction(e -> { editDate(task.getId());});
+                    datePicker.setOnAction(e -> {
+                        editDate(task.getId(), datePicker.getValue(), dateButton);
+                    });
                     radio.setOnAction(f -> {
                         if (radio.isSelected()){
                             String json = String.format("{\"status\":\"%s\"}", Task.Status.COMPLETED);
