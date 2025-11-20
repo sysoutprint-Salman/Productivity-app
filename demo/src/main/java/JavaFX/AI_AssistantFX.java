@@ -4,19 +4,26 @@ import SpringBoot.AI;
 import SpringBoot.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.animation.Animation;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import javax.swing.text.html.ImageView;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -26,6 +33,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class AI_AssistantFX {
     public MenuItem gptMenuItem;
@@ -40,13 +49,13 @@ public class AI_AssistantFX {
     private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
+    public ImageView uploadIcon;
     private ToDoFX toDoFX;
     private NotebookFX notebooks;
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
     public VBox placeholderVbox;
     public Label emptyLogsMessage;
-    public ImageView uploadIcon;
 
     public AI_AssistantFX(){}
 
@@ -57,42 +66,73 @@ public class AI_AssistantFX {
             }
         });
         sendButton.setDefaultButton(true);
+
+        userTextField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.isEmpty()) {
+                uploadIcon.setStyle("-fx-opacity: 1;");
+            } else {
+                uploadIcon.setStyle("-fx-opacity: 0.2;");
+            }
+        });
+
     }
 
-    public String speakToGPT(@NotNull String userPrompt) {
+    public void streamGPT(String prompt, Consumer<String> onToken, Runnable onComplete, Consumer<Exception> onError) {
+
         String gptKey = System.getenv("gptKey");
-        String content = String.format(
-                "{\"role\":\"assistant\",\"content\":\"%s\"}",
-                userPrompt.concat(" Make your response a maximum word count of 125. " +
-                        "Structure long responses into paragraphs.")
-        );
-        String body = String.format("""
-                 {
-                 "model": "gpt-4o-mini",
-                  "messages": [%s]
-                }""", content);
+
+        String reqJson = String.format("""
+                {
+                    "model": "gpt-4o-mini",
+                    "stream": true,
+                    "messages": [
+                        {"role":"user","content":"%s"}
+                    ]
+                }
+                """, prompt);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.openai.com/v1/chat/completions"))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + gptKey)
-                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .POST(HttpRequest.BodyPublishers.ofString(reqJson))
                 .build();
-        HttpClient client = HttpClient.newHttpClient();
-        //HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            //System.out.println(response.body());
-            String json = response.body();
-            JSONObject gptJson = new JSONObject(json);
-            JSONObject innerJson = gptJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message");
-            return innerJson.getString("content");
 
-        } catch (InterruptedException | IOException ex) {
-            System.err.println("Request was interrupted: " + ex.getMessage());
-            Thread.currentThread().interrupt();  // Restore interrupted status
-        }
-        return "Error";
+        HttpClient client = HttpClient.newHttpClient();
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                HttpResponse<InputStream> response =
+                        client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+
+                    if (!line.startsWith("data:")) continue;
+
+                    String json = line.substring(5).trim();
+
+                    if (json.equals("[DONE]")) {
+                        onComplete.run();
+                        break;
+                    }
+
+                    JSONObject obj = new JSONObject(json);
+                    JSONObject delta = obj.getJSONArray("choices")
+                            .getJSONObject(0)
+                            .getJSONObject("delta");
+
+                    if (delta.has("content")) {
+                        onToken.accept(delta.getString("content"));
+                    }
+                }
+
+            } catch (Exception ex) {
+                onError.accept(ex);
+            }
+        });
     }
 
     public void onEnterPressed(){
@@ -112,57 +152,64 @@ public class AI_AssistantFX {
         });
 
         String prompt = userTextField.getText();
-        if (!prompt.isEmpty()) {
-            chatBoxVbox.getChildren().remove(emptyLogsMessage);
-            Label userPrompt = new Label(prompt);
-            userTextField.clear();
-            userPrompt.setWrapText(true);
-            userPrompt.wrapTextProperty();
-            userPrompt.getStyleClass().add("prompt");
-            chatBoxVbox.setAlignment(Pos.CENTER_RIGHT);
-            chatBoxVbox.getChildren().add(userPrompt);
+        if (prompt.isEmpty()) return;
 
-            //Automatically scrolls to the bottom on each response.
-            chatBoxVbox.heightProperty().addListener((obs, oldVal, newVal) -> {
-                messageScrollPane.setVvalue(1.0);
-            });
+        uploadIcon.getStyleClass().add("upload_icon");
+        chatBoxVbox.getChildren().remove(emptyLogsMessage);
 
-            //Prompting will be done in a background thread thanks to javafx.concurrent
-            Task<String> task = new Task<>() {
-                @Override
-                protected String call() throws Exception {
-                    return speakToGPT(prompt);
-                }
-            };
-            task.setOnSucceeded(e -> {
-                String contentString = task.getValue();
-                Label gptResponseLabel = new Label(timestampNow.format(dateAndTimeFormatter) + "\n" + contentString + " - AI Assistant");
+        Label userLabel = new Label(prompt);
+        userLabel.getStyleClass().add("prompt");
+        userLabel.setWrapText(true);
+        chatBoxVbox.getChildren().add(userLabel);
+        userTextField.clear();
 
-                gptResponseLabel.setWrapText(true);
-                gptResponseLabel.wrapTextProperty();
-                gptResponseLabel.setPadding(new Insets(10));
-                gptResponseLabel.getStyleClass().add("response");
-                HBox responseContainer = new HBox(gptResponseLabel);
-                responseContainer.setAlignment(Pos.CENTER_LEFT);
-                chatBoxVbox.getChildren().add(responseContainer);
+        chatBoxVbox.heightProperty().addListener((obs, o, n) -> {
+            messageScrollPane.setVvalue(1.0);
+        });
+        Label gptLabel = new Label(LocalDateTime.now().format(dateAndTimeFormatter) + "\n");
+        gptLabel.getStyleClass().add("response");
+        gptLabel.setWrapText(true);
+        gptLabel.setPadding(new Insets(10));
 
-                try {
-                    Map <String, Object> jsonPayload = new HashMap<>();
-                    jsonPayload.put("prompt",prompt);
-                    jsonPayload.put("response",contentString);
-                    jsonPayload.put("timestamp",timestampNow.toString());
-                    jsonPayload.put("userId",user.getUserId());
-                    String refinedJson = mapper.writeValueAsString(jsonPayload);
-                    httpHandler.POST("gptresponses",refinedJson);
-                } catch (JsonProcessingException ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
-            task.setOnFailed(e -> {
-                //No internet connection message goes here.
-            });
-            new Thread(task).start();
-        }
+        HBox responseContainer = new HBox(gptLabel);
+        responseContainer.setAlignment(Pos.CENTER_LEFT);
+        chatBoxVbox.getChildren().add(responseContainer);
+
+        StringBuilder fullResponse = new StringBuilder();
+
+        // STREAM
+        streamGPT(
+                prompt,
+
+                // onToken
+                token -> {
+                    fullResponse.append(token);
+                    Platform.runLater(() ->
+                            gptLabel.setText(LocalDateTime.now().format(dateAndTimeFormatter) + "\n" + fullResponse)
+                    );
+                },
+
+                // onComplete → remove typing indicator + save to backend
+                () -> {
+                    try {
+                        Map<String, Object> jsonPayload = new HashMap<>();
+                        jsonPayload.put("prompt", prompt);
+                        jsonPayload.put("response", fullResponse.toString());
+                        jsonPayload.put("timestamp", LocalDateTime.now().toString());
+                        jsonPayload.put("userId", user.getUserId());
+                        String refinedJson = new ObjectMapper().writeValueAsString(jsonPayload);
+                        httpHandler.POST("gptresponses", refinedJson);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                },
+
+                // onError
+                error -> Platform.runLater(() -> {
+                    gptLabel.setText("Error contacting GPT.");
+                    error.printStackTrace();
+                })
+        );
     }
 
     public void GETChatlogs(){

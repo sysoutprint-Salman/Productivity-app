@@ -318,7 +318,7 @@ public class ToDoFX {
                 emptyLabel.getStyleClass().add("emptyLabel");
                 mainTaskVbox.getChildren().add(emptyLabel);
                 taskLabel.setText(
-                        status.equals(Task.Status.POSTED) ? "TODO" :
+                        status.equals(Task.Status.POSTED) ? "To Do" :
                                 status.equals(Task.Status.COMPLETED) ? "Completed" :
                                         "Deleted"
                 );

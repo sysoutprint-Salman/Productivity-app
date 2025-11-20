@@ -20,7 +20,7 @@
    <children>
        <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
            <menus>
-               <Menu mnemonicParsing="false" text="Todo">
+               <Menu mnemonicParsing="false" text="To Do">
                    <items>
                        <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                        <MenuItem mnemonicParsing="false" text="Close" />
@@ -51,7 +51,7 @@
                         </TextField>
                         <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" prefHeight="34.0" prefWidth="42.0" styleClass="send_button">
                            <graphic>
-                              <ImageView styleClass="upload_icon">
+                              <ImageView fx:id="uploadIcon" styleClass="upload_icon">
                                  <image>
                                     <Image url="@../Images/up-arrow.png" />
                                  </image>

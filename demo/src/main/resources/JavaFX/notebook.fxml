@@ -21,7 +21,7 @@
 <AnchorPane prefHeight="610.0" prefWidth="600.0" styleClass="main_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NotebookFX">
     <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
-            <Menu mnemonicParsing="false" text="Todo">
+            <Menu mnemonicParsing="false" text="To Do">
                 <items>
                     <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                     <MenuItem mnemonicParsing="false" text="Close" />
