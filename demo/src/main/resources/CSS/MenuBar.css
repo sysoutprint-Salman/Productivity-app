@@ -18,7 +18,9 @@
 .menu-bar .menu > .label {
     -fx-text-fill: black;
     -fx-font-size: 14px;
-        -fx-translate-y: 2px;
+    -fx-translate-y: 2px;
+
+
 }
 
 /* ---------------------------------------------------------
@@ -28,6 +30,7 @@
     -fx-border-color: black;        /* Only color changes, thickness stays same */
     -fx-background-insets: 0 3 0 3;
     -fx-border-insets: 0 3 0 3;
+
 }
 
 .menu-bar .menu:hover > .label {
@@ -100,4 +103,9 @@
 
 .menu-item:armed .label {
     -fx-text-fill: white;
+}
+.check_icon, .ai_icon, .notepad_icon{
+    -fx-fit-width:17;
+    -fx-fit-height:17;
+    -fx-translate-x: -4px;
 }

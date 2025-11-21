@@ -26,16 +26,37 @@
                     <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
                     <MenuItem mnemonicParsing="false" text="Close" />
                 </items>
+            <graphic>
+               <ImageView styleClass="check_icon">
+                  <image>
+                     <Image url="@../Images/check.png" />
+                  </image>
+               </ImageView>
+            </graphic>
             </Menu>
             <Menu mnemonicParsing="false" text="AI Chat">
                 <items>
                     <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
                 </items>
+            <graphic>
+               <ImageView styleClass="ai_icon">
+                  <image>
+                     <Image url="@../Images/user.png" />
+                  </image>
+               </ImageView>
+            </graphic>
             </Menu>
          <Menu mnemonicParsing="false" text="Notebook">
            <items>
              <MenuItem fx:id="newTabsItem" mnemonicParsing="false" onAction="#createNewTab" text="New Tab" />
            </items>
+            <graphic>
+               <ImageView styleClass="notepad_icon">
+                  <image>
+                     <Image url="@../Images/notepad.png" />
+                  </image>
+               </ImageView>
+            </graphic>
          </Menu>
         </menus>
     </MenuBar>

@@ -306,7 +306,10 @@ public class ToDoFX {
     public void todo(Task.Status status){
         try{
             mainTaskVbox.getChildren().clear();
+            long start = System.currentTimeMillis(); //Backend speed test
             List<Task> tasks = httpHandler.GET("tasks/filter?userId=" + user.getUserId()+ "&status=" + status, Task.class);
+            System.out.println("Network request took: " + (System.currentTimeMillis() - start) + " ms");
+
             tasks = sort(tasks, currentSortOption); //TODO: Use preference
 
             if (tasks.isEmpty()) {
@@ -369,7 +372,7 @@ public class ToDoFX {
 
                 sortTodo();
                 if (status.equals(Task.Status.POSTED)){
-                    taskLabel.setText("TODO");
+                    taskLabel.setText("To Do");
                     sortButton.setVisible(true);
                     createTaskButton.setVisible(true);
                     taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
