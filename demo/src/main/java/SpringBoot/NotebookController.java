@@ -3,13 +3,17 @@ package SpringBoot;
 import jakarta.websocket.server.PathParam;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,77 +22,91 @@ import java.util.stream.Collectors;
 @RequestMapping("/notebooks")
 @RequiredArgsConstructor
 public class NotebookController {
-    private final NotebookService notebookService;
+    private final NotebookRepository notebookRepository;
     @GetMapping
-    public List<Notebook> getAllNotebooks(){
-        return notebookService.getAllNotebooks();
-         /*notebooks.stream()
-                .map(notebook -> new NotebookDTO(notebook.getId(), notebook.getTabTitle(), notebook.getNotebookText()))
-                .collect(Collectors.toList());*/
+    protected List<Notebook> getAllNotebooks(){
+        return notebookRepository.getAllNotebooks();
     }
     @GetMapping("/{id}")
-    public Notebook getNotebook(Long id){
-        Optional<Notebook> notebook = notebookService.getNotebook(id);
-        if (notebook.isPresent()){return notebook.get();}
-        else {System.out.println("SpringBoot: Notebook not found. Returning empty Notebook.");}
+    protected Notebook getNotebook(Long id){
+        Notebook notebook = notebookRepository.getNotebook(id);
+        if (notebook != null) return notebook;
+        else System.out.println("SpringBoot: Notebook not found. Returning empty Notebook.");
         return new Notebook();
     }
     @GetMapping("/filter")
-    public List<Notebook> findByUserId(@RequestParam Long userId){
-        return notebookService.findByUserId(userId);
+    protected List<Notebook> findByUserId(@RequestParam Long userId){
+        return notebookRepository.findByUserId(userId);
     }
 
     @PostMapping
-    public ResponseEntity<?> postNotebook(@RequestBody Notebook notebook){
-        notebookService.postNotebook(notebook);
+    protected ResponseEntity<?> postNotebook(@RequestBody Notebook notebook){
+        notebookRepository.postNotebook(notebook);
         return ResponseEntity.ok("SpringBoot: Notebook successfully created.");
     }
     @PutMapping("/{id}/tab")
-    public ResponseEntity<?> updateNotebookTab(@PathVariable Long id, @RequestBody Notebook notebook){
-            Notebook existingNotebook = notebookService.getNotebook(id)
-                    .orElseThrow(() -> new RuntimeException("SpringBoot: Notebook not found."));
+    protected ResponseEntity<?> updateNotebookTab(@PathVariable Long id, @RequestBody Notebook notebook){
+            Notebook existingNotebook = notebookRepository.getNotebook(id);
+            if (existingNotebook == null) return ResponseEntity.notFound().build();
             existingNotebook.setTabTitle(notebook.getTabTitle());
-            notebookService.postNotebook(existingNotebook);
+            notebookRepository.postNotebook(existingNotebook);
             return ResponseEntity.ok("SpringBoot: Tab updated successfully");
     }
     //PUT implementation for the notepad auto-saving
     @PutMapping("/{id}/text")
-    public ResponseEntity<?> updateNotebookText(@PathVariable Long id, @RequestBody Notebook notebook){
-        Notebook existingNotebook = notebookService.getNotebook(id)
-                .orElseThrow(() -> new RuntimeException("SpringBoot: Notebook not found."));
+    protected ResponseEntity<?> updateNotebookText(@PathVariable Long id, @RequestBody Notebook notebook){
+        Notebook existingNotebook = notebookRepository.getNotebook(id);
+        if (existingNotebook == null) return ResponseEntity.notFound().build();
         existingNotebook.setNotebookText(notebook.getNotebookText());
-        notebookService.postNotebook(existingNotebook);
+        notebookRepository.postNotebook(existingNotebook);
         return ResponseEntity.ok("SpringBoot: Notebook text updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteNotebook(@PathVariable Long id){
-        notebookService.deleteNotebook(id);
+    protected ResponseEntity<?> deleteNotebook(@PathVariable Long id){
+        notebookRepository.deleteNotebook(id);
         return ResponseEntity.ok("SpringBoot: Notebook deleted successfully.");
     }
 }
-@Service
-@RequiredArgsConstructor
-class NotebookService{
-private final NotebookRepository notebookRepository;
+@Repository
+class NotebookRepository {
+    @Autowired
+    private JdbcTemplate jdbc;
+    private final NotebookMapper notebookMapper = new NotebookMapper();
 
-    public List<Notebook> getAllNotebooks() {
-        return notebookRepository.findAll();
+    protected List<Notebook> getAllNotebooks(){
+        return jdbc.query("SELECT * FROM notebooks",notebookMapper);
     }
-    public Optional<Notebook> getNotebook(Long id){
-        return notebookRepository.findById(id);
+    protected List<Notebook> findByUserId(Long user_id){
+        return jdbc.query("SELECT * FROM notebooks WHERE user_id = ?"
+                ,notebookMapper, user_id);
     }
-    public Notebook postNotebook(Notebook notebook){
-        return notebookRepository.save(notebook);
+    protected Notebook getNotebook(Long id){
+        return jdbc.queryForObject("SELECT * FROM notebooks WHERE id = ?",
+               notebookMapper ,id);
     }
-    public void deleteNotebook(Long id){
-        notebookRepository.deleteById(id);
+    protected void postNotebook(Notebook notebook){
+        jdbc.update("INSERT INTO notebooks (id, user_id, tab_title, notebook_text, hex_color) VALUES (?, ?, ?, ?, ?)",
+                notebook.getId(),
+                notebook.getUserId(),
+                notebook.getTabTitle(),
+                notebook.getNotebookText(),
+                notebook.getHexColor());
     }
-    public List<Notebook> findByUserId(Long userId){
-        return notebookRepository.findByUserId(userId);
+    protected void deleteNotebook(Long id){
+        jdbc.update("DELETE FROM notebooks WHERE id = ?", id);
     }
 }
-@Repository
-interface NotebookRepository extends JpaRepository<Notebook, Long> {
-    List<Notebook> findByUserId(Long userId);
+class NotebookMapper implements RowMapper<Notebook>{
+
+    @Override
+    public Notebook mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Notebook notebook = new Notebook();
+        notebook.setId(rs.getLong("id"));
+        notebook.setUserId(rs.getLong("user_id"));
+        notebook.setTabTitle(rs.getString("tab_title"));
+        notebook.setNotebookText(rs.getString("notebook_text"));
+        notebook.setHexColor(rs.getString("hex_color"));
+        return notebook;
+    }
 }

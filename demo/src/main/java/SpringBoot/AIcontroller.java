@@ -1,11 +1,16 @@
 package SpringBoot;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -13,37 +18,55 @@ import java.util.List;
 @RequestMapping("/gptresponses")
 @RequiredArgsConstructor
 public class AIcontroller {
-    private final AIservice gptService;
+    private final AIrepository aIrepository;
     @GetMapping
-    public List<AI> getAllGPTresponses() {
-        return gptService.getAllGPTresponses();
+    protected List<AI> getAllGPTresponses() {
+        return aIrepository.getAllGPTresponses();
     }
 
     @PostMapping
-    public AI createResponse(@RequestBody AI response) {
-        return gptService.createResponse(response);
+    protected void createResponse(@RequestBody AI response) {
+        aIrepository.createResponse(response);
     }
     @GetMapping("filter")
-    public List<AI> findByUserId(@RequestParam Long userId){
-        return gptService.findByUserId(userId);
+    protected List<AI> findByUserId(@RequestParam Long userId){
+        return aIrepository.findByUserId(userId);
     }
 }
-@Service
-@RequiredArgsConstructor
-class AIservice {
-    private final AIrepository gptRepository;
 
-    public List<AI> getAllGPTresponses() {
-        return gptRepository.findAll();
+@Repository
+class AIrepository {
+    @Autowired
+    private JdbcTemplate jdbc;
+    private final AIRowMapper aiRowMapper = new AIRowMapper();
+
+    protected List<AI> getAllGPTresponses (){
+        return jdbc.query("SELECT * from gpt_responses",aiRowMapper);
     }
-    public AI createResponse(AI response){
-        return gptRepository.save(response);
+    protected void createResponse(AI ai){
+        jdbc.update("INSERT INTO gpt_responses (id, user_id, prompt, response, timestamp) VALUES (?, ?, ?, ?, ?)",
+                ai.getId(),
+                ai.getUserId(),
+                ai.getPrompt(),
+                ai.getResponse(),
+                ai.getTimestamp());
     }
-    public List<AI> findByUserId(Long userId){
-        return gptRepository.findByUserId(userId);
+    protected List<AI> findByUserId(Long user_id){
+        return jdbc.query("SELECT * FROM gpt_responses WHERE user_id = ?",
+                aiRowMapper, user_id);
     }
 }
-@Repository
-interface AIrepository extends JpaRepository<AI, Long> {
-    List<AI> findByUserId(Long userId);
+
+
+class AIRowMapper implements RowMapper<AI>{
+    @Override
+    public AI mapRow(ResultSet rs, int rowNum) throws SQLException {
+        AI ai = new AI();
+        ai.setId(rs.getLong("id"));
+        ai.setUserId(rs.getLong("user_id"));
+        ai.setPrompt(rs.getString("prompt"));
+        ai.setResponse(rs.getString("response"));
+        ai.setTimestamp(rs.getObject("timestamp", LocalDateTime.class));
+        return ai;
+    }
 }

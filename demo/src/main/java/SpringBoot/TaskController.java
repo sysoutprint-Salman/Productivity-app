@@ -2,134 +2,193 @@ package SpringBoot;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.HttpStatus;
+//import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/tasks")
-@RequiredArgsConstructor //Constructor injection via Lombok
+@RequiredArgsConstructor
 public class TaskController {
-    private final TaskService taskService;
+
     private final TaskRepository taskRepository;
 
-    @GetMapping() //GET request
-    public List<Task> getAllTasks() {
-        return taskService.getAllTasks();
-    }
-    @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Long id){
-        return taskService.getTaskById(id);
-    }
-    @GetMapping("/filter")
-    public List<Task> findByIdAndStatus(@RequestParam Long userId, @RequestParam Task.Status status){
-        return taskService.findByIdAndStatus(userId, status);
-    }
-    @PostMapping //POST request
-    public Task createTask(@RequestBody Task task) {
-        task.setCreationDate(LocalDateTime.now());
-        return taskService.createTask(task);
-    }
-
-    @PutMapping("/{id}") //The main UPDATE METHOD
-    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task recievedInfo){
-        Optional<Task> task = taskRepository.findById(id);
-        if (task.isPresent()){
-            Task existingTask = task.get();
-            existingTask.setTitle(recievedInfo.getTitle());
-            existingTask.setDate(recievedInfo.getDate());
-            existingTask.setDescription(recievedInfo.getDescription());
-            taskRepository.save(existingTask);
-            return ResponseEntity.ok("SpringBoot: Task successfully updated.");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-    @PutMapping("/{id}/modular")
-    public ResponseEntity<?> updateSection(@PathVariable Long id, @RequestParam String section, @RequestBody Task recievedInfo){
-        Optional<Task> task = taskRepository.findById(id);
-        if (task.isPresent()) {
-            Task existingTask = task.get();
-            switch (section) {
-                case "date":
-                    if (recievedInfo.getDate() != null) {
-                    existingTask.setDate(recievedInfo.getDate());
-                    break;}
-                    else {return ResponseEntity.badRequest().build();}
-                case "description":
-                    if (recievedInfo.getDescription() != null) {
-                    existingTask.setDescription(recievedInfo.getDescription());
-                    break;}
-                    else {return ResponseEntity.badRequest().build();}
-                case "status":
-                    if (recievedInfo.getStatus() != null) {
-                    existingTask.setStatus(recievedInfo.getStatus());
-                    break;}
-                    else {return ResponseEntity.badRequest().build();}
-                default:
-                    return ResponseEntity.badRequest().body("Invalid part: " + section);
-            }
-            taskRepository.save(existingTask);
-            return ResponseEntity.ok("SpringBoot: The section of the task was successfully updated.");
-        }
-        else {return ResponseEntity.notFound().build();}
-    }
-
-    //For now deleting tasks isn't important.
-    /*@DeleteMapping("/{id}") //DELETE request
-    public ResponseEntity<?> deleteTask(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean archive) {
-        try{
-            if (archive){
-            Task task = taskService.getTaskById(id);
-            DeletedTask deletedTask = new DeletedTask();
-            deletedTask.setTitle(task.getTitle());
-            deletedTask.setDescription(task.getDescription());
-            deletedTask.setDate(task.getDate());
-            deletedTask.setDeletedDate(LocalDateTime.now());
-            deletedTaskService.insertDeletedTask(deletedTask);
-            taskService.deleteTask(id);
-            return ResponseEntity.ok("SpringBoot: Task sent to deleted tasks successfully.");}
-            else{taskService.deleteTask(id);
-                return ResponseEntity.ok("SpringBoot: Task deleted successfully.");}
-        } catch (RuntimeException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("SpringBoot: Task couldn't be deleted with id: " + id);
-        }
-    }*/
-}
-@Service
-@RequiredArgsConstructor //constructor (Lombok)
-class TaskService {
-    private final TaskRepository taskRepository;
-
-    public List<Task> getAllTasks() {
+    @GetMapping
+    protected List<Task> getAllTasks() {
         return taskRepository.findAll();
     }
-    public List<Task> findByStatus(Task.Status status) {
-        return taskRepository.findByStatus(status);
-    }
-    public Task getTaskById(Long id){
-        return taskRepository.findById(id).orElseThrow(() -> new RuntimeException("SpringBoot: Task not found with id: " + id));
-    }
-    public List<Task> findByIdAndStatus(Long userId, Task.Status status){
-        return taskRepository.findByUserIdAndStatus(userId, status);
-    }
-    public Task createTask(Task task) {
-        return taskRepository.save(task);
-    }
-    public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
-    }
-}
-@Repository //Repo works as a data access layer which interacts with the database
-interface TaskRepository extends JpaRepository<Task, Long> { //Repo uses Task type & Long for ID
 
-    List<Task> findByStatus(Task.Status status);
-    List<Task> findByUserIdAndStatus(Long userId, Task.Status status);
+    @GetMapping("/{id}")
+    protected Task getById(@PathVariable Long id) {
+        return taskRepository.getById(id);
+    }
+
+    @GetMapping("/filter")
+    protected List<Task> getByUserIdAndStatus(@RequestParam Long userId, @RequestParam Task.Status status) {
+        return taskRepository.getByUserIdAndStatus(userId, status);
+    }
+
+    @PostMapping
+    protected void createTask(@RequestBody Task task) {
+        task.setCreationDate(LocalDateTime.now());
+        taskRepository.createTask(task);
+    }
+
+    @PutMapping("/{id}")
+    protected ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task receivedInfo) {
+
+        Task task = taskRepository.getById(id);
+
+        task.setTitle(receivedInfo.getTitle());
+        task.setDescription(receivedInfo.getDescription());
+        task.setDate(receivedInfo.getDate());
+
+        taskRepository.updateTask(task);
+
+        return ResponseEntity.ok("SpringBoot: Task successfully updated.");
+    }
+
+    @PutMapping("/{id}/modular")
+    protected ResponseEntity<?> updateSection(@PathVariable Long id,
+                                           @RequestParam String section,
+                                           @RequestBody Task receivedInfo) {
+
+        Object value;
+
+        switch (section) {
+            case "date":
+                value = receivedInfo.getDate();
+                break;
+
+            case "description":
+                value = receivedInfo.getDescription();
+                break;
+
+            case "status":
+                value = receivedInfo.getStatus().name();
+                break;
+
+            default:
+                return ResponseEntity.badRequest().body("Invalid part: " + section);
+        }
+
+        taskRepository.updateSection(id, section, value);
+
+        return ResponseEntity.ok("SpringBoot: The section of the task was successfully updated.");
+    }
 }
+
+@Repository
+ class TaskRepository {
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    private final TaskRowMapper rowMapper = new TaskRowMapper();
+
+    protected List<Task> findAll() {
+        return jdbc.query("SELECT * FROM tasks ORDER BY id", rowMapper);
+    }
+
+    protected Task getById(Long id) {
+        return jdbc.queryForObject(
+                "SELECT * FROM tasks WHERE id = ?",
+                rowMapper,
+                id
+        );
+    }
+
+    protected List<Task> getByUserIdAndStatus(Long userId, Task.Status status) {
+        return jdbc.query(
+                "SELECT * FROM tasks WHERE user_id = ? AND status = ? ORDER BY id",
+                rowMapper,
+                userId,
+                status.name()
+        );
+    }
+
+    protected void createTask(Task task) {
+        jdbc.update(
+                "INSERT INTO tasks (user_id, title, description, date, status, creation_date) VALUES (?, ?, ?, ?, ?, ?)",
+                task.getUserId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getDate(),
+                task.getStatus().name(),
+                task.getCreationDate()
+        );
+    }
+
+    protected void updateTask(Task task) {
+        jdbc.update(
+                "UPDATE tasks SET title = ?, description = ?, date = ?, status = ? WHERE id = ?",
+                task.getTitle(),
+                task.getDescription(),
+                task.getDate(),
+                task.getStatus().name(),
+                task.getId()
+        );
+    }
+
+    protected void updateSection(Long id, String section, Object value) {
+
+        switch (section) {
+            case "date":
+                jdbc.update(
+                        "UPDATE tasks SET date = ? WHERE id = ?",
+                        value,
+                        id
+                );
+                return;
+
+            case "description":
+                jdbc.update(
+                        "UPDATE tasks SET description = ? WHERE id = ?",
+                        value,
+                        id
+                );
+                return;
+
+            case "status":
+                jdbc.update(
+                        "UPDATE tasks SET status = ? WHERE id = ?",
+                        value,
+                        id
+                );
+                return;
+
+            default:
+        }
+    }
+
+    protected void deleteTask(Long id) {
+        jdbc.update("DELETE FROM tasks WHERE id = ?", id);
+    }
+}
+class TaskRowMapper implements RowMapper<Task> {
+    @Override
+    public Task mapRow(ResultSet rs, int rowNum) throws SQLException {
+
+        Task task = new Task();
+
+        task.setId(rs.getLong("id"));
+        task.setUserId(rs.getLong("user_id"));
+        task.setTitle(rs.getString("title"));
+        task.setDescription(rs.getString("description"));
+        task.setStatus(Task.Status.valueOf(rs.getString("status")));
+        task.setDate(rs.getObject("date", LocalDate.class));
+        task.setCreationDate(rs.getObject("creation_date", LocalDateTime.class));
+        return task;
+    }
+}
+
