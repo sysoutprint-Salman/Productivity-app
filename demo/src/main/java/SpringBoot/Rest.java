@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static javafx.application.Application.launch;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "SpringBoot")
 @RestController
 public class Rest {
     public static ConfigurableApplicationContext context;

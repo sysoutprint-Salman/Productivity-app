@@ -35,7 +35,7 @@
                </Menu>
                <Menu mnemonicParsing="false" text="AI Chat">
                    <items>
-                  <MenuItem fx:id="viewNotebook1" mnemonicParsing="false" onAction="#switchToNotebook" text="Chat with AI assistant" />
+                  <MenuItem fx:id="viewNotebook1" mnemonicParsing="false" text="Chat with AI assistant" />
                    </items>
                <graphic>
                   <ImageView styleClass="ai_icon">

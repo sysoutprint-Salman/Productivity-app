@@ -170,7 +170,9 @@ public class NotebookFX{
 
     public void GETNotebooks(){
         try {
+            long start = System.currentTimeMillis();
             List<Notebook> notebooks = httpHandler.GET("notebooks/filter?userId=" + user.getUserId(),Notebook.class);
+            System.out.println("Notebook: Network request took: " + (System.currentTimeMillis() - start) + "ms");
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);

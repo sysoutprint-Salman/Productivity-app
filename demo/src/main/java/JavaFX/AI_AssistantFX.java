@@ -213,7 +213,9 @@ public class AI_AssistantFX {
     }
 
     public void GETChatlogs(){
+        long start = System.currentTimeMillis();
         List<AI> chatLogs = httpHandler.GET("gptresponses/filter?userId=" + user.getUserId(), AI.class);
+        System.out.println("AI chat: Network request took: " + (System.currentTimeMillis() - start) + " ms");
         chatBoxVbox.getChildren().removeAll();
         if (chatLogs.isEmpty()){
             emptyLogsMessage = new Label("This is your personal AI assistant, ask it whatever you need!");
