@@ -12,6 +12,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
@@ -30,7 +32,6 @@ public class ToDoFX {
     @FXML
     public VBox DTvbox;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yy");
-    private final HTTPHandler httpHandler = new HTTPHandler();
     public MenuButton sortButton;
     private Task.Status status;
     protected final SwitchScenes handler = new SwitchScenes();
@@ -49,65 +50,49 @@ public class ToDoFX {
     private UserPrefs userPrefs = new UserPrefs();
     private User user = userPrefs.getSavedUser();
 
-
     public MenuItem gptMenuItem;
     public MenuItem viewNotebook;
     public RadioMenuItem  A_Z;
     public RadioMenuItem  Due_Date;
     public RadioMenuItem  Newest;
+    public DatePicker dateButton;
+    public ScrollPane mainScrollpane;
+
+    public HBox taskCreationHbox;
+    public TextField taskCreationTF;
+    public StackPane stackPane;
+    public BorderPane mainBorderPane;
+    public DatePicker datePicker;
 
     public ToDoFX(){}
 
-    public void createTask() {
-        Stage createTaskStage = new Stage();
-        TextField titleField = new TextField();
-        DatePicker picker = new DatePicker();
-        HBox timeHbox = new HBox(10, picker); //, comboBoxTimes(), am, pm);
-        TextArea descriptionArea = new TextArea();
-        Button createButton = new Button("Create");
+    public void initialize(){
+        //this.tasks = AppState.getTasks();
 
-        createTaskStage.setTitle("Create New Task");
-        titleField.setPromptText("Task Title");
-        picker.setPromptText("mm/dd/yyyy");
-        picker.setPrefWidth(120);
-        picker.setEditable(false);
-        createButton.setPrefSize(320,25);
-        timeHbox.getStyleClass().add("pickers_hbox");
-        descriptionArea.setPromptText("Description");
-        descriptionArea.setWrapText(true);
+    }
 
-        titleField.getStyleClass().add("title_box");
-        picker.getStyleClass().add("date_picker");
-        createButton.getStyleClass().add("submit_button");
-        descriptionArea.getStyleClass().add("description_box");
-
-        titleField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                createButton.fire();
-            }
-        });
-        createButton.setDefaultButton(true);
-
-        createButton.setOnAction(event -> {
-            String title = titleField.getText();
+    public void createTask(TextField text, DatePicker picker) {
+            String title = text.getText();
             LocalDate date = picker.getValue();
-            String description = descriptionArea.getText();
 
             try {
                 if (!title.isEmpty() && date != null) {
                     ObjectNode json = mapper.createObjectNode();
                     json.put("title", title);
                     json.put("date", date.toString());
-                    json.put("description", description);
+                    //json.put("description", description);
                     json.put("status", "POSTED");
-                    json.put("userId", user.getUserId());
+                    json.put("userId", User.getUserId());
                     String taskJson = mapper.writeValueAsString(json);
-                    httpHandler.POST("tasks", taskJson);
+                    HTTPHandler.POST("tasks", taskJson);
+                    text.clear();
+                    this.datePicker.setValue(date);
                 }
                 else {
                     //Add error message
                     return;
                 }
+
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
@@ -119,23 +104,10 @@ public class ToDoFX {
             }
             mainTaskVbox.getChildren().clear();
             Platform.runLater(this::getByPosted);
-            createTaskStage.close();
-        });
-
-        VBox createTaskVbox = new VBox(10, titleField, timeHbox, descriptionArea, createButton);
-        createTaskVbox.setPadding(new Insets(20));
-        createTaskVbox.getStyleClass().add("create_task_vbox");
-
-        Scene createTaskScene = new Scene(createTaskVbox, 350, 300);
-        createTaskScene.getStylesheets().add("CSS/Tasks.css");
-        createTaskStage.setScene(createTaskScene);
-        createTaskStage.setResizable(false);
-        createTaskStage.initModality(Modality.APPLICATION_MODAL);
-        createTaskStage.show();
     }
 
     public void editTask(Long taskId) {
-        List<Task> prevTask = httpHandler.GET("tasks/" + taskId.toString(), Task.class);
+        List<Task> prevTask = HTTPHandler.GET("tasks/" + taskId.toString(), Task.class);
         Task prevInfo = prevTask.get(0);
 
         Stage editStage = new Stage();
@@ -181,7 +153,7 @@ public class ToDoFX {
                     jsonBlock.put("date", date.toString());
                     jsonBlock.put("description",description);
                     String json = mapper.writeValueAsString(jsonBlock);
-                    httpHandler.UPDATE(json, "tasks/"+taskId);
+                    HTTPHandler.UPDATE(json, "tasks/"+taskId);
                 } else {
 
                     return;
@@ -214,7 +186,7 @@ public class ToDoFX {
             String updatedJson = String.format(
                     "{\"date\":\"%s\"}", selectedEditDate != null ? selectedEditDate.toString() : "");
             if (selectedEditDate != null) {
-                httpHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");
+                HTTPHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");
                 container.setText("Due: " + selectedEditDate.format(dateFormatter));
             }
             else return;
@@ -236,7 +208,7 @@ public class ToDoFX {
                             Map<String, String> updateMap = new HashMap<>();
                             updateMap.put("description", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
-                            httpHandler.UPDATE(updatedJson,"tasks/" + taskId + "/modular?section=description");
+                            HTTPHandler.UPDATE(updatedJson,"tasks/" + taskId + "/modular?section=description");
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -291,24 +263,45 @@ public class ToDoFX {
         });
     }
 
-    public ToDoFX.Sort sortConvertor(String sortOption){
-        switch (sortOption){
-            case "A_Z":
-                return Sort.A_Z;
-            case "NEWEST":
-                return Sort.NEWEST;
-            case "DUE_DATE":
-                return Sort.DUE_DATE;
+    public HBox taskCreationBar(){
+        HBox bar = new HBox(5);
+        TextField taskField = new TextField();
+        if (datePicker == null) {
+            datePicker = new DatePicker();
+            datePicker.getStyleClass().add("hidden_dateP");
         }
-        return null;
+        Button dateButton = new Button();
+        ImageView calenderImg = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/Images/calendar.png"))));
+        StackPane datePane = new StackPane(dateButton, datePicker);
+        Button addTaskButton = new Button();
+        ImageView plusImg = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/Images/plusButton.png"))));
+
+        taskField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addTaskButton.fire();
+            }
+        });
+
+        addTaskButton.setDefaultButton(true);
+        addTaskButton.setOnAction(e -> {
+            createTask(taskField,datePicker);
+        });
+        taskField.setPromptText("Create a task by typing here!");
+        dateButton.setGraphic(calenderImg);
+        addTaskButton.setGraphic(plusImg);
+        taskField.getStyleClass().add("task_creation_field");
+        datePicker.getStyleClass().add("hidden_dateP");
+        addTaskButton.getStyleClass().add("new_task_button");
+        dateButton.getStyleClass().add("new_task_button");
+        bar.getStyleClass().add("task_creation_Hbar");
+        bar.getChildren().addAll(taskField, datePane, addTaskButton);
+        return bar;
     }
 
     public void todo(Task.Status status){
         try{
             mainTaskVbox.getChildren().clear();
-            long start = System.currentTimeMillis(); //Backend speed test
-            List<Task> tasks = httpHandler.GET("tasks/filter?userId=" + user.getUserId()+ "&status=" + status, Task.class);
-            System.out.println("Todo: Network request took: " + (System.currentTimeMillis() - start) + " ms");
+            List<Task> tasks = HTTPHandler.GET("tasks/filter?userId=" + User.getUserId()+ "&status=" + status, Task.class);
 
             tasks = sort(tasks, currentSortOption); //TODO: Use preference
 
@@ -374,7 +367,7 @@ public class ToDoFX {
                 if (status.equals(Task.Status.POSTED)){
                     taskLabel.setText("To Do");
                     sortButton.setVisible(true);
-                    createTaskButton.setVisible(true);
+                    mainBorderPane.setBottom(taskCreationBar());
                     taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
                     descriptionArea.setOnKeyReleased(e->{
                         autoUpdateDescription(descriptionArea,task.getId());
@@ -385,7 +378,7 @@ public class ToDoFX {
                     radio.setOnAction(f -> {
                         if (radio.isSelected()){
                             String json = String.format("{\"status\":\"%s\"}", Task.Status.COMPLETED);
-                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
                             mainTaskVbox.getChildren().remove(taskCard);
                         }
                     });
@@ -399,7 +392,7 @@ public class ToDoFX {
                         completeItem.setOnAction(f -> {
                             Task.Status saveStatus = Task.Status.COMPLETED;
                             String json = String.format("{\"status\":\"%s\"}", saveStatus);
-                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
                             this.completedTaskTime = LocalDateTime.now();
                             mainTaskVbox.getChildren().remove(taskCard);
                         });
@@ -409,7 +402,7 @@ public class ToDoFX {
                         deleteItem.setOnAction(f -> {
                             Task.Status saveStatus = Task.Status.DELETED;
                             String json = String.format("{\"status\":\"%s\"}", saveStatus);
-                            httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
                             mainTaskVbox.getChildren().remove(taskCard);
                         });
                     });
@@ -418,7 +411,7 @@ public class ToDoFX {
                 else if (status.equals(Task.Status.DELETED)){
                     taskLabel.setText("Deleted");
                     sortButton.setVisible(false);
-                    createTaskButton.setVisible(false);
+                    mainBorderPane.setBottom(null);
                     taskHbox.getChildren().remove(radio);
                     taskTitle.setText("Deleted: " + task.getTitle());
                     descriptionArea.setDisable(true);
@@ -433,7 +426,7 @@ public class ToDoFX {
                         Task.Status saveStatus = Task.Status.POSTED;
                         String json = String.format("{\"status\":\"%s\"}", saveStatus);
                         recoverItem.setDisable(true);
-                        httpHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                        HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
                         mainTaskVbox.getChildren().remove(taskCard);
                     });
                     taskCard.setContextMenu(rightClickMenu);
@@ -442,7 +435,7 @@ public class ToDoFX {
                 else if (status.equals(Task.Status.COMPLETED)){
                     taskLabel.setText("Completed");
                     sortButton.setVisible(false);
-                    createTaskButton.setVisible(false);
+                    mainBorderPane.setBottom(null);
                     dateButton.setText("Completed");
                     taskHbox.getChildren().remove(radio);
                     descriptionArea.setText(task.getDescription());

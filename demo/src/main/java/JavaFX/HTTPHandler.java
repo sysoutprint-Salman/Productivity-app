@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class HTTPHandler {
-    public int port = PortHandler.getCurrentPort();
-    public void POST(String path, String JSON) {
+    public static int port = PortHandler.getCurrentPort();
+    public static void POST(String path, String JSON) {
         try {
             URL url = new URL("http://localhost:" + port + "/");
             HttpClient client = HttpClient.newHttpClient();
@@ -32,7 +32,7 @@ public class HTTPHandler {
             ex.printStackTrace();
         }
     }
-    public void DELETE(Long id, String path, String archive) {
+    public static void DELETE(Long id, String path, String archive) {
         String url = "http://localhost:" + port + "/" + path + "/" + id + "?archive=".concat(archive);
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build();
         HttpClient client = HttpClient.newHttpClient();
@@ -46,7 +46,7 @@ public class HTTPHandler {
             e.printStackTrace();
         }
     }
-    public <T> List<T> GET (String path, Class<T> objectType){
+    public static <T> List<T> GET (String path, Class<T> objectType){
         try{
             String url = "http://localhost:" + port + "/" + path ;
             HttpClient client = HttpClient.newHttpClient();
@@ -67,7 +67,7 @@ public class HTTPHandler {
             System.out.println("HTTP: An issue arose with GET request. (ignorable).");
         }   return Collections.emptyList();
     }
-    public boolean GET(String path){
+    public static boolean GET(String path){
         try {
             String url = "http://localhost:" + port + "/" + path ;
             HttpClient client = HttpClient.newHttpClient();
@@ -84,7 +84,7 @@ public class HTTPHandler {
         }
         return false;
     }
-    public void UPDATE(String JSON, String path) {
+    public static void UPDATE(String JSON, String path) {
         try {
             String url = "http://localhost:" + port + "/" + path;
             HttpRequest request = HttpRequest.newBuilder() //Building the HTTP request

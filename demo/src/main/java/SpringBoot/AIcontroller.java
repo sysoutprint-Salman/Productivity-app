@@ -44,12 +44,11 @@ class AIrepository {
         return jdbc.query("SELECT * from gpt_responses",aiRowMapper);
     }
     protected void createResponse(AI ai){
-        jdbc.update("INSERT INTO gpt_responses (id, user_id, prompt, response, timestamp) VALUES (?, ?, ?, ?, ?)",
-                ai.getId(),
-                ai.getUserId(),
-                ai.getPrompt(),
+        jdbc.update("INSERT INTO gpt_responses (response, timestamp, prompt, user_id) VALUES (?, ?, ?, ?)",
                 ai.getResponse(),
-                ai.getTimestamp());
+                ai.getTimestamp(),
+                ai.getPrompt(),
+                ai.getUserId());
     }
     protected List<AI> findByUserId(Long user_id){
         return jdbc.query("SELECT * FROM gpt_responses WHERE user_id = ?",

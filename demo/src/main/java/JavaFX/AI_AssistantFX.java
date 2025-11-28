@@ -45,15 +45,12 @@ public class AI_AssistantFX {
     protected final SwitchScenes handler = new SwitchScenes();
     private final LocalDateTime timestampNow = LocalDateTime.now();
     public ScrollPane messageScrollPane;
-    private final HTTPHandler httpHandler = new HTTPHandler();
     private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
     public ImageView uploadIcon;
     private ToDoFX toDoFX;
     private NotebookFX notebooks;
-    private UserPrefs userPrefs = new UserPrefs();
-    private User user = userPrefs.getSavedUser();
     public VBox placeholderVbox;
     public Label emptyLogsMessage;
 
@@ -74,7 +71,7 @@ public class AI_AssistantFX {
                 uploadIcon.setStyle("-fx-opacity: 0.2;");
             }
         });
-
+        //this.chatLogs = AppState.getChats();
     }
 
     public void streamGPT(String prompt, Consumer<String> onToken, Runnable onComplete, Consumer<Exception> onError) {
@@ -189,16 +186,15 @@ public class AI_AssistantFX {
                     );
                 },
 
-                // onComplete → remove typing indicator + save to backend
                 () -> {
                     try {
                         Map<String, Object> jsonPayload = new HashMap<>();
-                        jsonPayload.put("prompt", prompt);
                         jsonPayload.put("response", fullResponse.toString());
                         jsonPayload.put("timestamp", LocalDateTime.now().toString());
-                        jsonPayload.put("userId", user.getUserId());
+                        jsonPayload.put("prompt", prompt);
+                        jsonPayload.put("userId", User.getUserId());
                         String refinedJson = new ObjectMapper().writeValueAsString(jsonPayload);
-                        httpHandler.POST("gptresponses", refinedJson);
+                        HTTPHandler.POST("gptresponses", refinedJson);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -213,9 +209,7 @@ public class AI_AssistantFX {
     }
 
     public void GETChatlogs(){
-        long start = System.currentTimeMillis();
-        List<AI> chatLogs = httpHandler.GET("gptresponses/filter?userId=" + user.getUserId(), AI.class);
-        System.out.println("AI chat: Network request took: " + (System.currentTimeMillis() - start) + " ms");
+        List<AI> chatLogs = HTTPHandler.GET("gptresponses/filter?userId=" + User.getUserId(), AI.class);
         chatBoxVbox.getChildren().removeAll();
         if (chatLogs.isEmpty()){
             emptyLogsMessage = new Label("This is your personal AI assistant, ask it whatever you need!");

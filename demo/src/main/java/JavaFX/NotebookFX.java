@@ -34,7 +34,6 @@ public class NotebookFX{
     private boolean isTaskScheduled = false;
     private final int DELAY = 100;
     private final ObjectMapper mapper = new ObjectMapper();
-    private final HTTPHandler httpHandler = new HTTPHandler();
     protected final SwitchScenes handler = new SwitchScenes();
     private AI_AssistantFX ai;
     private ToDoFX toDoFX;
@@ -42,11 +41,14 @@ public class NotebookFX{
     private User user = userPrefs.getSavedUser();
     private Stage popupStage;
     private Scene scene;
-
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
 
     public NotebookFX(){}
+
+    public void initialize(){
+        //this.notebooks = AppState.getNotebooks();
+    }
 
     public void createNewTab(){
         popupStage = new Stage();
@@ -78,10 +80,10 @@ public class NotebookFX{
                 try {
                     ObjectNode objectNode = mapper.createObjectNode();
                     objectNode.put("tabTitle",title);
-                    objectNode.put("userId", user.getUserId());
+                    objectNode.put("userId", User.getUserId());
                     objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
-                    httpHandler.POST("notebooks", notebookJson);
+                    HTTPHandler.POST("notebooks", notebookJson);
                     popupStage.close();
                     tabsVbox.getChildren().clear();
                     GETNotebooks();
@@ -143,7 +145,7 @@ public class NotebookFX{
                     objectNode.put("tabTitle", title);
                     objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
-                    httpHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
+                    HTTPHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
                     notebook.setTabTitle(title);
                     notebook.setHexColor(hexColor);
                     String cssStyle = hexColor != null ? hexColor + ";" : "transparent;";
@@ -170,9 +172,7 @@ public class NotebookFX{
 
     public void GETNotebooks(){
         try {
-            long start = System.currentTimeMillis();
-            List<Notebook> notebooks = httpHandler.GET("notebooks/filter?userId=" + user.getUserId(),Notebook.class);
-            System.out.println("Notebook: Network request took: " + (System.currentTimeMillis() - start) + "ms");
+            List<Notebook> notebooks = HTTPHandler.GET("notebooks/filter?userId=" + User.getUserId(),Notebook.class);
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
@@ -208,7 +208,7 @@ public class NotebookFX{
                 editTab.setOnAction(event -> {
                     editNewTab(notebook.getTabTitle(), notebook.getId(), notebook, tabButton);});
                 deleteTab.setOnAction(event -> {
-                    httpHandler.DELETE(notebook.getId(), "notebooks", "false");
+                    HTTPHandler.DELETE(notebook.getId(), "notebooks", "false");
                     tabsVbox.getChildren().remove(tabButton);
                     notepadArea.setVisible(false);});
                 tabButton.setContextMenu(contextMenu);
@@ -227,7 +227,7 @@ public class NotebookFX{
                             Map<String, String> updateMap = new HashMap<>();
                             updateMap.put("notebookText", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
-                            httpHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
+                            HTTPHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
                             //notepadArea.setVisible(true);
                             notebook.setNotebookText(updatedText);
 

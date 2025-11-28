@@ -2,19 +2,7 @@
 .tasks_main {
     -fx-background-color: #f3f3f3;
 }
-.tasks_main .new_task_button { //New Task button
-    -fx-background-color: #454545;
-    -fx-text-fill: white;
-    -fx-font-size: 14;
-    -fx-border-radius: 5;
-    -fx-background-radius: 5;
-}
-.tasks_main .new_task_button:hover { //New Task button
-    -fx-background-color: #2e2e2e;
-}
-.tasks_main .new_task_button:pressed {
-    -fx-background-color: #171717; //previously was #d5d5d5
-}
+
 .tasks_main .tasks_label{
     -fx-font-family: "Arial";
     -fx-font-size:30;
@@ -89,7 +77,8 @@
 }
 .hidden_dateP{
     -fx-opacity:0;
-    -fx-pref-width:120;
+    -fx-pref-width:40;
+    -fx-pref-height:40;
 }
 
 .hidden_dateP .text-field{
@@ -253,4 +242,33 @@
 }
 .date_picker .arrow-button .arrow{
     -fx-background-color: white;
+}
+
+/* -------Task creation bar-------*/
+.task_creation_Hbar{
+    -fx-alignment:center;
+    -fx-pref-height:66;
+}
+.task_creation_field{
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+    -fx-font-size:14;
+    -fx-pref-width:370;
+    -fx-pref-height:40;
+}
+.new_task_button {
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-pref-height:40;
+    -fx-pref-width:40;
+}
+.new_task_button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.new_task_button:pressed {
+    -fx-background-color: #171717; //previously was #d5d5d5
 }

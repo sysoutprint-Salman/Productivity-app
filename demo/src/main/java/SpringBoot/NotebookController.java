@@ -49,7 +49,7 @@ public class NotebookController {
             Notebook existingNotebook = notebookRepository.getNotebook(id);
             if (existingNotebook == null) return ResponseEntity.notFound().build();
             existingNotebook.setTabTitle(notebook.getTabTitle());
-            notebookRepository.postNotebook(existingNotebook);
+            notebookRepository.updateNotebookTab(id, existingNotebook);
             return ResponseEntity.ok("SpringBoot: Tab updated successfully");
     }
     //PUT implementation for the notepad auto-saving
@@ -58,7 +58,7 @@ public class NotebookController {
         Notebook existingNotebook = notebookRepository.getNotebook(id);
         if (existingNotebook == null) return ResponseEntity.notFound().build();
         existingNotebook.setNotebookText(notebook.getNotebookText());
-        notebookRepository.postNotebook(existingNotebook);
+        notebookRepository.updateNotebookText(id, existingNotebook);
         return ResponseEntity.ok("SpringBoot: Notebook text updated successfully");
     }
 
@@ -86,13 +86,21 @@ class NotebookRepository {
                notebookMapper ,id);
     }
     protected void postNotebook(Notebook notebook){
-        jdbc.update("INSERT INTO notebooks (id, user_id, tab_title, notebook_text, hex_color) VALUES (?, ?, ?, ?, ?)",
-                notebook.getId(),
-                notebook.getUserId(),
+        jdbc.update("INSERT INTO notebooks (tab_title, notebook_text, user_id, hex_color) VALUES (?, ?, ?, ?)",
                 notebook.getTabTitle(),
                 notebook.getNotebookText(),
+                notebook.getUserId(),
                 notebook.getHexColor());
     }
+    public void updateNotebookText(Long id, Notebook notebook) {
+        jdbc.update("UPDATE notebooks SET notebook_text = ? WHERE id = ?",
+                notebook.getNotebookText(), id);
+    }
+    public void updateNotebookTab(Long id, Notebook notebook) {
+        jdbc.update("UPDATE notebooks SET tab_title = ?, hex_color = ? WHERE id = ?",
+                notebook.getTabTitle(), notebook.getHexColor(), id);
+    }
+
     protected void deleteNotebook(Long id){
         jdbc.update("DELETE FROM notebooks WHERE id = ?", id);
     }

@@ -23,9 +23,9 @@ public class TaskController {
 
     private final TaskRepository taskRepository;
 
-    @GetMapping
-    protected List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    @GetMapping("/all/{userId}")
+    protected List<Task> getAllTasksByUserId(@PathVariable Long userId) {
+        return taskRepository.findAllByUserId(userId);
     }
 
     @GetMapping("/{id}")
@@ -96,8 +96,8 @@ public class TaskController {
 
     private final TaskRowMapper rowMapper = new TaskRowMapper();
 
-    protected List<Task> findAll() {
-        return jdbc.query("SELECT * FROM tasks ORDER BY id", rowMapper);
+    protected List<Task> findAllByUserId(Long userId) {
+        return jdbc.query("SELECT * FROM tasks WHERE user_id = ?", rowMapper, userId);
     }
 
     protected Task getById(Long id) {

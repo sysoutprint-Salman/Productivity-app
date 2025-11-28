@@ -7,7 +7,7 @@ import java.util.prefs.Preferences;
 
 @Data
 public class UserPrefs {
-    private final Preferences userPreferences = Preferences.userNodeForPackage(UserPrefs.class);
+    private final static Preferences userPreferences = Preferences.userNodeForPackage(UserPrefs.class);
     private final HTTPHandler httpHandler = new HTTPHandler();
     private String username;
     private String email;
@@ -30,11 +30,21 @@ public class UserPrefs {
     public User getSavedUser() {
         String storedUsername = getStoredUsername();
         String storedEmail = getStoredEmail();
-        var users = httpHandler.GET("users/login?username=" + storedUsername + "&email=" + storedEmail, User.class);
+        var users = HTTPHandler.GET("users/login?username=" + storedUsername + "&email=" + storedEmail, User.class);
         if (users.isEmpty()) {
             return null;
         }
         return users.get(0);
+    }
+
+    public static Long getSavedUserId() {
+        String storedUsername = getStoredUsernameS();
+        String storedEmail = getStoredEmailS();
+        var users = HTTPHandler.GET("users/login?username=" + storedUsername + "&email=" + storedEmail, User.class);
+        if (users.isEmpty()) {
+            return null;
+        }
+        return users.get(0).getUserId();
     }
 
     /*public void registerUser(){
@@ -59,14 +69,24 @@ public class UserPrefs {
     public void saveSortOption(ToDoFX.Sort sortOption){
         userPreferences.put("sortOption",sortOption.toString());
     }
-    public String getSortOption(){
+
+    public  String getSortOption(){
         return userPreferences.get("sortOption",null);
     }
-    public String getStoredUsername() {
+
+    public  String getStoredUsername() {
         return userPreferences.get("username",null);
     }
-    public String getStoredEmail() {
+
+    public  String getStoredEmail() {
         return userPreferences.get("email",null);
     }
 
+    public static String getStoredUsernameS() {
+        return userPreferences.get("username",null);
+    }
+
+    public static String getStoredEmailS() {
+        return userPreferences.get("email",null);
+    }
 }
