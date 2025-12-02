@@ -300,11 +300,14 @@ public class ToDoFX {
 
     public void todo(Task.Status status){
         try{
+            mainBorderPane.setBottom(null);
             mainTaskVbox.getChildren().clear();
             List<Task> tasks = HTTPHandler.GET("tasks/filter?userId=" + User.getUserId()+ "&status=" + status, Task.class);
 
             tasks = sort(tasks, currentSortOption); //TODO: Use preference
-
+            if(status.equals(Task.Status.POSTED)){
+                mainBorderPane.setBottom(taskCreationBar());
+            }
             if (tasks.isEmpty()) {
                 Label emptyLabel = new Label(
                         status.equals(Task.Status.POSTED) ? "Your todo list looks empty. You can add some tasks by pressing the \"New Task\" button." :
@@ -319,7 +322,6 @@ public class ToDoFX {
                                         "Deleted"
                 );
                 sortButton.setVisible(status.equals(Task.Status.POSTED));
-                createTaskButton.setVisible(status.equals(Task.Status.POSTED));
             }
             else {
                 tasks.forEach(task -> {
@@ -367,7 +369,6 @@ public class ToDoFX {
                 if (status.equals(Task.Status.POSTED)){
                     taskLabel.setText("To Do");
                     sortButton.setVisible(true);
-                    mainBorderPane.setBottom(taskCreationBar());
                     taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
                     descriptionArea.setOnKeyReleased(e->{
                         autoUpdateDescription(descriptionArea,task.getId());
@@ -411,7 +412,6 @@ public class ToDoFX {
                 else if (status.equals(Task.Status.DELETED)){
                     taskLabel.setText("Deleted");
                     sortButton.setVisible(false);
-                    mainBorderPane.setBottom(null);
                     taskHbox.getChildren().remove(radio);
                     taskTitle.setText("Deleted: " + task.getTitle());
                     descriptionArea.setDisable(true);
@@ -435,7 +435,6 @@ public class ToDoFX {
                 else if (status.equals(Task.Status.COMPLETED)){
                     taskLabel.setText("Completed");
                     sortButton.setVisible(false);
-                    mainBorderPane.setBottom(null);
                     dateButton.setText("Completed");
                     taskHbox.getChildren().remove(radio);
                     descriptionArea.setText(task.getDescription());
@@ -449,6 +448,7 @@ public class ToDoFX {
                 }
         }catch (Exception e){
             System.err.println("JavaFX: Error occurred trying to load tasks.");
+            e.printStackTrace();
         }
     }
 
