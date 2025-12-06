@@ -25,7 +25,6 @@ import java.util.prefs.Preferences;
 //Putting SpringApp & Rest annotations here didn't work likely because of Application extension.
 @Slf4j
 public class UI extends Application {
-    private static CompletableFuture<AppState> preloadedData;
     private final LogInFX logInFX = new LogInFX();
 
     public static void main(String[] args) {
