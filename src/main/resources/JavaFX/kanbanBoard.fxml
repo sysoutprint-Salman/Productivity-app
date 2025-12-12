@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="610.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.KanbanFX">
+
+    <children>
+        <BorderPane prefHeight="610.0" prefWidth="670.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+            <top>
+                <MenuBar prefHeight="26.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                    <menus>
+                        <Menu text="To Do">
+                            <items>
+                                <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
+                                <MenuItem mnemonicParsing="false" text="Close" />
+                            </items>
+                            <graphic>
+                                <ImageView styleClass="icon">
+                                    <image>
+                                        <Image url="@../Images/check.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Menu>
+
+                        <Menu text="AI Chat">
+                            <items>
+                                <MenuItem fx:id="gptMenuItem" onAction="#switchToGPT" text="Chat with AI assistant" />
+                            </items>
+                            <graphic>
+                                <ImageView styleClass="icon">
+                                    <image>
+                                        <Image url="@../Images/user.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Menu>
+
+                        <Menu text="Notebook">
+                            <items>
+                                <MenuItem fx:id="viewNotebook" onAction="#switchToNotebook" text="View Notebook" />
+                            </items>
+                            <graphic>
+                                <ImageView styleClass="icon">
+                                    <image>
+                                        <Image url="@../Images/notepad.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Menu>
+
+                        <Menu text="Kanban">
+                            <graphic>
+                                <ImageView styleClass="icon">
+                                    <image>
+                                        <Image url="@../Images/kanban.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                     <items>
+                        <MenuItem fx:id="viewNotebook1" onAction="#switchToNotebook" text="Kanban Board" />
+                     </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+            </top>
+
+            <left>
+                <VBox fx:id="sidebar" maxWidth="1.7976931348623157E308" minWidth="80.0" prefHeight="572.0" prefWidth="80.0" styleClass="sidebar" BorderPane.alignment="CENTER_LEFT">
+                    <children>
+                  <VBox fx:id="cards" alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" onMouseClicked="#slidingSidebar" prefHeight="62.0" prefWidth="82.0" styleClass="icon_containers">
+                     <children>
+                                <ImageView>
+                                    <image>
+                              <Image url="@../Images/football-card.png" />
+                           </image>
+                                </ImageView>
+                        <Label fx:id="menuLabel1" text="Cards" />
+                     </children>
+                  </VBox>
+                  <VBox fx:id="reminders" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefHeight="62.0" prefWidth="19.0" styleClass="icon_containers">
+                     <children>
+                        <ImageView>
+                           <image>
+                              <Image url="@../Images/bell.png" />
+                           </image>
+                        </ImageView>
+                        <Label fx:id="menuLabel41" text="Reminders" />
+                     </children>
+                  </VBox>
+                  <VBox fx:id="themes" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                     <children>
+                                <ImageView>
+                                    <image>
+                              <Image url="@../Images/theme.png" />
+                           </image>
+                                </ImageView>
+                        <Label fx:id="menuLabel2" text="Themes" />
+                     </children>
+                  </VBox>
+                  <VBox fx:id="archive" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                     <children>
+                                <ImageView>
+                                    <image>
+                              <Image url="@../Images/folder.png" />
+                           </image>
+                                </ImageView>
+                        <Label fx:id="menuLabel3" text="Archive" />
+                     </children>
+                  </VBox>
+                  <VBox fx:id="boards" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                     <children>
+                                <ImageView>
+                                    <image>
+                              <Image url="@../Images/board.png" />
+                           </image>
+                                </ImageView>
+                        <Label fx:id="menuLabel4" text="Boards" />
+                     </children>
+                  </VBox>
+                  <VBox fx:id="deleted" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                     <children>
+                        <ImageView>
+                           <image>
+                              <Image url="@../Images/trash-bin.png" />
+                           </image>
+                        </ImageView>
+                        <Label fx:id="menuLabel42" text="Deleted" />
+                     </children>
+                  </VBox>
+
+                    </children>
+                </VBox>
+            </left>
+         <center>
+            <ScrollPane fitToHeight="true" pannable="true" prefHeight="200.0" prefWidth="677.0" BorderPane.alignment="CENTER">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0">
+                     <children>
+                            <HBox fx:id="boardHBox" spacing="20.0" styleClass="board_hbox">
+            
+                                      <padding>
+                                    <Insets bottom="15" left="15" right="15" top="15" />
+                                </padding>
+            
+                                  </HBox>
+                     </children>
+                  </AnchorPane>
+              </content>
+            </ScrollPane>
+         </center>
+
+        </BorderPane>
+    </children>
+
+    <stylesheets>
+        <URL value="@../CSS/Kanban.css" />
+        <URL value="@../CSS/MenuBar.css" />
+    </stylesheets>
+
+</AnchorPane>

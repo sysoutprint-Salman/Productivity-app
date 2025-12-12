@@ -26,7 +26,7 @@
                        <MenuItem mnemonicParsing="false" text="Close" />
                    </items>
                <graphic>
-                  <ImageView styleClass="check_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/check.png" />
                      </image>
@@ -38,7 +38,7 @@
                   <MenuItem fx:id="viewNotebook1" mnemonicParsing="false" text="Chat with AI assistant" />
                    </items>
                <graphic>
-                  <ImageView styleClass="ai_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/user.png" />
                      </image>
@@ -50,7 +50,7 @@
                        <MenuItem fx:id="viewNotebook" mnemonicParsing="false" onAction="#switchToNotebook" text="View Notebook" />
                    </items>
                <graphic>
-                  <ImageView styleClass="notepad_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/notepad.png" />
                      </image>

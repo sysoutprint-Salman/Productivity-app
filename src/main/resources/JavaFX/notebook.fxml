@@ -27,7 +27,7 @@
                     <MenuItem mnemonicParsing="false" text="Close" />
                 </items>
             <graphic>
-               <ImageView styleClass="check_icon">
+               <ImageView styleClass="icon">
                   <image>
                      <Image url="@../Images/check.png" />
                   </image>
@@ -39,7 +39,7 @@
                     <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
                 </items>
             <graphic>
-               <ImageView styleClass="ai_icon">
+               <ImageView styleClass="icon">
                   <image>
                      <Image url="@../Images/user.png" />
                   </image>
@@ -51,7 +51,7 @@
              <MenuItem fx:id="newTabsItem" mnemonicParsing="false" onAction="#createNewTab" text="New Tab" />
            </items>
             <graphic>
-               <ImageView styleClass="notepad_icon">
+               <ImageView styleClass="icon">
                   <image>
                      <Image url="@../Images/notepad.png" />
                   </image>
@@ -88,7 +88,7 @@
                                     <graphic>
                                        <ImageView fitHeight="15.0" fitWidth="15.0" styleClass="add_icon">
                                           <image>
-                                             <Image url="@../Images/plus%20(5).png" />
+                                             <Image url="@../Images/plus (5).png" />
                                           </image>
                                        </ImageView>
                                     </graphic></Button>

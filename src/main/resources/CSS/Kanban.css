@@ -1,0 +1,190 @@
+/* ================================
+   General Board Layout
+   ================================ */
+
+.board_hbox {
+    -fx-background-color: transparent;
+}
+
+.placeholder {
+    -fx-background-color: rgba(0, 0, 0, 0.15);
+    -fx-background-radius: 10;
+}
+
+
+/* ================================
+   Sidebar
+   ================================ */
+
+.sidebar {
+    -fx-background-color: white;
+    -fx-border-color: #CECECE;
+    -fx-border-width: 0 1;
+    -fx-spacing: 5;
+}
+
+
+.sidebar .icon_containers{
+    -fx-padding: 10;
+    -fx-pref-width:80;
+}
+.sidebar .icon_containers:hover{
+    -fx-background-color: #CECECE;
+    -fx-background-radius:5;
+}
+
+/* ================================
+   HEADER
+   Merge header + list into one block
+   ================================ */
+
+.header_section {
+    -fx-background-color: white;
+    -fx-background-radius: 10 10 0 0; /* top rounded */
+    -fx-border-radius: 10 10 0 0;
+    -fx-border-width: 1 1 0 1;       /* NO bottom border */
+    -fx-border-color: #CECECE;
+}
+
+.header_title{
+    -fx-padding:10 0 0 15;
+    -fx-font-size:14;
+}
+.list_options{
+    -fx-background-color:transparent;
+    -fx-pref-width:0;
+    -fx-padding: 0;
+}
+.list_options .arrow-button{
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+}
+
+/* ================================
+   LIST CONTAINERS
+   ================================ */
+
+.list_scrollP {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.list_scrollP > .viewport {
+    -fx-background-color: transparent;
+}
+
+.list_vbox {
+    -fx-background-color: white;
+    -fx-background-radius: 0 0 10 10; /* bottom rounded */
+    -fx-border-radius: 0 0 10 10;
+
+    -fx-border-width: 0 1 1 1;  /* NO top border */
+    -fx-border-color: #CECECE;
+
+    -fx-padding: 10;
+    -fx-spacing: 12;
+}
+
+
+/* Remove ScrollBar styling (clean/minimal) */
+.scroll-bar:horizontal, .scroll-bar:vertical {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+
+/* ================================
+   CARD CONTAINERS
+   ================================ */
+
+.card {
+    -fx-background-color: #eeeeee;
+    -fx-background-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-color: #CECECE;
+    -fx-border-radius: 10;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+
+/* ================================
+   CARD TEXTAREA — fully cleaned,
+   no padding, no background layers,
+   inherits rounded edges
+   ================================ */
+
+.card_textA {
+    -fx-text-fill: black;
+
+    /* wipe background */
+    -fx-background-color: transparent, transparent, transparent;
+    -fx-control-inner-background: transparent;
+
+    /* match card rounding */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+
+    /* remove padding that causes weird indent on new line */
+    -fx-padding: 6 8 6 8; /* clean minimal padding */
+    -fx-background-insets: 0;
+
+    /* remove borders */
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+
+    /* remove focus effects */
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+
+    /* selection color */
+    -fx-highlight-fill: #cccccc;
+    -fx-highlight-text-fill: black;
+}
+
+/* kill the internal "content" background layer of TextArea */
+.card_textA .content {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* kill underlying scrollpane background that causes white patches */
+.card_textA .scroll-pane,
+.card_textA .scroll-pane .viewport {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* remove caret focus glow */
+.text-input:focused {
+    -fx-faint-focus-color: transparent;
+}
+
+/* ================================
+   CARD OPTIONS (MenuButton)
+   ================================ */
+
+.card_options {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.card_options > .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.card_options:hover {
+    -fx-background-color: rgba(0,0,0,0.05);
+    -fx-background-radius: 5;
+}
+
+/* ================================
+   ICONS
+   ================================ */
+
+.icon {
+    -fx-fit-to-height: true;
+    -fx-preserve-ratio: true;
+}

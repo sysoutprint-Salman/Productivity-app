@@ -104,8 +104,8 @@
 .menu-item:armed .label {
     -fx-text-fill: white;
 }
-.check_icon, .ai_icon, .notepad_icon{
-    -fx-fit-width:17;
-    -fx-fit-height:17;
+.icon{
+    -fx-fit-width:18;
+    -fx-fit-height:18;
     -fx-translate-x: -4px;
 }

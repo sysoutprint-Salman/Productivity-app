@@ -477,4 +477,9 @@ public class ToDoFX {
             notebooks.GETNotebooks();
         });
     }
+    public void switchToKanban(ActionEvent event) {
+        handler.switchScene(event, "kanbanBoard", consumer->{
+            KanbanFX kanban = (KanbanFX) consumer;
+        });
+    }
 }

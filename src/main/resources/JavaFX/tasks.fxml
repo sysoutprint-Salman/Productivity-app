@@ -37,48 +37,60 @@
             <RadioMenuItem fx:id="Newest" mnemonicParsing="false" text="Newest" />
         </items>
       </MenuButton>
-      <MenuBar prefHeight="26.0" prefWidth="600.0">
-        <menus>
-          <Menu mnemonicParsing="false" text="To Do">
-            <items>
-                  <MenuItem mnemonicParsing="false" onAction="#getByPosted" text="View Tasks" />
-                  <MenuItem mnemonicParsing="false" onAction="#getByDeleted" text="Deleted Tasks" />
-                  <MenuItem mnemonicParsing="false" onAction="#getByCompleted" text="Completed Tasks" />
-              <MenuItem mnemonicParsing="false" text="Close" />
-            </items>
+      <MenuBar layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <menus>
+            <Menu text="To Do">
+               <items>
+                  <MenuItem onAction="#getByPosted" text="View Tasks" />
+                  <MenuItem onAction="#getByDeleted" text="Deleted Tasks" />
+                  <MenuItem onAction="#getByCompleted" text="Completed Tasks" />
+                  <MenuItem text="Close" />
+               </items>
                <graphic>
-                  <ImageView styleClass="check_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/check.png" />
                      </image>
                   </ImageView>
                </graphic>
-          </Menu>
-          <Menu mnemonicParsing="false" text="AI Chat">
-            <items>
-              <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
-            </items>
+            </Menu>
+            <Menu text="AI Chat">
+               <items>
+                  <MenuItem fx:id="gptMenuItem1" onAction="#switchToGPT" text="Chat with AI assistant" />
+               </items>
                <graphic>
-                  <ImageView styleClass="ai_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/user.png" />
                      </image>
                   </ImageView>
                </graphic>
-          </Menu>
-            <Menu mnemonicParsing="false" text="Notebook">
-                <items>
-                    <MenuItem fx:id="viewNotebook" mnemonicParsing="false" onAction="#switchToNotebook" text="View Notebook" />
-                </items>
+            </Menu>
+            <Menu text="Notebook">
+               <items>
+                  <MenuItem fx:id="viewNotebook2" onAction="#switchToNotebook" text="View Notebook" />
+               </items>
                <graphic>
-                  <ImageView styleClass="notepad_icon">
+                  <ImageView styleClass="icon">
                      <image>
                         <Image url="@../Images/notepad.png" />
                      </image>
                   </ImageView>
                </graphic>
             </Menu>
-        </menus>
+            <Menu text="Kanban">
+               <graphic>
+                  <ImageView styleClass="icon">
+                     <image>
+                        <Image url="@../Images/kanban.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <items>
+                  <MenuItem onAction="#switchToKanban" text="Kanban Board" />
+               </items>
+            </Menu>
+         </menus>
       </MenuBar>
    </children>
    <stylesheets>
