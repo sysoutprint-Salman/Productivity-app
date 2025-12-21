@@ -9,6 +9,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -210,6 +211,7 @@ public class KanbanFX {
 
     private StackPane setCards(VBox visibleList) {
 
+        // Create card container
         StackPane card = new StackPane();
         card.getStyleClass().add("card");
         card.setPadding(new Insets(6));
@@ -217,25 +219,25 @@ public class KanbanFX {
         card.setMinHeight(56);
         VBox.setVgrow(card, Priority.NEVER);
 
+        // Create card text area
         TextArea text = new TextArea("New Card");
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
-
         text.setPrefRowCount(1);
         text.setMinHeight(Region.USE_PREF_SIZE);
         text.setPrefHeight(Region.USE_COMPUTED_SIZE);
         text.setMaxHeight(Double.MAX_VALUE);
-
         text.setEditable(false);
         text.setMouseTransparent(true);
 
-        text.textProperty().addListener((obs, oldV, newV) -> {
-            // request recompute of computed height
+        text.textProperty().addListener((obs, oldText, newText) -> {
+            // Ensure card resizes when text changes
             text.setPrefHeight(Region.USE_COMPUTED_SIZE);
             text.layout();
             card.requestLayout();
         });
 
+        // Create options menu (top-right)
         MenuButton cardOptions = new MenuButton();
         cardOptions.getStyleClass().add("card_options");
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
@@ -243,134 +245,112 @@ public class KanbanFX {
         card.getChildren().addAll(text, cardOptions);
         visibleList.getChildren().add(card);
 
-
+        // Enable double-click editing
         card.setOnMouseClicked(e -> {
-            // only react to primary button double click, ignore if already editing
             if (e.getClickCount() == 2 && !text.isEditable()) {
-                // enable editing and allow the TextArea to receive mouse events
                 text.setEditable(true);
                 text.setMouseTransparent(false);
-                text.setFocusTraversable(true);
                 text.requestFocus();
-
                 Platform.runLater(() -> text.positionCaret(text.getText().length()));
             }
         });
 
-        // When TextArea loses focus, disable editing again and restore mouse transparency
-        text.focusedProperty().addListener((obs, oldV, newV) -> {
-            if (!newV) {
-                // user finished editing
+        // Disable editing when focus is lost
+        text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) {
                 text.setEditable(false);
                 text.setMouseTransparent(true);
-
-                // ensure caret/focus cleared
                 card.requestFocus();
             }
         });
 
-
+        // Enter key finishes editing
         text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
-            if (ke.getCode() == KeyCode.ENTER && ke.isControlDown()) {
-                return;
-            }
-            if (ke.getCode() == KeyCode.ENTER) {
-                text.getParent().requestFocus(); // will trigger focusedProperty listener and disable edit
+            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
+                card.requestFocus();
                 ke.consume();
             }
         });
 
+        // Variables for drag-and-drop
+        final StackPane[] ghostCard = {null};
+        final Rectangle[] placeholder = {null};
+        final Group[] overlayRef = {null};
 
-        final StackPane[] ghostCard = { null };
-        final Rectangle[] placeholder = { null };
-        final double[] offsetY = { 0 };
-
+        // Mouse pressed: start drag
         card.setOnMousePressed(e -> {
-            if (text.isEditable()) return;
-
-            if (e.getTarget() instanceof MenuButton || e.getTarget() instanceof Node && ((Node) e.getTarget()).getStyleClass().contains("card_options")) {
-                return;
-            }
-
-            card.applyCss();
-            card.layout();
+            if (text.isEditable() || e.getTarget() instanceof MenuButton) return;
 
             SnapshotParameters params = new SnapshotParameters();
             params.setFill(Color.TRANSPARENT);
+
             ImageView ghostImg = new ImageView(card.snapshot(params, null));
             ghostImg.setOpacity(0.36);
 
             ghostCard[0] = new StackPane(ghostImg);
+            ghostCard[0].setManaged(false);
             ghostCard[0].setMouseTransparent(true);
+            ghostCard[0].setPickOnBounds(false);
 
-            Bounds b = card.localToScene(card.getBoundsInLocal());
-            ghostCard[0].setLayoutX(b.getMinX());
-            ghostCard[0].setLayoutY(b.getMinY());
+            Parent root = boardHBox.getScene().getRoot();
 
-            offsetY[0] = e.getSceneY() - b.getMinY();
+            // Create or find overlay for dragging.
+            // Ensures that the ghost image can move freely without being affected by layout properties
+            if (overlayRef[0] == null) {
+                if (root instanceof Pane pane) {
+                    for (Node n : pane.getChildren()) {
+                        if (n instanceof Group g && g.getProperties().containsKey("kanbanOverlay")) {
+                            overlayRef[0] = g; //Reusing group
+                            break;
+                        }
+                    }
+                    if (overlayRef[0] == null) {
+                        overlayRef[0] = new Group();
+                        overlayRef[0].getProperties().put("kanbanOverlay", true);
+                        pane.getChildren().add(overlayRef[0]); //Creating group for future use
 
-            // Real card size placeholder
+                    }
+                } else if (root instanceof Group g) {
+                    overlayRef[0] = g;
+                }
+            }
+
+            // Position ghost card exactly under cursor
+            Point2D start = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
+            ghostCard[0].relocate(start.getX(), start.getY());
+            overlayRef[0].getChildren().add(ghostCard[0]);
+
+            // Placeholder shows original position
             placeholder[0] = new Rectangle(card.getWidth(), card.getHeight());
             placeholder[0].setFill(Color.rgb(0, 0, 0, 0.18));
-            placeholder[0].setArcWidth(8);
-            placeholder[0].setArcHeight(8);
+            placeholder[0].setArcWidth(10);
+            placeholder[0].setArcHeight(10);
 
             VBox parent = (VBox) card.getParent();
             int index = parent.getChildren().indexOf(card);
-
             parent.getChildren().add(index, placeholder[0]);
             parent.getChildren().remove(card);
-
-            Parent root = boardHBox.getScene().getRoot();
-            if (root instanceof Pane pane) {
-                Group overlay = null;
-                for (Node n : pane.getChildren()) {
-                    if (n.getProperties().containsKey("kanbanOverlay")) {
-                        overlay = (Group) n;
-                        break;
-                    }
-                }
-                if (overlay == null) {
-                    overlay = new Group();
-                    overlay.getProperties().put("kanbanOverlay", true);
-                    pane.getChildren().add(overlay);
-                }
-                overlay.getChildren().add(ghostCard[0]);
-            } else if (root instanceof Group group) {
-                group.getChildren().add(ghostCard[0]);
-            } else {
-                if (root instanceof Parent) {
-                    Parent p = (Parent) root;
-
-                    if (p.getChildrenUnmodifiable().size() > 0 && root instanceof Pane) {
-                        Pane fallbackPane = (Pane) root;
-                        fallbackPane.getChildren().add(ghostCard[0]);
-                    }
-                }
-                else {
-                    // last resort - attach to boardHBox parent (may be clipped)
-                    ((Pane) boardHBox.getScene().getRoot()).getChildren().add(ghostCard[0]);
-                }
-            }
         });
 
+        // Mouse dragged: move ghost card and adjust placeholder
         card.setOnMouseDragged(e -> {
-            if (ghostCard[0] == null) return;
+            if (ghostCard[0] == null || overlayRef[0] == null) return;
 
-            ghostCard[0].setLayoutY(e.getSceneY() - offsetY[0]);
+            Point2D dragPoint = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
+            ghostCard[0].relocate(dragPoint.getX(), dragPoint.getY());
 
             VBox targetList = null;
             for (Node listContainer : boardHBox.getChildren()) {
-                if (listContainer instanceof VBox outerList && outerList.getChildren().size() > 1) {
-                    Node maybeScroll = outerList.getChildren().get(1);
-                    if (maybeScroll instanceof ScrollPane sp) {
-                        Node content = sp.getContent();
-                        if (content instanceof AnchorPane ap && !ap.getChildren().isEmpty() && ap.getChildren().get(0) instanceof VBox realList) {
-                            Bounds lb = realList.localToScene(realList.getBoundsInLocal());
-                            if (e.getSceneX() > lb.getMinX() && e.getSceneX() < lb.getMaxX()) {
-                                targetList = realList;
-                                break;
-                            }
+                if (listContainer instanceof VBox outer && outer.getChildren().size() > 1) {
+                    if (outer.getChildren().get(1) instanceof ScrollPane sp
+                            && sp.getContent() instanceof AnchorPane ap
+                            && !ap.getChildren().isEmpty()
+                            && ap.getChildren().get(0) instanceof VBox list) {
+
+                        Bounds lb = list.localToScene(list.getBoundsInLocal());
+                        if (e.getSceneX() > lb.getMinX() && e.getSceneX() < lb.getMaxX()) {
+                            targetList = list;
+                            break;
                         }
                     }
                 }
@@ -385,49 +365,39 @@ public class KanbanFX {
                 ((VBox) placeholder[0].getParent()).getChildren().remove(placeholder[0]);
             }
 
+            // Determine where to insert placeholder in target list
             int insertIndex = 0;
             for (Node n : targetList.getChildren()) {
                 Bounds nb = n.localToScene(n.getBoundsInLocal());
-                if (centerY > nb.getMinY() + nb.getHeight() / 2) {
-                    insertIndex++;
-                }
+                if (centerY > nb.getMinY() + nb.getHeight() / 2) insertIndex++;
             }
 
             targetList.getChildren().add(insertIndex, placeholder[0]);
         });
 
+        // Mouse released: drop card
         card.setOnMouseReleased(e -> {
             if (ghostCard[0] == null) return;
 
-            Parent root = boardHBox.getScene().getRoot();
-            if (root instanceof Pane pane) {
-                for (Node n : pane.getChildren()) {
-                    if (n instanceof Group g && g.getProperties().containsKey("kanbanOverlay")) {
-                        g.getChildren().remove(ghostCard[0]);
-                        if (g.getChildren().isEmpty()) pane.getChildren().remove(g);
-                        break;
-                    }
+            // Remove ghost card
+            if (overlayRef[0] != null) {
+                overlayRef[0].getChildren().remove(ghostCard[0]);
+                if (overlayRef[0].getChildren().isEmpty() && overlayRef[0].getParent() instanceof Pane pane) {
+                    pane.getChildren().remove(overlayRef[0]);
+                    overlayRef[0] = null;
                 }
-            } else if (root instanceof Group gg) {
-                gg.getChildren().remove(ghostCard[0]);
-            } else {
-                // fallback
-                Pane fallback = (Pane) boardHBox.getScene().getRoot();
-                fallback.getChildren().remove(ghostCard[0]);
             }
 
+            // Move card to placeholder's position
             if (placeholder[0] == null || placeholder[0].getParent() == null) {
-                // nothing to drop into; restore to original list by adding at end of visibleList
                 visibleList.getChildren().add(card);
             } else {
                 VBox targetList = (VBox) placeholder[0].getParent();
                 int index = targetList.getChildren().indexOf(placeholder[0]);
-
                 targetList.getChildren().remove(placeholder[0]);
                 targetList.getChildren().add(index, card);
             }
 
-            // ensure editing state reset
             text.setEditable(false);
             text.setMouseTransparent(true);
             card.requestFocus();
@@ -438,7 +408,6 @@ public class KanbanFX {
 
         return card;
     }
-
 
     private void makeListDraggable(VBox listContainer, HBox headerSection, VBox listVBox) {
 
