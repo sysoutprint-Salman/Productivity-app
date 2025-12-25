@@ -1,6 +1,3 @@
-/* ================================
-   General Board Layout
-   ================================ */
 
 .board_hbox {
     -fx-background-color: transparent;
@@ -12,9 +9,6 @@
 }
 
 
-/* ================================
-   Sidebar
-   ================================ */
 
 .sidebar {
     -fx-background-color: white;
@@ -33,10 +27,6 @@
     -fx-background-radius:5;
 }
 
-/* ================================
-   HEADER
-   Merge header + list into one block
-   ================================ */
 
 .header_section {
     -fx-background-color: white;
@@ -44,11 +34,13 @@
     -fx-border-radius: 10 10 0 0;
     -fx-border-width: 1 1 0 1;       /* NO bottom border */
     -fx-border-color: #CECECE;
+    -fx-padding:0 0 8 0;
 }
 
 .header_title{
     -fx-padding:10 0 0 15;
-    -fx-font-size:14;
+    -fx-font-size:15;
+    -fx-pref-width:275;
 }
 .list_options{
     -fx-background-color:transparent;
@@ -61,30 +53,23 @@
     -fx-opacity: 0;
 }
 
-/* ================================
-   LIST CONTAINERS
-   ================================ */
-
 .list_scrollP {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-.list_scrollP > .viewport {
+.list_scrollP .viewport{
     -fx-background-color: transparent;
 }
 
-.list_vbox {
+.visible_list {
     -fx-background-color: white;
-    -fx-background-radius: 0 0 10 10; /* bottom rounded */
-    -fx-border-radius: 0 0 10 10;
-
-    -fx-border-width: 0 1 1 1;  /* NO top border */
+    -fx-border-width: 0 1 0 1;  /* NO top border */
     -fx-border-color: #CECECE;
-
     -fx-padding: 10;
     -fx-spacing: 12;
 }
+
 
 
 /* Remove ScrollBar styling (clean/minimal) */
@@ -92,11 +77,31 @@
     -fx-opacity: 0;
     -fx-padding: 0;
 }
+.addCardSection{
+    -fx-border-color: #CECECE;
+    -fx-background-color:white;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-radius: 0 0 10 10;
+    -fx-border-width: 0 1 1 1;  /* NO top border */
+    -fx-padding:8;
 
+}
 
-/* ================================
-   CARD CONTAINERS
-   ================================ */
+.addCardSection .add_card_button {
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-pref-width:275;
+}
+
+.addCardSection .button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.addCardSection .button:pressed {
+    -fx-background-color: #171717; //previously was #d5d5d5
+}
 
 .card {
     -fx-background-color: #eeeeee;
@@ -106,14 +111,8 @@
     -fx-border-radius: 10;
     -fx-padding: 0;
     -fx-cursor: hand;
+    -fx-pref-height:45;
 }
-
-
-/* ================================
-   CARD TEXTAREA — fully cleaned,
-   no padding, no background layers,
-   inherits rounded edges
-   ================================ */
 
 .card_textA {
     -fx-text-fill: black;
@@ -162,9 +161,6 @@
     -fx-faint-focus-color: transparent;
 }
 
-/* ================================
-   CARD OPTIONS (MenuButton)
-   ================================ */
 
 .card_options {
     -fx-background-color: transparent;
@@ -180,9 +176,6 @@
     -fx-background-radius: 5;
 }
 
-/* ================================
-   ICONS
-   ================================ */
 
 .icon {
     -fx-fit-to-height: true;

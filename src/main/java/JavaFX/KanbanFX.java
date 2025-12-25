@@ -5,7 +5,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -20,7 +19,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -60,7 +58,7 @@ public class KanbanFX {
     private Rectangle placeholder = null;
     private double dragOffsetY;
     private SwitchScenes handler = new SwitchScenes();
-    private static final double DRAG_VISUAL_OFFSET = 10;
+    private static final double DRAG_VISUAL_OFFSET = 5;
 
     public KanbanFX(){}
 
@@ -121,34 +119,33 @@ public class KanbanFX {
     }
 
     private void createInitialLists() {
+
         for (int i = 1; i <= 2; i++) {
 
-            // ==========================
-            // LIST CONTAINER (VBox)
-            // ==========================
             VBox listContainer = new VBox();
-            listContainer.getStyleClass().add("list");
-            listContainer.setPrefWidth(235);
-            listContainer.setPrefHeight(542);
+            listContainer.getStyleClass().add("list_column");
+            listContainer.setAlignment(Pos.TOP_CENTER);
+            listContainer.setPrefWidth(275);
+            listContainer.setMinWidth(Region.USE_PREF_SIZE);
+            listContainer.setMaxWidth(Region.USE_PREF_SIZE);
+            listContainer.maxHeightProperty().bind(boardHBox.heightProperty());
 
-            // ==========================
-            // HEADER SECTION (HBox)
-            // ==========================
+
             HBox headerSection = new HBox();
             headerSection.getStyleClass().add("header_section");
-            headerSection.setPrefHeight(26);
 
             Label headerTitle = new Label("List " + i);
             headerTitle.getStyleClass().add("header_title");
-            headerTitle.setPrefWidth(204);
-            headerTitle.setPrefHeight(33);
 
             MenuButton listOptionsBtn = new MenuButton();
             listOptionsBtn.getStyleClass().add("list_options");
-            listOptionsBtn.setPrefWidth(200);
-            listOptionsBtn.setPrefHeight(32);
 
-            // Example items
+            ImageView dotsImg = new ImageView(
+                    new Image(Objects.requireNonNull(
+                            getClass().getResourceAsStream("/Images/dots.png")))
+            );
+            listOptionsBtn.setGraphic(dotsImg);
+
             listOptionsBtn.getItems().addAll(
                     new MenuItem("Add Card"),
                     new MenuItem("Edit"),
@@ -158,68 +155,52 @@ public class KanbanFX {
                     new MenuItem("Delete")
             );
 
-            ImageView dotsImg = new ImageView(new Image(
-                    Objects.requireNonNull(getClass().getResourceAsStream("/Images/dots.png"))
-            ));
-
-            listOptionsBtn.setGraphic(dotsImg);
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
 
             ScrollPane listScrollPane = new ScrollPane();
             listScrollPane.getStyleClass().add("list_scrollP");
             listScrollPane.setFitToWidth(true);
-            listScrollPane.setFitToHeight(true);
-            listScrollPane.setPrefWidth(235);
-            listScrollPane.setPrefHeight(516);
-            VBox.setVgrow(listScrollPane, Priority.ALWAYS);
+            listScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-            AnchorPane anchorPane = new AnchorPane();
-            anchorPane.setPrefHeight(514);
-            anchorPane.setPrefWidth(359);
 
             VBox visibleList = new VBox();
-            visibleList.getStyleClass().add("list_vbox");
-            visibleList.setSpacing(10);
-            visibleList.setPrefWidth(235);
-            visibleList.setPrefHeight(138);
+            visibleList.getStyleClass().add("visible_list");
 
-            AnchorPane.setLeftAnchor(visibleList, 0.0);
-            AnchorPane.setRightAnchor(visibleList, 0.0);
-
-            visibleList.setPadding(new Insets(0, 7, 0, 7));
-
-            for (int j = 0; j < 2; j++) {
+            // Demo cards
+            for (int j = 0; j < 1; j++) {
                 setCards(visibleList);
             }
 
+            listScrollPane.setContent(visibleList);
 
-            anchorPane.getChildren().add(visibleList);
-            listScrollPane.setContent(anchorPane);
+            // ================= FIXED FOOTER =================
+            HBox addCardSection = new HBox();
+            addCardSection.getStyleClass().add("addCardSection");
+            addCardSection.setAlignment(Pos.CENTER);
 
+            Button addCardBtn = new Button("Add card");
+            addCardBtn.getStyleClass().add("add_card_button");
+            addCardSection.getChildren().add(addCardBtn);
+
+            // ================= ASSEMBLY =================
             listContainer.getChildren().addAll(
                     headerSection,
-                    listScrollPane
+                    listScrollPane,
+                    addCardSection
             );
 
-
-            makeListDraggable(listContainer, headerSection, visibleList);
-
-            // Add to board
+            makeListDraggable(listContainer, headerSection, listScrollPane, addCardSection);
             boardHBox.getChildren().add(listContainer);
         }
     }
 
-    private StackPane setCards(VBox visibleList) {
+    private void setCards(VBox visibleList) {
 
-        // Create card container
         StackPane card = new StackPane();
         card.getStyleClass().add("card");
         card.setPadding(new Insets(6));
-        card.setPrefWidth(218);
-        card.setMinHeight(56);
         VBox.setVgrow(card, Priority.NEVER);
 
-        // Create card text area
         TextArea text = new TextArea("New Card");
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
@@ -237,7 +218,6 @@ public class KanbanFX {
             card.requestLayout();
         });
 
-        // Create options menu (top-right)
         MenuButton cardOptions = new MenuButton();
         cardOptions.getStyleClass().add("card_options");
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
@@ -245,7 +225,7 @@ public class KanbanFX {
         card.getChildren().addAll(text, cardOptions);
         visibleList.getChildren().add(card);
 
-        // Enable double-click editing
+        //Needs work
         card.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2 && !text.isEditable()) {
                 text.setEditable(true);
@@ -255,7 +235,6 @@ public class KanbanFX {
             }
         });
 
-        // Disable editing when focus is lost
         text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (!isFocused) {
                 text.setEditable(false);
@@ -264,7 +243,6 @@ public class KanbanFX {
             }
         });
 
-        // Enter key finishes editing
         text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
             if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
                 card.requestFocus();
@@ -277,7 +255,6 @@ public class KanbanFX {
         final Rectangle[] placeholder = {null};
         final Group[] overlayRef = {null};
 
-        // Mouse pressed: start drag
         card.setOnMousePressed(e -> {
             if (text.isEditable() || e.getTarget() instanceof MenuButton) return;
 
@@ -321,7 +298,7 @@ public class KanbanFX {
             overlayRef[0].getChildren().add(ghostCard[0]);
 
             // Placeholder shows original position
-            placeholder[0] = new Rectangle(card.getWidth(), card.getHeight());
+            placeholder[0] = new Rectangle(card.getWidth()-0.25, card.getHeight()-0.25);
             placeholder[0].setFill(Color.rgb(0, 0, 0, 0.18));
             placeholder[0].setArcWidth(10);
             placeholder[0].setArcHeight(10);
@@ -332,7 +309,6 @@ public class KanbanFX {
             parent.getChildren().remove(card);
         });
 
-        // Mouse dragged: move ghost card and adjust placeholder
         card.setOnMouseDragged(e -> {
             if (ghostCard[0] == null || overlayRef[0] == null) return;
 
@@ -343,9 +319,7 @@ public class KanbanFX {
             for (Node listContainer : boardHBox.getChildren()) {
                 if (listContainer instanceof VBox outer && outer.getChildren().size() > 1) {
                     if (outer.getChildren().get(1) instanceof ScrollPane sp
-                            && sp.getContent() instanceof AnchorPane ap
-                            && !ap.getChildren().isEmpty()
-                            && ap.getChildren().get(0) instanceof VBox list) {
+                            && sp.getContent() instanceof VBox list) {
 
                         Bounds lb = list.localToScene(list.getBoundsInLocal());
                         if (e.getSceneX() > lb.getMinX() && e.getSceneX() < lb.getMaxX()) {
@@ -365,7 +339,6 @@ public class KanbanFX {
                 ((VBox) placeholder[0].getParent()).getChildren().remove(placeholder[0]);
             }
 
-            // Determine where to insert placeholder in target list
             int insertIndex = 0;
             for (Node n : targetList.getChildren()) {
                 Bounds nb = n.localToScene(n.getBoundsInLocal());
@@ -375,7 +348,6 @@ public class KanbanFX {
             targetList.getChildren().add(insertIndex, placeholder[0]);
         });
 
-        // Mouse released: drop card
         card.setOnMouseReleased(e -> {
             if (ghostCard[0] == null) return;
 
@@ -405,11 +377,9 @@ public class KanbanFX {
             ghostCard[0] = null;
             placeholder[0] = null;
         });
-
-        return card;
     }
 
-    private void makeListDraggable(VBox listContainer, HBox headerSection, VBox listVBox) {
+    private void makeListDraggable(VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
 
         listContainer.setOnMousePressed(e -> {
             draggedList = listContainer;
@@ -433,15 +403,17 @@ public class KanbanFX {
             ghostList.setLayoutX(startX);
             ghostList.setLayoutY(startY);
 
-            // Calculate drag offset using the *already offset* position
             dragOffsetX = e.getSceneX() - startX;
             dragOffsetY = e.getSceneY() - startY;
 
+            double visibleListHeight = Math.min(listScrollPane.getHeight(), listContainer.getHeight());
+            // Noticable shifting of components happen if using orignal height and widths,
+            //Subtracting by 0.25 fixes it.
 
-            // Create Rectangle placeholder
-            double placeholderHeight = headerSection.getHeight() + listVBox.getHeight();
+            double placeholderHeight = headerSection.getHeight() + visibleListHeight-0.25
+                    + addCardSection.getHeight();
 
-            placeholder = new Rectangle(listContainer.getWidth(), placeholderHeight);
+            placeholder = new Rectangle(listContainer.getWidth()-0.25, placeholderHeight);
             placeholder.setArcWidth(10);
             placeholder.setArcHeight(10);
             placeholder.setFill(Color.rgb(0, 0, 0, 0.18));
@@ -451,7 +423,7 @@ public class KanbanFX {
             boardHBox.getChildren().add(index, placeholder);
             boardHBox.getChildren().remove(listContainer);
 
-            // Add ghost overlay
+            //Ghost overlay
             Pane rootPane = (Pane) boardHBox.getScene().getRoot();
             rootPane.getChildren().add(ghostList);
         });
@@ -464,7 +436,6 @@ public class KanbanFX {
             ghostList.setLayoutX(e.getSceneX() - dragOffsetX);
             ghostList.setLayoutY(e.getSceneY() - dragOffsetY);
 
-            // Recalculate drop index
             int newIndex = getDropIndex(e.getSceneX());
             movePlaceholder(newIndex);
         });
