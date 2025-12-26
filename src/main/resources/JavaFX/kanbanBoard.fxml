@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="610.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.KanbanFX">
+<AnchorPane prefHeight="610.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.KanbanFX">
 
     <children>
         <BorderPane prefHeight="610.0" prefWidth="670.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
@@ -71,9 +78,12 @@
             </top>
 
             <left>
-                <VBox fx:id="sidebar" maxWidth="1.7976931348623157E308" minWidth="80.0" prefHeight="572.0" prefWidth="80.0" styleClass="sidebar" BorderPane.alignment="CENTER_LEFT">
+                <AnchorPane prefHeight="572.0">
+
+
+                <VBox fx:id="sidebar" maxWidth="1.7976931348623157E308" minWidth="80.0" prefHeight="572.0" prefWidth="80.0" styleClass="sidebar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER_LEFT">
                     <children>
-                  <VBox fx:id="cards" alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" onMouseClicked="#slidingSidebar" prefHeight="62.0" prefWidth="82.0" styleClass="icon_containers">
+                  <VBox id="cards" fx:id="cards" alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" styleClass="icon_containers">
                      <children>
                                 <ImageView>
                                     <image>
@@ -83,7 +93,7 @@
                         <Label fx:id="menuLabel1" text="Cards" />
                      </children>
                   </VBox>
-                  <VBox fx:id="reminders" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefHeight="62.0" prefWidth="19.0" styleClass="icon_containers">
+                  <VBox id="reminders" fx:id="reminders" alignment="TOP_CENTER" maxWidth="-Infinity" styleClass="icon_containers">
                      <children>
                         <ImageView>
                            <image>
@@ -93,7 +103,7 @@
                         <Label fx:id="menuLabel41" text="Reminders" />
                      </children>
                   </VBox>
-                  <VBox fx:id="themes" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                  <VBox id="themes" fx:id="themes" alignment="TOP_CENTER" maxWidth="-Infinity" styleClass="icon_containers">
                      <children>
                                 <ImageView>
                                     <image>
@@ -103,7 +113,7 @@
                         <Label fx:id="menuLabel2" text="Themes" />
                      </children>
                   </VBox>
-                  <VBox fx:id="archive" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                  <VBox id="archive" fx:id="archive" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
                      <children>
                                 <ImageView>
                                     <image>
@@ -113,7 +123,7 @@
                         <Label fx:id="menuLabel3" text="Archive" />
                      </children>
                   </VBox>
-                  <VBox fx:id="boards" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                  <VBox id="boards" fx:id="boards" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
                      <children>
                                 <ImageView>
                                     <image>
@@ -123,7 +133,7 @@
                         <Label fx:id="menuLabel4" text="Boards" />
                      </children>
                   </VBox>
-                  <VBox fx:id="deleted" alignment="TOP_CENTER" maxWidth="-Infinity" onMouseClicked="#slidingSidebar" prefWidth="100.0" styleClass="icon_containers">
+                  <VBox id="deleted" fx:id="deleted" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
                      <children>
                         <ImageView>
                            <image>
@@ -136,6 +146,8 @@
 
                     </children>
                 </VBox>
+               <VBox fx:id="sidebarExpansionVbox" layoutX="79.2" layoutY="6.0" prefWidth="0.0" styleClass="sidebar_expansion_vbox" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="0.0" />
+                </AnchorPane>
             </left>
 
             <center>
