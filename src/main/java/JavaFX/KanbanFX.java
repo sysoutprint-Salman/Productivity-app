@@ -4,6 +4,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -53,7 +54,7 @@ public class KanbanFX {
     @FXML private VBox sidebarExpansionVbox;
 
     private enum Sidebar{CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES}
-    private VBox sidebarContent = new VBox();
+    private VBox sidebarContentVbox = new VBox();
     private double dragOffsetX;
     private boolean dragging = false;
     private boolean sidebarOpen = false;
@@ -76,85 +77,119 @@ public class KanbanFX {
         archive.setOnMousePressed(this::slidingSidebar);
         boards.setOnMousePressed(this::slidingSidebar);
         deleted.setOnMousePressed(this::slidingSidebar);
-
-
+        sidebarContentVbox.getStyleClass().add("sidebar_content");
+        sidebarContentVbox.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
     }
 
     private void slidingSidebar(MouseEvent event) {
-
         try {
             VBox source = (VBox) event.getSource();
             boolean clickedAgain = source == previousSidebarButton;
             previousSidebarButton = source;
+            Sidebar section = Sidebar.valueOf(source.getId().toUpperCase());
 
-            if (sidebarOpen && !clickedAgain){
-                sidebarContent(Sidebar.valueOf(source.getId().toUpperCase()));
-            }
-
-            //Close
+            //Close sidebar
             if (sidebarOpen && clickedAgain) {
-                animateSidebar(sidebarExpansionVbox.getWidth(), 0, 1, 1);
-                sidebarOpen = false;
-                sidebarExpansionVbox.getChildren().clear();
+                Timeline fadeOutContent = fadeSidebar(sidebarContentVbox, 1, 0, Duration.ZERO);
+
+                fadeOutContent.setOnFinished(e -> {
+                    Timeline collapse = animateSidebar(sidebarExpansionVbox.getWidth(), 0);
+                    sidebarExpansionVbox.getChildren().clear();
+                    collapse.setOnFinished(ev -> {
+                        sidebarOpen = false;
+                    });
+                });
                 return;
             }
 
-            //Open
+            //Switch content while open
+            if (sidebarOpen && !clickedAgain) {
+                Timeline fadeOutOld = fadeSidebar(sidebarContentVbox, 1, 0, Duration.ZERO);
+                fadeOutOld.setOnFinished(e -> {
+                    sidebarContentVbox.getChildren().clear();
+                    sidebarContent(section); // populate new content
+                    sidebarContentVbox.setOpacity(0);
+                    fadeSidebar(sidebarContentVbox, 0, 1, Duration.millis(50));
+                });
+                return;
+            }
+
+            //Open sidebar
             if (!sidebarOpen) {
                 sidebarExpansionVbox.toFront();
-                animateSidebar(sidebarExpansionVbox.getWidth(), 275, 1, 1);
+                sidebarExpansionVbox.getChildren().setAll(sidebarContentVbox);
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.setOpacity(0);
+
+                Timeline expand = animateSidebar(sidebarExpansionVbox.getWidth(), 275);
+
+                expand.setOnFinished(e -> {
+                    sidebarContent(section);
+                    sidebarContentVbox.setOpacity(0);
+                    fadeSidebar(sidebarContentVbox, 0, 1, Duration.millis(10));
+                });
+
                 sidebarExpansionVbox.requestFocus();
                 sidebarOpen = true;
-                sidebarContent(Sidebar.valueOf(source.getId().toUpperCase()));
             }
-        } catch (NullPointerException ignored) {
-        }
+
+        } catch (NullPointerException ignored) {}
     }
 
     private void sidebarContent(Sidebar section){
-        switch (section){
+        switch (section){ // Work in progress...
             case CARDS:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Cards section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Cards section"));
+                for (int i = 0; i < 4; i++) {
+                    setCards(sidebarContentVbox);
+                }
                 break;
             case ARCHIVE:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Archive section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Archive section"));
                 break;
             case BOARDS:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Boards section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Boards section"));
                 break;
             case DELETED:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Deleted section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Deleted section"));
                 break;
             case REMINDERS:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Reminders section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Reminders section"));
                 break;
             case THEMES:
-                sidebarExpansionVbox.getChildren().clear();
-                sidebarExpansionVbox.getChildren().add(new Label("Themes section"));
+                sidebarContentVbox.getChildren().clear();
+                sidebarContentVbox.getChildren().add(new Label("Themes section"));
                 break;
         }
     }
 
-    private void animateSidebar(double startingWidth, double endingWidth, double startingOpac, double endingOpac) {
-
-        FadeTransition fade = new FadeTransition(Duration.millis(200), sidebarExpansionVbox);
-        fade.setFromValue(startingOpac);
-        fade.setToValue(endingOpac);
-
+    private Timeline animateSidebar(double fromWidth, double toWidth) {
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.ZERO,
-                        new KeyValue(sidebarExpansionVbox.prefWidthProperty(), startingWidth)),
+                        new KeyValue(sidebarExpansionVbox.prefWidthProperty(), fromWidth)
+                ),
                 new KeyFrame(Duration.millis(250),
-                        new KeyValue(sidebarExpansionVbox.prefWidthProperty(), endingWidth, Interpolator.EASE_BOTH))
+                        new KeyValue(sidebarExpansionVbox.prefWidthProperty(), toWidth)
+                )
         );
-
-        fade.play();
         timeline.play();
+        return timeline;
+    }
+
+    private Timeline fadeSidebar(Node node, double fromOpacity, double toOpacity, Duration delay) {
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(node.opacityProperty(), fromOpacity)),
+                new KeyFrame(Duration.millis(100), new KeyValue(node.opacityProperty(), toOpacity))
+        );
+        timeline.setDelay(delay);
+        timeline.play();
+        return timeline;
     }
 
     private void createInitialLists() {
