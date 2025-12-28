@@ -54,7 +54,11 @@ public class KanbanFX {
     @FXML private VBox sidebarExpansionVbox;
 
     private enum Sidebar{CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES}
-    private VBox sidebarContentVbox = new VBox();
+    private final VBox sidebarContentVbox = new VBox();
+    private final HBox sidebarHeader = new HBox();
+    private final Label headerTitle = new Label();
+    private final ScrollPane sidebarScrollPane = new ScrollPane();
+    private Label label;
     private double dragOffsetX;
     private boolean dragging = false;
     private boolean sidebarOpen = false;
@@ -77,8 +81,21 @@ public class KanbanFX {
         archive.setOnMousePressed(this::slidingSidebar);
         boards.setOnMousePressed(this::slidingSidebar);
         deleted.setOnMousePressed(this::slidingSidebar);
+
         sidebarContentVbox.getStyleClass().add("sidebar_content");
         sidebarContentVbox.setPrefHeight(Region.USE_COMPUTED_SIZE);
+
+        sidebarHeader.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        sidebarHeader.setAlignment(Pos.CENTER_LEFT);
+        sidebarHeader.getStyleClass().add("sidebar_header");
+
+        sidebarScrollPane.setFitToWidth(true);
+        sidebarScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sidebarScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sidebarScrollPane.getStyleClass().add("sidebar_scroll");
+        sidebarScrollPane.setContent(sidebarContentVbox);
+
+        VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
     }
 
@@ -87,83 +104,117 @@ public class KanbanFX {
             VBox source = (VBox) event.getSource();
             boolean clickedAgain = source == previousSidebarButton;
             previousSidebarButton = source;
+
             Sidebar section = Sidebar.valueOf(source.getId().toUpperCase());
 
-            //Close sidebar
+            /* ---------- CLOSE ---------- */
             if (sidebarOpen && clickedAgain) {
-                Timeline fadeOutContent = fadeSidebar(sidebarContentVbox, 1, 0, Duration.ZERO);
 
-                fadeOutContent.setOnFinished(e -> {
-                    Timeline collapse = animateSidebar(sidebarExpansionVbox.getWidth(), 0);
+                Timeline fadeHeader = fadeSidebar(sidebarHeader, 1, 0, Duration.ZERO);
+                fadeSidebar(sidebarScrollPane, 1, 0, Duration.ZERO);
+
+                fadeHeader.setOnFinished(e -> {
                     sidebarExpansionVbox.getChildren().clear();
-                    collapse.setOnFinished(ev -> {
-                        sidebarOpen = false;
-                    });
+                    Timeline collapse = animateSidebar(sidebarExpansionVbox.getWidth(), 0);
+                    collapse.setOnFinished(ev -> sidebarOpen = false);
                 });
                 return;
             }
 
-            //Switch content while open
+            /* ---------- SWITCH CONTENT ---------- */
             if (sidebarOpen && !clickedAgain) {
-                Timeline fadeOutOld = fadeSidebar(sidebarContentVbox, 1, 0, Duration.ZERO);
-                fadeOutOld.setOnFinished(e -> {
-                    sidebarContentVbox.getChildren().clear();
-                    sidebarContent(section); // populate new content
-                    sidebarContentVbox.setOpacity(0);
-                    fadeSidebar(sidebarContentVbox, 0, 1, Duration.millis(50));
+
+                Timeline fadeOut = fadeSidebar(sidebarHeader, 1, 0, Duration.ZERO);
+                fadeSidebar(sidebarScrollPane, 1, 0, Duration.ZERO);
+
+                fadeOut.setOnFinished(e -> {
+                    sidebarContent(section);
+
+                    sidebarHeader.setOpacity(0);
+                    sidebarScrollPane.setOpacity(0);
+
+                    fadeSidebar(sidebarHeader, 0, 1, Duration.millis(40));
+                    fadeSidebar(sidebarScrollPane, 0, 1, Duration.millis(40));
                 });
                 return;
             }
 
-            //Open sidebar
+            /* ---------- OPEN ---------- */
             if (!sidebarOpen) {
+
                 sidebarExpansionVbox.toFront();
-                sidebarExpansionVbox.getChildren().setAll(sidebarContentVbox);
-                sidebarContentVbox.getChildren().clear();
-                sidebarContentVbox.setOpacity(0);
 
                 Timeline expand = animateSidebar(sidebarExpansionVbox.getWidth(), 275);
 
                 expand.setOnFinished(e -> {
+                    sidebarExpansionVbox.getChildren().setAll(sidebarHeader, sidebarScrollPane);
                     sidebarContent(section);
-                    sidebarContentVbox.setOpacity(0);
-                    fadeSidebar(sidebarContentVbox, 0, 1, Duration.millis(10));
+
+                    sidebarHeader.setOpacity(0);
+                    sidebarScrollPane.setOpacity(0);
+
+                    fadeSidebar(sidebarHeader, 0, 1, Duration.millis(40));
+                    fadeSidebar(sidebarScrollPane, 0, 1, Duration.millis(40));
                 });
 
-                sidebarExpansionVbox.requestFocus();
                 sidebarOpen = true;
             }
 
-        } catch (NullPointerException ignored) {}
+        } catch (Exception ignored) {}
     }
 
-    private void sidebarContent(Sidebar section){
-        switch (section){ // Work in progress...
+    private void sidebarContent(Sidebar section) {
+
+        sidebarHeader.getChildren().clear();
+        sidebarContentVbox.getChildren().clear();
+
+        Label title = new Label();
+        title.getStyleClass().add("content_label");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button addButton = new Button();
+        addButton.setVisible(false);
+        addButton.getStyleClass().add("add_button");
+
+        sidebarHeader.getChildren().addAll(title, spacer, addButton);
+
+        switch (section) {
             case CARDS:
-                sidebarContentVbox.getChildren().clear();
-                sidebarContentVbox.getChildren().add(new Label("Cards section"));
-                for (int i = 0; i < 4; i++) {
+                title.setText("Cards");
+                addButton.setText("Create card");
+                addButton.setVisible(true);
+
+                for (int i = 0; i < 6; i++) {
                     setCards(sidebarContentVbox);
                 }
                 break;
+
             case ARCHIVE:
-                sidebarContentVbox.getChildren().clear();
+                title.setText("Archive");
                 sidebarContentVbox.getChildren().add(new Label("Archive section"));
                 break;
+
             case BOARDS:
-                sidebarContentVbox.getChildren().clear();
+                title.setText("Boards");
                 sidebarContentVbox.getChildren().add(new Label("Boards section"));
                 break;
+
             case DELETED:
-                sidebarContentVbox.getChildren().clear();
+                title.setText("Deleted");
                 sidebarContentVbox.getChildren().add(new Label("Deleted section"));
                 break;
+
             case REMINDERS:
-                sidebarContentVbox.getChildren().clear();
+                title.setText("Reminders");
+                addButton.setText("Create reminder");
+                addButton.setVisible(true);
                 sidebarContentVbox.getChildren().add(new Label("Reminders section"));
                 break;
+
             case THEMES:
-                sidebarContentVbox.getChildren().clear();
+                title.setText("Themes");
                 sidebarContentVbox.getChildren().add(new Label("Themes section"));
                 break;
         }
@@ -253,8 +304,9 @@ public class KanbanFX {
             addCardSection.setAlignment(Pos.CENTER);
 
             Button addCardBtn = new Button("Add card");
-            addCardBtn.getStyleClass().add("add_card_button");
+            addCardBtn.getStyleClass().add("add_button");
             addCardSection.getChildren().add(addCardBtn);
+            addCardBtn.setPrefWidth(275);
 
             // ================= ASSEMBLY =================
             listContainer.getChildren().addAll(

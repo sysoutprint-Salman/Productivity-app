@@ -146,7 +146,7 @@
 
                     </children>
                 </VBox>
-               <VBox fx:id="sidebarExpansionVbox" layoutX="79.2" layoutY="6.0" prefWidth="0.0" styleClass="sidebar_expansion_vbox" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="0.0" />
+               <VBox fx:id="sidebarExpansionVbox" layoutX="79.2" layoutY="6.0" prefHeight="572.0" prefWidth="0.0" styleClass="sidebar_expansion_vbox" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="0.0" />
                 </AnchorPane>
             </left>
 

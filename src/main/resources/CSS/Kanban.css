@@ -36,11 +36,22 @@
 
 
 }
+.sidebar_scroll{
+    -fx-background-color: white;
+}
+.sidebar_scroll .viewport{
+    -fx-background-color: white;
+}
+.sidebar_header{
+    -fx-padding:11;
+}
 .sidebar_content{
     -fx-spacing:10;
     -fx-padding:11;
 }
-
+.content_label{
+    -fx-font-size:16;
+}
 
 .header_section {
     -fx-background-color: white;
@@ -101,19 +112,19 @@
 
 }
 
-.addCardSection .add_card_button {
+.add_button {
     -fx-background-color: #454545;
     -fx-text-fill: white;
     -fx-font-size: 14;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
-    -fx-pref-width:275;
+    //-fx-pref-width:275;
 }
 
-.addCardSection .button:hover {
+.add_button:hover {
     -fx-background-color: #2e2e2e;
 }
-.addCardSection .button:pressed {
+.add_button:pressed {
     -fx-background-color: #171717; //previously was #d5d5d5
 }
 
