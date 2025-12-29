@@ -1,5 +1,8 @@
 package JavaFX;
 
+import SpringBoot.Task;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -11,10 +14,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.SnapshotParameters;
+import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -24,9 +24,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.*;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 public class KanbanFX {
@@ -53,6 +57,9 @@ public class KanbanFX {
     @FXML private VBox sidebar;
     @FXML private VBox sidebarExpansionVbox;
 
+    private Stage stage;
+    private Scene scene;
+    private VBox layoutContainer;
     private enum Sidebar{CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES}
     private final VBox sidebarContentVbox = new VBox();
     private final HBox sidebarHeader = new HBox();
@@ -97,6 +104,67 @@ public class KanbanFX {
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
+    }
+
+    public void cardsPopup() {
+        stage = new Stage();
+        stage.setTitle("Create cards");
+
+        // Root
+        layoutContainer = new VBox();
+        layoutContainer.getStyleClass().add("pu_vbox");
+
+        // Label
+        Label contentLabel = new Label("Card content:");
+
+        // TextArea
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Description");
+        descriptionArea.getStyleClass().add("pu_text_area");
+
+        // HBox row
+        HBox controlsRow = new HBox();
+        controlsRow.getStyleClass().add("pu_hbox");
+
+        Label countLabel = new Label("Count:");
+
+        Spinner<Integer> countSpinner =
+                new Spinner<>(0, Integer.MAX_VALUE, 0);
+        countSpinner.setEditable(true);
+        countSpinner.getStyleClass().add("pu_spinner");
+
+        Label colorLabel = new Label("Color:");
+
+        ColorPicker colorPicker = new ColorPicker();
+        colorPicker.setPromptText("Task Color");
+        colorPicker.getStyleClass().add("pu_color_picker");
+
+        controlsRow.getChildren().addAll(
+                countLabel,
+                countSpinner,
+                colorLabel,
+                colorPicker
+        );
+
+        // Button
+        Button createButton = new Button("Create");
+        createButton.getStyleClass().add("pu_buttons");
+
+        // Assemble layout
+        layoutContainer.getChildren().addAll(
+                contentLabel,
+                descriptionArea,
+                controlsRow,
+                createButton
+        );
+
+        scene = new Scene(layoutContainer, 350, 300);
+        scene.getStylesheets().add("CSS/Kanban.css");
+
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.show();
     }
 
     private void slidingSidebar(MouseEvent event) {
@@ -185,6 +253,7 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
+                addButton.setOnAction(e -> cardsPopup());
 
                 for (int i = 0; i < 6; i++) {
                     setCards(sidebarContentVbox);
@@ -198,6 +267,8 @@ public class KanbanFX {
 
             case BOARDS:
                 title.setText("Boards");
+                addButton.setText("Create board");
+                addButton.setVisible(true);
                 sidebarContentVbox.getChildren().add(new Label("Boards section"));
                 break;
 

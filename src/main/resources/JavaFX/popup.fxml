@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="304.0" prefWidth="351.0" stylesheets="@../CSS/Kanban.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox prefHeight="304.0" prefWidth="351.0" styleClass="pu_vbox">
+         <children>
+            <Label text="Card content:" />
+            <TextArea prefHeight="134.0" prefWidth="294.0" promptText="Description" styleClass="pu_text_area" />
+            <HBox prefHeight="30.0" prefWidth="311.0" styleClass="pu_hbox">
+               <children>
+                  <Label text="Count:" />
+                  <Spinner editable="true" prefWidth="100.0" styleClass="pu_spinner" />
+                  <Label text="Color:" />
+                  <ColorPicker prefHeight="30.0" prefWidth="110.0" promptText="Task Color" styleClass="pu_color_picker" />
+               </children>
+            </HBox>
+            <Button mnemonicParsing="false" prefWidth="325.0" styleClass="pu_buttons" text="Create" />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

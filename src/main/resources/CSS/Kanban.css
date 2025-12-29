@@ -206,3 +206,96 @@
     -fx-fit-to-height: true;
     -fx-preserve-ratio: true;
 }
+
+/* -------Popups-------*/
+.pu_vbox{
+    -fx-padding:20;
+    -fx-spacing:15;
+}
+
+.pu_hbox{
+    -fx-alignment: center-left;
+    -fx-spacing:10;
+}
+
+.pu_text_fields{
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+    -fx-font-size:14;
+    -fx-pref-width:370;
+    -fx-pref-height:40;
+}
+
+.pu_buttons{
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-pref-width:325;
+}
+.pu_buttons:hover {
+    -fx-background-color: #2e2e2e;
+}
+.pu_buttons:pressed {
+    -fx-background-color: #171717; //previously was #d5d5d5
+}
+
+.pu_text_area {
+    -fx-background-insets: 0;
+    -fx-control-inner-background: #e8e8e8;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: #cfcfcf;
+}
+.pu_text_area .content {
+    -fx-background-color: #e8e8e8;
+}
+
+.pu_color_picker{
+    -fx-background-color: #e8e8e8;
+    -fx-focus-color: gray;
+    -fx-border-color: #cfcfcf;
+    -fx-padding:2;
+    -fx-pref-width:110;
+}
+.pu_color_picker:pressed{
+
+}
+.pu_color_picker:hover{
+    -fx-background-color: #d1d1d1;
+}
+.pu_color_picker:hover .arrow{
+    -fx-background-color: white;
+}
+
+.pu_spinner {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-pref-width:100;
+}
+
+.pu_spinner .increment-arrow-button,
+.pu_spinner .decrement-arrow-button {
+    -fx-background-color: #cfcfcf;
+}
+.pu_spinner .increment-arrow-button:pressed,
+.pu_spinner .decrement-arrow-button:pressed{
+    -fx-background-color: #929292;
+}
+.pu_spinner .increment-arrow-button:hover,
+.pu_spinner .decrement-arrow-button:hover{
+    -fx-background-color: #929292;
+}
+
+.pu_spinner .text-field {
+    -fx-border-color: #cfcfcf;
+    -fx-border-width:1 0 1 1;
+    -fx-background-color: #e8e8e8;
+    -fx-text-fill: black;
+    //-fx-padding: 4 6;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
