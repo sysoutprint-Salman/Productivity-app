@@ -519,7 +519,7 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> cardsPopup());
+                addButton.setOnAction(e -> addCard(sidebarContentVbox,true));
 
                 for (int i = 0; i < 6; i++) {
                     setCards(sidebarContentVbox);
@@ -646,7 +646,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardSection.getChildren().add(addCardBtn);
             addCardBtn.setPrefWidth(275);
-            addCardBtn.setOnAction(e-> {});
+            addCardBtn.setOnAction(e-> {addCard(visibleList,true);});
 
             // ================= ASSEMBLY =================
             listContainer.getChildren().addAll(
@@ -667,7 +667,7 @@ public class KanbanFX {
         card.setPadding(new Insets(6));
         VBox.setVgrow(card, Priority.NEVER);
 
-        TextArea text = new TextArea("New Card");
+        TextArea text = new TextArea("Card desc...");
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
         text.setPrefRowCount(1);
@@ -827,6 +827,186 @@ public class KanbanFX {
             }
 
             // Move card to placeholder's position
+            if (placeholder[0] == null || placeholder[0].getParent() == null) {
+                visibleList.getChildren().add(card);
+            } else {
+                VBox targetList = (VBox) placeholder[0].getParent();
+                int index = targetList.getChildren().indexOf(placeholder[0]);
+                targetList.getChildren().remove(placeholder[0]);
+                targetList.getChildren().add(index, card);
+            }
+
+            text.setEditable(false);
+            text.setMouseTransparent(true);
+            card.requestFocus();
+
+            ghostCard[0] = null;
+            placeholder[0] = null;
+        });
+    }
+
+    private void addCard(VBox visibleList, boolean startEditing) {
+
+        StackPane card = new StackPane();
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(6));
+        VBox.setVgrow(card, Priority.NEVER);
+
+        TextArea text = new TextArea("Untitled");
+        text.getStyleClass().add("card_textA");
+        text.setWrapText(true);
+        text.setPrefRowCount(1);
+        text.setMinHeight(Region.USE_PREF_SIZE);
+        text.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        text.setMaxHeight(Double.MAX_VALUE);
+        text.setEditable(startEditing);
+        text.setMouseTransparent(!startEditing);
+
+        text.textProperty().addListener((obs, oldText, newText) -> {
+            text.setPrefHeight(Region.USE_COMPUTED_SIZE);
+            text.layout();
+            card.requestLayout();
+        });
+
+        MenuButton cardOptions = new MenuButton();
+        cardOptions.getStyleClass().add("card_options");
+        StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
+
+        card.getChildren().addAll(text, cardOptions);
+
+        // Insert at top
+        visibleList.getChildren().add(0, card);
+
+        if (startEditing) {
+            Platform.runLater(() -> {
+                text.requestFocus();
+                text.positionCaret(text.getText().length());
+                text.selectAll();
+            });
+        }
+
+        // Exit edit mode on focus loss
+        text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) {
+                text.setEditable(false);
+                text.setMouseTransparent(true);
+                card.requestFocus();
+            }
+        });
+
+        // Exit edit mode on ENTER
+        text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
+            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
+                card.requestFocus();
+                ke.consume();
+            }
+        });
+
+        // ================= Drag-and-drop (UNCHANGED) =================
+
+        final StackPane[] ghostCard = {null};
+        final Rectangle[] placeholder = {null};
+        final Group[] overlayRef = {null};
+
+        card.setOnMousePressed(e -> {
+            if (text.isEditable() || e.getTarget() instanceof MenuButton) return;
+
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+
+            ImageView ghostImg = new ImageView(card.snapshot(params, null));
+            ghostImg.setOpacity(0.36);
+
+            ghostCard[0] = new StackPane(ghostImg);
+            ghostCard[0].setManaged(false);
+            ghostCard[0].setMouseTransparent(true);
+            ghostCard[0].setPickOnBounds(false);
+
+            Parent root = boardHBox.getScene().getRoot();
+
+            if (overlayRef[0] == null) {
+                if (root instanceof Pane pane) {
+                    for (Node n : pane.getChildren()) {
+                        if (n instanceof Group g && g.getProperties().containsKey("kanbanOverlay")) {
+                            overlayRef[0] = g;
+                            break;
+                        }
+                    }
+                    if (overlayRef[0] == null) {
+                        overlayRef[0] = new Group();
+                        overlayRef[0].getProperties().put("kanbanOverlay", true);
+                        pane.getChildren().add(overlayRef[0]);
+                    }
+                } else if (root instanceof Group g) {
+                    overlayRef[0] = g;
+                }
+            }
+
+            Point2D start = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
+            ghostCard[0].relocate(start.getX(), start.getY());
+            overlayRef[0].getChildren().add(ghostCard[0]);
+
+            placeholder[0] = new Rectangle(card.getWidth() - 0.25, card.getHeight() - 0.25);
+            placeholder[0].setFill(Color.rgb(0, 0, 0, 0.18));
+            placeholder[0].setArcWidth(10);
+            placeholder[0].setArcHeight(10);
+
+            VBox parent = (VBox) card.getParent();
+            int index = parent.getChildren().indexOf(card);
+            parent.getChildren().add(index, placeholder[0]);
+            parent.getChildren().remove(card);
+        });
+
+        card.setOnMouseDragged(e -> {
+            if (ghostCard[0] == null || overlayRef[0] == null) return;
+
+            Point2D dragPoint = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
+            ghostCard[0].relocate(dragPoint.getX(), dragPoint.getY());
+
+            VBox targetList = null;
+            for (Node listContainer : boardHBox.getChildren()) {
+                if (listContainer instanceof VBox outer
+                        && outer.getChildren().get(1) instanceof ScrollPane sp
+                        && sp.getContent() instanceof VBox list) {
+
+                    Bounds lb = list.localToScene(list.getBoundsInLocal());
+                    if (e.getSceneX() > lb.getMinX() && e.getSceneX() < lb.getMaxX()) {
+                        targetList = list;
+                        break;
+                    }
+                }
+            }
+
+            if (targetList == null) return;
+
+            Bounds ghostBounds = ghostCard[0].localToScene(ghostCard[0].getBoundsInLocal());
+            double centerY = ghostBounds.getCenterY();
+
+            if (placeholder[0].getParent() != null) {
+                ((VBox) placeholder[0].getParent()).getChildren().remove(placeholder[0]);
+            }
+
+            int insertIndex = 0;
+            for (Node n : targetList.getChildren()) {
+                Bounds nb = n.localToScene(n.getBoundsInLocal());
+                if (centerY > nb.getMinY() + nb.getHeight() / 2) insertIndex++;
+            }
+
+            targetList.getChildren().add(insertIndex, placeholder[0]);
+        });
+
+        card.setOnMouseReleased(e -> {
+            if (ghostCard[0] == null) return;
+
+            if (overlayRef[0] != null) {
+                overlayRef[0].getChildren().remove(ghostCard[0]);
+                if (overlayRef[0].getChildren().isEmpty()
+                        && overlayRef[0].getParent() instanceof Pane pane) {
+                    pane.getChildren().remove(overlayRef[0]);
+                    overlayRef[0] = null;
+                }
+            }
+
             if (placeholder[0] == null || placeholder[0].getParent() == null) {
                 visibleList.getChildren().add(card);
             } else {
