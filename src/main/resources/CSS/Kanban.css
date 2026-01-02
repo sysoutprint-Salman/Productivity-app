@@ -223,8 +223,8 @@
     -fx-focus-color: gray;
     -fx-border-color: #cfcfcf;
     -fx-font-size:14;
-    -fx-pref-width:370;
-    -fx-pref-height:40;
+
+    -fx-pref-height:30;
 }
 
 .pu_buttons{
@@ -273,7 +273,7 @@
 .pu_spinner {
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-pref-width:100;
+    //-fx-pref-width:100;
 }
 
 .pu_spinner .increment-arrow-button,
@@ -297,5 +297,68 @@
     //-fx-padding: 4 6;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+.pu_choicebox{
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cfcfcf;
+    -fx-border-width:1;
+}
+
+
+.date_picker {
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cfcfcf;
+}
+.date_picker .date-picker-popup{
+
+}
+.date_picker .month-year-pane{
+    -fx-background-color: #454545;
+
+}
+.date_picker .month-year-pane .label{ //Month & year
+    -fx-text-fill:white;
+}
+
+.date_picker .day-name-cell{ //Days of the week cells
+    -fx-background-color:#e8e8e8;
+}
+.date_picker .day-name-cell:hover{
+    -fx-background-color: #454545;
+    -fx-text-fill: white;
+}
+
+.date_picker .date-cell{ //Each day cell
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.date_picker .date-cell:previous-month{
+    -fx-text-fill: white;
+}
+.date_picker .date-cell:hover{
+    -fx-background-color: #6a6a6a;
+}
+.date_picker .text-field {
+    -fx-background-color: #e8e8e8;
+}
+.date_picker .arrow-button {
+    -fx-background-color: #454545;
+}
+.date_picker .arrow-button:hover {
+    -fx-background-color: #2e2e2e;
+}
+.date_picker .arrow-button .arrow{
+    -fx-background-color: white;
+}
+.pu_checkbox{
+    -fx-focus-color: gray;
+    -fx-faint-focus-color: transparent;
+}
+.pu_checkbox:selected{
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.0, 2, 2);
+}
+.pu_checkbox .box{
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cfcfcf;
 }
 

@@ -106,7 +106,7 @@ public class KanbanFX {
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
     }
 
-    public void cardsPopup() {
+    private void cardsPopup() {
         stage = new Stage();
         stage.setTitle("Create cards");
 
@@ -115,12 +115,13 @@ public class KanbanFX {
         layoutContainer.getStyleClass().add("pu_vbox");
 
         // Label
-        Label contentLabel = new Label("Card content:");
+        //Label contentLabel = new Label("Card content:");
 
         // TextArea
         TextArea descriptionArea = new TextArea();
         descriptionArea.setPromptText("Description");
         descriptionArea.getStyleClass().add("pu_text_area");
+        VBox.setVgrow(descriptionArea, Priority.ALWAYS);
 
         // HBox row
         HBox controlsRow = new HBox();
@@ -132,6 +133,7 @@ public class KanbanFX {
                 new Spinner<>(0, Integer.MAX_VALUE, 0);
         countSpinner.setEditable(true);
         countSpinner.getStyleClass().add("pu_spinner");
+        countSpinner.setPrefWidth(80);
 
         Label colorLabel = new Label("Color:");
 
@@ -152,7 +154,6 @@ public class KanbanFX {
 
         // Assemble layout
         layoutContainer.getChildren().addAll(
-                contentLabel,
                 descriptionArea,
                 controlsRow,
                 createButton
@@ -165,6 +166,271 @@ public class KanbanFX {
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.show();
+    }
+
+    private void remindersPopup() {
+        stage = new Stage();
+        stage.setTitle("Create reminder");
+
+        layoutContainer = new VBox();
+        layoutContainer.getStyleClass().add("pu_vbox");
+
+        TextField titleField = new TextField();
+        titleField.setPromptText("Reminder title");
+        titleField.getStyleClass().add("pu_text_fields");
+
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Description");
+        descriptionArea.setWrapText(true);
+        descriptionArea.getStyleClass().add("pu_text_area");
+
+        HBox timeDateRow = new HBox();
+        timeDateRow.getStyleClass().add("pu_hbox");
+
+        Label timeLabel = new Label("Time:");
+
+        ComboBox<String> timeCombo = new ComboBox<>();
+        times(timeCombo);
+        timeCombo.getStyleClass().add("pu_choicebox");
+        timeCombo.setPrefWidth(95);
+        timeCombo.getItems().addAll();
+
+        Label dateLabel = new Label("Date:");
+
+        DatePicker datePicker = new DatePicker();
+        datePicker.setEditable(false);
+        datePicker.setPromptText("Ex: 1/1/2026");
+        datePicker.getStyleClass().add("date_picker");
+        datePicker.setPrefWidth(125);
+
+        timeDateRow.getChildren().addAll(
+                timeLabel,
+                timeCombo,
+                dateLabel,
+                datePicker
+        );
+
+        HBox priorityColorRow = new HBox();
+        priorityColorRow.getStyleClass().add("pu_hbox");
+
+        Label priorityLabel = new Label("Priority:");
+
+        ComboBox<String> priorityCombo = new ComboBox<>();
+        priorityCombo.setVisibleRowCount(3);
+        priorityCombo.getStyleClass().add("pu_choicebox");
+        priorityCombo.getItems().addAll("Low", "Medium", "High");
+
+        Label colorLabel = new Label("Color:");
+
+        ColorPicker colorPicker = new ColorPicker();
+        colorPicker.setPromptText("Task Color");
+        colorPicker.getStyleClass().add("pu_color_picker");
+
+        priorityColorRow.getChildren().addAll(
+                priorityLabel,
+                priorityCombo,
+                colorLabel,
+                colorPicker
+        );
+
+        Button createButton = new Button("Create");
+        createButton.getStyleClass().add("pu_buttons");
+
+        layoutContainer.getChildren().addAll(
+                titleField,
+                descriptionArea,
+                timeDateRow,
+                priorityColorRow,
+                createButton
+        );
+
+        scene = new Scene(layoutContainer, 350, 300);
+        scene.getStylesheets().add("CSS/Kanban.css");
+
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.show();
+    }
+
+    private void createBoardPopup() {
+
+        final double ENTRY_HEIGHT = 30;
+        final double BASE_HEIGHT = 280;
+
+        stage = new Stage();
+        stage.setTitle("Create Board");
+
+        AnchorPane root = new AnchorPane();
+        root.setPrefWidth(350);
+        root.setPrefHeight(BASE_HEIGHT);
+
+        VBox contentVBox = new VBox(10);
+        contentVBox.getStyleClass().add("pu_vbox");
+
+        AnchorPane.setTopAnchor(contentVBox, 0.0);
+        AnchorPane.setLeftAnchor(contentVBox, 0.0);
+        AnchorPane.setRightAnchor(contentVBox, 0.0);
+        AnchorPane.setBottomAnchor(contentVBox, 50.0);
+
+        TextField boardTitle = new TextField();
+        boardTitle.setPromptText("Board title");
+        boardTitle.getStyleClass().add("pu_text_fields");
+
+        HBox listCreationRow = new HBox(10);
+        listCreationRow.getStyleClass().add("pu_hbox");
+
+        CheckBox noListsCheckBox = new CheckBox("No Lists");
+        noListsCheckBox.getStyleClass().add("pu_checkbox");
+
+        TextField listTitlesField = new TextField();
+        listTitlesField.setPromptText("List titles");
+        listTitlesField.setPrefHeight(31);
+        listTitlesField.getStyleClass().add("pu_text_fields");
+        HBox.setHgrow(listTitlesField, Priority.ALWAYS);
+
+        ImageView addIcon = new ImageView(
+                new Image(getClass().getResourceAsStream("/Images/plusButton.png"))
+        );
+        addIcon.setFitWidth(12);
+        addIcon.setFitHeight(12);
+        addIcon.setPreserveRatio(true);
+
+        Button addListButton = new Button();
+        addListButton.getStyleClass().add("add_button");
+        addListButton.setGraphic(addIcon);
+
+        listCreationRow.getChildren().addAll(
+                noListsCheckBox,
+                listTitlesField,
+                addListButton
+        );
+
+        VBox listEntriesBox = new VBox(5);
+
+        addListButton.setOnAction(e -> {
+            String title = listTitlesField.getText().trim();
+            if (title.isEmpty() || noListsCheckBox.isSelected()) {
+                return;
+            }
+
+            HBox entry = new HBox(10);
+            entry.setPrefHeight(ENTRY_HEIGHT);
+            entry.setMinHeight(ENTRY_HEIGHT);
+            entry.setMaxHeight(ENTRY_HEIGHT);
+            entry.getStyleClass().add("pu_hbox");
+
+            Label titleLabel = new Label(title);
+            HBox.setHgrow(titleLabel, Priority.ALWAYS);
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Label countLabel = new Label("Card count:");
+
+            Spinner<Integer> spinner = new Spinner<>(0, 100, 0);
+            spinner.setPrefWidth(60);
+            spinner.setPrefHeight(27);
+            spinner.getStyleClass().add("pu_spinner");
+
+            ImageView removeIcon = new ImageView(
+                    new Image(getClass().getResourceAsStream("/Images/x.png"))
+            );
+            removeIcon.setFitWidth(12);
+            removeIcon.setFitHeight(12);
+            removeIcon.setPreserveRatio(true);
+
+            Button removeButton = new Button();
+            removeButton.setPrefWidth(30);
+            removeButton.getStyleClass().add("add_button");
+            removeButton.setGraphic(removeIcon);
+
+            removeButton.setOnAction(ev -> {
+                listEntriesBox.getChildren().remove(entry);
+                stage.setHeight(stage.getHeight() - ENTRY_HEIGHT);
+
+            });
+
+            entry.getChildren().addAll(
+                    titleLabel,
+                    spacer,
+                    countLabel,
+                    spinner,
+                    removeButton
+            );
+
+            listEntriesBox.getChildren().add(entry);
+            stage.setHeight(stage.getHeight() + ENTRY_HEIGHT);
+            listTitlesField.clear();
+        });
+
+        HBox themeRow = new HBox(10);
+        themeRow.getStyleClass().add("pu_hbox");
+
+        Label themeLabel = new Label("Theme:");
+        ComboBox<String> themeCombo = new ComboBox<>();
+        themeCombo.setPrefWidth(184);
+        themeCombo.setPrefHeight(27);
+        themeCombo.getStyleClass().add("pu_choicebox");
+        HBox.setHgrow(themeCombo, Priority.ALWAYS);
+
+        themeRow.getChildren().addAll(themeLabel, themeCombo);
+
+        HBox templateRow = new HBox(10);
+        templateRow.getStyleClass().add("pu_hbox");
+
+        Label templateLabel = new Label("Templates");
+        ComboBox<String> templateCombo = new ComboBox<>();
+        templateCombo.setPrefWidth(184);
+        templateCombo.setPrefHeight(27);
+        templateCombo.getStyleClass().add("pu_choicebox");
+        HBox.setHgrow(templateCombo, Priority.ALWAYS);
+
+        templateRow.getChildren().addAll(templateLabel, templateCombo);
+
+        contentVBox.getChildren().addAll(
+                boardTitle,
+                listCreationRow,
+                listEntriesBox,
+                themeRow,
+                templateRow
+        );
+
+        HBox buttonBar = new HBox();
+        AnchorPane.setBottomAnchor(buttonBar, 20.0);
+        AnchorPane.setLeftAnchor(buttonBar, 20.0);
+        AnchorPane.setRightAnchor(buttonBar, 20.0);
+
+        Button createButton = new Button("Create");
+        createButton.getStyleClass().add("pu_buttons");
+
+        buttonBar.getChildren().add(createButton);
+
+        root.getChildren().addAll(contentVBox, buttonBar);
+
+        scene = new Scene(root);
+        scene.getStylesheets().add("CSS/Kanban.css");
+
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.show();
+    }
+
+    private void times(ComboBox<String> comboBox) {
+
+        for (int hour24 = 0; hour24 < 24; hour24++) {
+            for (int minute = 0; minute <= 45; minute += 15) {
+
+                int hour12 = hour24 % 12;
+                if (hour12 == 0) hour12 = 12;
+
+                String amPm = (hour24 < 12) ? "am" : "pm";
+
+                String time = String.format("%d:%02d%s", hour12, minute, amPm);
+                comboBox.getItems().add(time);
+            }
+        }
     }
 
     private void slidingSidebar(MouseEvent event) {
@@ -269,6 +535,7 @@ public class KanbanFX {
                 title.setText("Boards");
                 addButton.setText("Create board");
                 addButton.setVisible(true);
+                addButton.setOnAction(e -> createBoardPopup());
                 sidebarContentVbox.getChildren().add(new Label("Boards section"));
                 break;
 
@@ -281,6 +548,7 @@ public class KanbanFX {
                 title.setText("Reminders");
                 addButton.setText("Create reminder");
                 addButton.setVisible(true);
+                addButton.setOnAction(e -> remindersPopup());
                 sidebarContentVbox.getChildren().add(new Label("Reminders section"));
                 break;
 
@@ -378,6 +646,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardSection.getChildren().add(addCardBtn);
             addCardBtn.setPrefWidth(275);
+            addCardBtn.setOnAction(e-> {});
 
             // ================= ASSEMBLY =================
             listContainer.getChildren().addAll(
