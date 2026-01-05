@@ -136,7 +136,7 @@
     -fx-border-radius: 10;
     -fx-padding: 0;
     -fx-cursor: hand;
-    -fx-pref-height:45;
+    -fx-min-height:45;
 }
 
 .card_textA {
@@ -362,3 +362,43 @@
     -fx-border-color: #cfcfcf;
 }
 
+.pu_titledpane {
+    -fx-background-color: transparent;
+
+}
+
+.pu_titledpane .title{
+    -fx-background-color: #e8e8e8;
+    -fx-border-color:gray;
+    -fx-padding:0;
+    -fx-collapsed: false;
+}
+.pu_titledpane .title:hover{
+    -fx-background-color: #d5d5d5;
+}
+.pu_titledpane .title .arrow-button {
+    visibility: hidden;
+    -fx-padding:0;
+}
+.pu_titledpane .title .arrow-button .arrow{
+    -fx-padding:0;
+}
+.pu_titledpane .content {
+    //-fx-border-color:gray;
+}
+.pu_titledpane .content .label {
+    -fx-font-size: 14;
+}
+
+.combo-box .scroll-bar:vertical {
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-min-width: 0;
+}
+
+.combo-box .scroll-bar:vertical .increment-button,
+.combo-box .scroll-bar:vertical .decrement-button {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+}

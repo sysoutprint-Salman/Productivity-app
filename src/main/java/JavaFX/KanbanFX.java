@@ -1,13 +1,10 @@
 package JavaFX;
 
-import SpringBoot.Task;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import javafx.animation.FadeTransition;
+import SpringBoot.Card;
+import SpringBoot.Reminder;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -24,14 +21,16 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.*;
 
-import javax.smartcardio.Card;
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class KanbanFX {
@@ -61,12 +60,14 @@ public class KanbanFX {
     private Stage stage;
     private Scene scene;
     private VBox layoutContainer;
-    private enum CardMode { ADD, SET }
+
     private enum Sidebar{CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES}
     private final VBox sidebarContentVbox = new VBox();
     private final HBox sidebarHeader = new HBox();
     private final Label headerTitle = new Label();
     private final ScrollPane sidebarScrollPane = new ScrollPane();
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
+
     private Label label;
     private double dragOffsetX;
     private boolean dragging = false;
@@ -93,6 +94,7 @@ public class KanbanFX {
 
         sidebarContentVbox.getStyleClass().add("sidebar_content");
         sidebarContentVbox.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        sidebarContentVbox.setPrefWidth(Region.USE_COMPUTED_SIZE);
 
         sidebarHeader.setPrefHeight(Region.USE_COMPUTED_SIZE);
         sidebarHeader.setAlignment(Pos.CENTER_LEFT);
@@ -156,25 +158,41 @@ public class KanbanFX {
         Label priorityLabel = new Label("Priority:");
 
         ComboBox<String> priorityCombo = new ComboBox<>();
-        priorityCombo.setVisibleRowCount(3);
+        priorityCombo.setVisibleRowCount(4);
         priorityCombo.getStyleClass().add("pu_choicebox");
-        priorityCombo.getItems().addAll("Low", "Medium", "High");
-
-        Label colorLabel = new Label("Color:");
-
-        ColorPicker colorPicker = new ColorPicker();
-        colorPicker.setPromptText("Task Color");
-        colorPicker.getStyleClass().add("pu_color_picker");
+        priorityCombo.getItems().addAll("None", "Low", "Medium", "High");
 
         priorityColorRow.getChildren().addAll(
                 priorityLabel,
-                priorityCombo,
-                colorLabel,
-                colorPicker
-        );
+                priorityCombo);
 
         Button createButton = new Button("Create");
         createButton.getStyleClass().add("pu_buttons");
+        try {
+            createButton.setOnAction(e -> {
+
+                String title = titleField.getText();
+                String description = descriptionArea.getText();
+                LocalDate date = datePicker.getValue();
+                if (timeCombo.getValue() == null) return;
+                LocalTime time = LocalTime.parse(
+                        timeCombo.getValue(),
+                        formatter
+                );
+                if (priorityCombo.getValue() == null) return;
+                Reminder.Priority priority = Reminder.Priority.valueOf(
+                        priorityCombo.getValue().toUpperCase()
+                );
+
+                if (!(title.isEmpty()) && !(date == null)) {
+                    createReminder(title, description, date, time, priority);
+                    stage.close();
+                }
+
+            });
+        } catch (NullPointerException ignored) {
+
+        }
 
         layoutContainer.getChildren().addAll(
                 titleField,
@@ -191,6 +209,120 @@ public class KanbanFX {
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.show();
+    }
+
+    private void createReminder(String titleText, String descriptionText, LocalDate date, LocalTime time, Reminder.Priority priority) {
+
+        TitledPane reminderPane = new TitledPane();
+        reminderPane.getStyleClass().add("pu_titledpane");
+        reminderPane.setCollapsible(true);
+        reminderPane.setMaxWidth(Double.MAX_VALUE);
+        reminderPane.prefWidthProperty().bind(sidebarContentVbox.widthProperty());
+        VBox.setVgrow(reminderPane, Priority.NEVER);
+
+        ContextMenu reminderMenu = new ContextMenu();
+
+        MenuItem editItem = new MenuItem("Edit");
+        MenuItem completeItem = new MenuItem("Complete");
+        MenuItem deleteItem = new MenuItem("Delete");
+
+        reminderMenu.getItems().addAll(
+                editItem,
+                completeItem,
+                deleteItem
+        );
+
+        HBox header = new HBox(5);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(0, 5, 0, 5));
+        header.setPrefHeight(40);
+        header.maxWidthProperty().bind(reminderPane.widthProperty());
+
+        HBox priorityBox = new HBox(2);
+        priorityBox.setAlignment(Pos.CENTER_LEFT);
+
+
+        int priorityCount = switch (priority) {
+            case NONE -> 0;
+            case LOW -> 1;
+            case MEDIUM -> 2;
+            case HIGH -> 3;
+        };
+
+
+        for (int i = 0; i < priorityCount; i++) {
+            ImageView icon = new ImageView(
+                    new Image(getClass().getResource("/Images/exclamation.png").toExternalForm())
+            );
+            icon.setFitWidth(12);
+            icon.setFitHeight(12);
+            icon.setPreserveRatio(true);
+            priorityBox.getChildren().add(icon);
+        }
+
+        Label title = new Label(titleText);
+        title.setFont(Font.font(14));
+        title.setWrapText(true);
+        title.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(title, Priority.ALWAYS);
+
+
+        header.getChildren().addAll(priorityBox, title);
+        reminderPane.setGraphic(header);
+
+        AnchorPane contentPane = new AnchorPane();
+        contentPane.setPrefHeight(112);
+
+        TextArea description = new TextArea(descriptionText);
+        description.getStyleClass().add("pu_text_area");
+        description.setWrapText(true);
+        description.setEditable(false);
+        description.setMouseTransparent(false);
+
+        description.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && !description.isEditable()) {
+                description.setEditable(true);
+                description.requestFocus();
+                description.selectAll();
+            }
+        });
+
+        description.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused && description.isEditable()) {
+                description.setEditable(false);
+            }
+        });
+
+
+        AnchorPane.setTopAnchor(description, -10.0);
+        AnchorPane.setBottomAnchor(description, 15.0);
+        AnchorPane.setLeftAnchor(description, -10.0);
+        AnchorPane.setRightAnchor(description, -10.0);
+
+        HBox timeBox = new HBox();
+        timeBox.setAlignment(Pos.CENTER_RIGHT);
+
+        String timestampText = "";
+        if (date != null && time != null) {
+            timestampText =
+                    time.format(DateTimeFormatter.ofPattern("h:mma"))
+                            + " "
+                            + date.format(DateTimeFormatter.ofPattern("M/d/yyyy"));
+        }
+
+        Label timestamp = new Label(timestampText);
+        timestamp.setPadding(new Insets(5));
+        timeBox.getChildren().add(timestamp);
+
+        AnchorPane.setTopAnchor(timeBox, 100.0);
+        AnchorPane.setBottomAnchor(timeBox, -10.0);
+        AnchorPane.setLeftAnchor(timeBox, -10.0);
+        AnchorPane.setRightAnchor(timeBox, -10.0);
+
+        contentPane.getChildren().addAll(description, timeBox);
+        reminderPane.setContent(contentPane);
+
+        sidebarContentVbox.getChildren().add(reminderPane);
     }
 
     private void createBoardPopup() {
@@ -365,7 +497,7 @@ public class KanbanFX {
                 int hour12 = hour24 % 12;
                 if (hour12 == 0) hour12 = 12;
 
-                String amPm = (hour24 < 12) ? "am" : "pm";
+                String amPm = (hour24 < 12) ? "AM" : "PM";
 
                 String time = String.format("%d:%02d%s", hour12, minute, amPm);
                 comboBox.getItems().add(time);
@@ -459,10 +591,10 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> addOrSetCards(sidebarContentVbox,CardMode.ADD));
+                addButton.setOnAction(e -> addOrSetCards(sidebarContentVbox, Card.CardMode.ADD));
 
                 for (int i = 0; i < 6; i++) {
-                    addOrSetCards(sidebarContentVbox, CardMode.SET);
+                    addOrSetCards(sidebarContentVbox, Card.CardMode.SET);
                 }
                 break;
 
@@ -489,7 +621,11 @@ public class KanbanFX {
                 addButton.setText("Create reminder");
                 addButton.setVisible(true);
                 addButton.setOnAction(e -> remindersPopup());
-                sidebarContentVbox.getChildren().add(new Label("Reminders section"));
+                for (int i = 0; i < 3; i++) {
+                    createReminder("Test","Test",
+                            LocalDate.now(), LocalTime.now(),
+                            Reminder.Priority.NONE );
+                }
                 break;
 
             case THEMES:
@@ -572,7 +708,7 @@ public class KanbanFX {
 
             // Demo cards
             for (int j = 0; j < 1; j++) {
-                addOrSetCards(visibleList, CardMode.SET);
+                addOrSetCards(visibleList, Card.CardMode.SET);
             }
 
             listScrollPane.setContent(visibleList);
@@ -586,7 +722,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardSection.getChildren().add(addCardBtn);
             addCardBtn.setPrefWidth(275);
-            addCardBtn.setOnAction(e-> {addOrSetCards(visibleList,CardMode.ADD);});
+            addCardBtn.setOnAction(e-> {addOrSetCards(visibleList,Card.CardMode.ADD);});
 
             // ================= ASSEMBLY =================
             listContainer.getChildren().addAll(
@@ -600,7 +736,7 @@ public class KanbanFX {
         }
     }
 
-    private void addOrSetCards(VBox visibleList, CardMode addOrSet) {
+    private void addOrSetCards(VBox visibleList, Card.CardMode addOrSet) {
 
         boolean isAdd = "add".equalsIgnoreCase(addOrSet.toString());
         boolean startEditing = isAdd;
@@ -609,6 +745,7 @@ public class KanbanFX {
         card.getStyleClass().add("card");
         card.setPadding(new Insets(6));
         VBox.setVgrow(card, Priority.NEVER);
+
 
         TextArea text = new TextArea(isAdd ? "Untitled" : "Card desc...");
         text.getStyleClass().add("card_textA");
@@ -621,14 +758,49 @@ public class KanbanFX {
         text.setMouseTransparent(!startEditing);
 
         text.textProperty().addListener((obs, oldText, newText) -> {
-            text.setPrefHeight(Region.USE_COMPUTED_SIZE);
-            text.layout();
-            card.requestLayout();
+            Text textNode = (Text) text.lookup(".text");
+            if (textNode != null) {
+                double height = textNode.getLayoutBounds().getHeight()
+                        + text.getInsets().getTop()
+                        + text.getInsets().getBottom()
+                        + 10; // padding buffer
+
+                text.setPrefHeight(height);
+                card.requestLayout();
+            }
         });
 
+
+        text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) {
+                text.setEditable(false);
+                text.setMouseTransparent(true);
+                card.requestFocus();
+                text.deselect();
+            }
+        });
+        StackPane.setAlignment(text, Pos.TOP_LEFT);
         MenuButton cardOptions = new MenuButton();
         cardOptions.getStyleClass().add("card_options");
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
+        MenuItem edit = new MenuItem("Edit");
+        MenuItem archive = new MenuItem("Archive");
+        MenuItem delete = new MenuItem("Delete");
+        MenuItem color = new MenuItem("Color");
+
+        cardOptions.getItems().addAll(
+            edit, archive, delete, color
+        );
+        edit.setOnAction(e -> {
+            text.setEditable(true);
+            text.setMouseTransparent(false);
+            text.requestFocus();
+            Platform.runLater(text::selectAll);
+
+        });
+        archive.setOnAction(e -> {});
+        delete.setOnAction(e -> {});
+        color.setOnAction(e -> {});
 
         card.getChildren().addAll(text, cardOptions);
 
@@ -659,8 +831,6 @@ public class KanbanFX {
                 ke.consume();
             }
         });
-
-        // ================= Drag & Drop =================
 
         final StackPane[] ghostCard = {null};
         final Rectangle[] placeholder = {null};
