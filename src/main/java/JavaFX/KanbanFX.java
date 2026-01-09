@@ -31,6 +31,7 @@ import javafx.animation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 
 public class KanbanFX {
@@ -56,17 +57,21 @@ public class KanbanFX {
     @FXML private Label boardsLabel;
     @FXML private VBox sidebar;
     @FXML private VBox sidebarExpansionVbox;
+    @FXML private Button addListButton;
 
     private Stage stage;
     private Scene scene;
     private VBox layoutContainer;
 
-    private enum Sidebar{CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES}
+    private enum Sidebar{ CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES }
+    public enum Mode { ADD, SET }
     private final VBox sidebarContentVbox = new VBox();
     private final HBox sidebarHeader = new HBox();
     private final Label headerTitle = new Label();
     private final ScrollPane sidebarScrollPane = new ScrollPane();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
+    private List<String> listData;
+    private List<String> cardData;
 
     private Label label;
     private double dragOffsetX;
@@ -84,7 +89,7 @@ public class KanbanFX {
 
     @FXML
     private void initialize() {
-        createInitialLists();
+        addOrSetLists(Mode.SET);
         cards.setOnMousePressed(this::slidingSidebar);
         reminders.setOnMousePressed(this::slidingSidebar);
         themes.setOnMousePressed(this::slidingSidebar);
@@ -593,10 +598,10 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> addOrSetCards(sidebarContentVbox, Card.CardMode.ADD));
+                addButton.setOnAction(e -> addOrSetCards(sidebarContentVbox, Mode.ADD));
 
                 for (int i = 0; i < 6; i++) {
-                    addOrSetCards(sidebarContentVbox, Card.CardMode.SET);
+                    addOrSetCards(sidebarContentVbox, Mode.SET);
                 }
                 break;
 
@@ -660,10 +665,15 @@ public class KanbanFX {
         return timeline;
     }
 
-    private void createInitialLists() {
+    private void addOrSetLists(Mode mode) {
+        boolean isSet = mode == Mode.SET;
+        if (isSet) {
+            listData = List.of("Start");
+        } else {
+            listData = List.of("Untitled List");
+        }
 
-        for (int i = 1; i <= 2; i++) {
-
+        listData.forEach(title -> {
             VBox listContainer = new VBox();
             listContainer.getStyleClass().add("list_column");
             listContainer.setAlignment(Pos.TOP_CENTER);
@@ -672,62 +682,62 @@ public class KanbanFX {
             listContainer.setMaxWidth(Region.USE_PREF_SIZE);
             listContainer.maxHeightProperty().bind(boardHBox.heightProperty());
 
-
             HBox headerSection = new HBox();
             headerSection.getStyleClass().add("header_section");
 
-            Label headerTitle = new Label("List " + i);
+            Label headerTitle = new Label(title);
             headerTitle.getStyleClass().add("header_title");
 
             MenuButton listOptionsBtn = new MenuButton();
             listOptionsBtn.getStyleClass().add("list_options");
-
-            ImageView dotsImg = new ImageView(
+            listOptionsBtn.setGraphic(new ImageView(
                     new Image(Objects.requireNonNull(
                             getClass().getResourceAsStream("/Images/dots.png")))
-            );
-            listOptionsBtn.setGraphic(dotsImg);
+            ));
 
-            listOptionsBtn.getItems().addAll(
-                    new MenuItem("Add Card"),
-                    new MenuItem("Edit"),
-                    new MenuItem("Color"),
-                    new MenuItem("Archive"),
-                    new MenuItem("Hide For Now"),
-                    new MenuItem("Delete")
-            );
+            MenuItem addCard = new MenuItem("Add Card");
+            MenuItem edit = new MenuItem("Edit");
+            MenuItem color = new MenuItem("Color");
+            MenuItem archive = new MenuItem("Archive");
+            MenuItem delete = new MenuItem("Delete");
+
+            listOptionsBtn.getItems().addAll(addCard, edit, color, archive, delete);
+
+            edit.setOnAction(e->{});
+            color.setOnAction(e->{});
+            archive.setOnAction(e->{});
+            delete.setOnAction(e -> boardHBox.getChildren().remove(listContainer));
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
+            VBox visibleList = new VBox();
+            visibleList.getStyleClass().add("visible_list");
 
-            ScrollPane listScrollPane = new ScrollPane();
+            // Cards are only populated when SET
+            if (isSet) {
+                //cardDate will be assigned in card method and used from there
+                cardData = List.of("Example Card 1", "Example Card 2");
+                cardData.forEach(c -> addOrSetCards(visibleList, Mode.SET));
+            }
+
+            ScrollPane listScrollPane = new ScrollPane(visibleList);
             listScrollPane.getStyleClass().add("list_scrollP");
             listScrollPane.setFitToWidth(true);
             listScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             listScrollPane.setMinHeight(0);
 
-
-            VBox visibleList = new VBox();
-            visibleList.getStyleClass().add("visible_list");
-
-            // Demo cards
-            for (int j = 0; j < 1; j++) {
-                addOrSetCards(visibleList, Card.CardMode.SET);
-            }
-
-            listScrollPane.setContent(visibleList);
-
-            // ================= FIXED FOOTER =================
             HBox addCardSection = new HBox();
             addCardSection.getStyleClass().add("addCardSection");
             addCardSection.setAlignment(Pos.CENTER);
 
             Button addCardBtn = new Button("Add card");
             addCardBtn.getStyleClass().add("add_button");
-            addCardSection.getChildren().add(addCardBtn);
             addCardBtn.setPrefWidth(275);
-            addCardBtn.setOnAction(e-> {addOrSetCards(visibleList,Card.CardMode.ADD);});
+            addCardBtn.setOnAction(e ->
+                    addOrSetCards(visibleList, Mode.ADD)
+            );
 
-            // ================= ASSEMBLY =================
+            addCardSection.getChildren().add(addCardBtn);
+
             listContainer.getChildren().addAll(
                     headerSection,
                     listScrollPane,
@@ -735,12 +745,39 @@ public class KanbanFX {
             );
 
             makeListDraggable(listContainer, headerSection, listScrollPane, addCardSection);
-            boardHBox.getChildren().add(listContainer);
+
+            // Insert BEFORE addListButton
+            int insertIndex = Math.max(0, boardHBox.getChildren().size() - 1);
+            boardHBox.getChildren().add(insertIndex, listContainer);
+        });
+
+        if (boardHBox.lookup("#addListButton") == null) {
+
+            Button addListButton = new Button("Add a list");
+            addListButton.setId("addListButton");
+            addListButton.getStyleClass().add("add_button");
+            addListButton.setPrefSize(120, 30);
+
+            ImageView plusIcon = new ImageView(
+                    new Image(Objects.requireNonNull(
+                            getClass().getResourceAsStream("/Images/plusButton.png")))
+            );
+            plusIcon.setFitWidth(12);
+            plusIcon.setFitHeight(12);
+            plusIcon.setPreserveRatio(true);
+
+            addListButton.setGraphic(plusIcon);
+            addListButton.setOnAction(e ->
+                    addOrSetLists(Mode.ADD)
+            );
+
+            boardHBox.getChildren().add(addListButton);
         }
     }
 
-    private void addOrSetCards(VBox visibleList, Card.CardMode addOrSet) {
-
+    private void addOrSetCards(VBox visibleList, Mode addOrSet) {
+        //When the mode is SET, the below cardDate list will be assigned and date will be extracted from DB
+        //List<Card> CardDate = HTTPHandler.GET("condition for getting cards goes here...");
         boolean isAdd = "add".equalsIgnoreCase(addOrSet.toString());
         boolean startEditing = isAdd;
 
@@ -786,6 +823,7 @@ public class KanbanFX {
         MenuButton cardOptions = new MenuButton();
         cardOptions.getStyleClass().add("card_options");
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
+
         MenuItem edit = new MenuItem("Edit");
         MenuItem archive = new MenuItem("Archive");
         MenuItem delete = new MenuItem("Delete");
@@ -1043,8 +1081,8 @@ public class KanbanFX {
         for (Node n : boardHBox.getChildren()) {
 
             // Skip the Rectangle placeholder
-            if (n == placeholder)
-                continue;
+            if (n == placeholder) continue;
+            if (n instanceof Button) continue;
 
             // Only compare real lists
             Bounds bounds = n.localToScene(n.getBoundsInLocal());

@@ -18,5 +18,5 @@ public class Card {
     private String hexColor;
     private CardStatus status;
     public enum CardStatus {ACTIVE, ARCHIVED, DELETED}
-    public enum CardMode { ADD, SET }
+
 }
