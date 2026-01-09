@@ -105,6 +105,8 @@ public class KanbanFX {
         sidebarScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sidebarScrollPane.getStyleClass().add("sidebar_scroll");
         sidebarScrollPane.setContent(sidebarContentVbox);
+        sidebarScrollPane.setFocusTraversable(false);
+        sidebarExpansionVbox.setFocusTraversable(false);
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
@@ -513,7 +515,7 @@ public class KanbanFX {
 
             Sidebar section = Sidebar.valueOf(source.getId().toUpperCase());
 
-            /* ---------- CLOSE ---------- */
+            //Close
             if (sidebarOpen && clickedAgain) {
 
                 Timeline fadeHeader = fadeSidebar(sidebarHeader, 1, 0, Duration.ZERO);
@@ -527,7 +529,7 @@ public class KanbanFX {
                 return;
             }
 
-            /* ---------- SWITCH CONTENT ---------- */
+            //Content
             if (sidebarOpen && !clickedAgain) {
 
                 Timeline fadeOut = fadeSidebar(sidebarHeader, 1, 0, Duration.ZERO);
@@ -545,7 +547,7 @@ public class KanbanFX {
                 return;
             }
 
-            /* ---------- OPEN ---------- */
+            //Open
             if (!sidebarOpen) {
 
                 sidebarExpansionVbox.toFront();
@@ -701,6 +703,7 @@ public class KanbanFX {
             listScrollPane.getStyleClass().add("list_scrollP");
             listScrollPane.setFitToWidth(true);
             listScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            listScrollPane.setMinHeight(0);
 
 
             VBox visibleList = new VBox();

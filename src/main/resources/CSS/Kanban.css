@@ -33,15 +33,25 @@
     -fx-background-color: white;
     -fx-border-color: #CECECE;
     -fx-border-width: 1 1 1 0;
-
-
+}
+sidebar_expansion_vbox:focused{
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 .sidebar_scroll{
     -fx-background-color: white;
+    -fx-border-width:0;
 }
 .sidebar_scroll .viewport{
     -fx-background-color: white;
+    -fx-border-width:0;
 }
+.sidebar_scroll:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-width:0;
+}
+
 .sidebar_header{
     -fx-padding:11;
 }
