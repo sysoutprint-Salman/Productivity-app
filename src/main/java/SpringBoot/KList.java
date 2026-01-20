@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class List {
+public class KList {
     private Long listId;
     private Long userId;
     private Long boardId;
-    private String description;
+    private String title;
     private String hexColor;
     private ListStatus status;
     public enum ListStatus {ACTIVE, ARCHIVED, DELETED}

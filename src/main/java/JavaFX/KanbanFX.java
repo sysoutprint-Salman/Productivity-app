@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.Card;
+import SpringBoot.KList;
 import SpringBoot.Reminder;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -31,8 +32,7 @@ import javafx.animation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class KanbanFX {
     @FXML
@@ -607,7 +607,21 @@ public class KanbanFX {
 
             case ARCHIVE:
                 title.setText("Archive");
-                sidebarContentVbox.getChildren().add(new Label("Archive section"));
+                KList exampleList1 = new KList(1L, 1L, 1L, "Todo", "", KList.ListStatus.ARCHIVED);
+                KList exampleList2 = new KList(2L, 1L, 1L, "Todo2", "", KList.ListStatus.ARCHIVED);
+
+                ArrayList<Card> exampleCardsList = new ArrayList<>();
+                ArrayList<KList> exampleListsList = new ArrayList<>();
+
+                Card card1 = new Card(1L,1L,1L,1L, "Example...", "", Card.CardStatus.PARENT_ARCHIVED);
+                Card card2 = new Card(2L,1L,2L,1L, "Example...", "", Card.CardStatus.PARENT_ARCHIVED);
+                Card card3 = new Card(3L,1L,2L,1L, "Example...", "", Card.CardStatus.ARCHIVED);
+                exampleCardsList.add(card1);
+                exampleCardsList.add(card2);
+                exampleCardsList.add(card3);
+                exampleListsList.add(exampleList1);
+                exampleListsList.add(exampleList2);
+                addOrSetArchiveContent(exampleListsList, exampleCardsList, Mode.SET);
                 break;
 
             case BOARDS:
@@ -991,6 +1005,84 @@ public class KanbanFX {
             ghostCard[0] = null;
             placeholder[0] = null;
         });
+    }
+
+    public void addOrSetArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
+
+        if (mode != Mode.SET) {
+            return;
+        }
+
+        sidebarContentVbox.getChildren().clear();
+
+        Map<Long, ArrayList<Card>> cardsByListId = new HashMap<>();
+        ArrayList<Card> standaloneArchivedCards = new ArrayList<>();
+
+        for (Card card : archivedCards) {
+
+            if (card.getStatus() == Card.CardStatus.PARENT_ARCHIVED) {
+                cardsByListId
+                        .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
+                        .add(card);
+            }
+            else if (card.getStatus() == Card.CardStatus.ARCHIVED) {
+                standaloneArchivedCards.add(card);
+            }
+        }
+
+        if (!archivedLists.isEmpty()) {
+
+            for (KList list : archivedLists) {
+
+                TitledPane archivePane = new TitledPane();
+                archivePane.setText(list.getTitle());
+                archivePane.getStyleClass().add("archive_list");
+
+                AnchorPane contentPane = new AnchorPane();
+                contentPane.setMinHeight(0);
+                contentPane.setMinWidth(0);
+
+                double topOffset = 0;
+
+                ArrayList<Card> listCards =
+                        cardsByListId.getOrDefault(list.getListId(), new ArrayList<>());
+
+                for (Card card : listCards) {
+
+                    TextArea cardNode = createArchiveCard(card);
+
+                    AnchorPane.setTopAnchor(cardNode, topOffset);
+                    AnchorPane.setLeftAnchor(cardNode, 0.0);
+                    AnchorPane.setRightAnchor(cardNode, 0.0);
+
+                    contentPane.getChildren().add(cardNode);
+                    topOffset += 50;
+                }
+
+                archivePane.setContent(contentPane);
+                sidebarContentVbox.getChildren().add(archivePane);
+            }
+        }
+
+        for (Card card : standaloneArchivedCards) {
+            TextArea cardNode = createArchiveCard(card);
+            sidebarContentVbox.getChildren().add(cardNode);
+        }
+    }
+
+    private TextArea createArchiveCard(Card card) {
+        TextArea area = new TextArea(card.getDescription());
+        area.setPrefWidth(230);
+        area.setPrefHeight(45);
+        area.setEditable(false);
+        area.setWrapText(true);
+        area.getStyleClass().add("archive_card");
+
+        /*if (card.getHexColor() != null) {
+            area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
+        }*/
+
+        return area;
     }
 
     private void makeListDraggable(VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {

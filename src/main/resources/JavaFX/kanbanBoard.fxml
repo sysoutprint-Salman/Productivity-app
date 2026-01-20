@@ -16,66 +16,63 @@
 <AnchorPane prefHeight="610.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.KanbanFX">
 
     <children>
-        <BorderPane prefHeight="610.0" prefWidth="670.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+          <MenuBar prefHeight="26.0" prefWidth="950.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <menus>
+                  <Menu text="To Do">
+                      <items>
+                          <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
+                          <MenuItem mnemonicParsing="false" text="Close" />
+                      </items>
+                      <graphic>
+                          <ImageView styleClass="icon">
+                              <image>
+                                  <Image url="@../Images/check.png" />
+                              </image>
+                          </ImageView>
+                      </graphic>
+                  </Menu>
 
-            <top>
-                <MenuBar prefHeight="26.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-                    <menus>
-                        <Menu text="To Do">
-                            <items>
-                                <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
-                                <MenuItem mnemonicParsing="false" text="Close" />
-                            </items>
-                            <graphic>
-                                <ImageView styleClass="icon">
-                                    <image>
-                                        <Image url="@../Images/check.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                        </Menu>
+                  <Menu text="AI Chat">
+                      <items>
+                          <MenuItem fx:id="gptMenuItem" onAction="#switchToGPT" text="Chat with AI assistant" />
+                      </items>
+                      <graphic>
+                          <ImageView styleClass="icon">
+                              <image>
+                                  <Image url="@../Images/user.png" />
+                              </image>
+                          </ImageView>
+                      </graphic>
+                  </Menu>
 
-                        <Menu text="AI Chat">
-                            <items>
-                                <MenuItem fx:id="gptMenuItem" onAction="#switchToGPT" text="Chat with AI assistant" />
-                            </items>
-                            <graphic>
-                                <ImageView styleClass="icon">
-                                    <image>
-                                        <Image url="@../Images/user.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                        </Menu>
+                  <Menu text="Notebook">
+                      <items>
+                          <MenuItem fx:id="viewNotebook" onAction="#switchToNotebook" text="View Notebook" />
+                      </items>
+                      <graphic>
+                          <ImageView styleClass="icon">
+                              <image>
+                                  <Image url="@../Images/notepad.png" />
+                              </image>
+                          </ImageView>
+                      </graphic>
+                  </Menu>
 
-                        <Menu text="Notebook">
-                            <items>
-                                <MenuItem fx:id="viewNotebook" onAction="#switchToNotebook" text="View Notebook" />
-                            </items>
-                            <graphic>
-                                <ImageView styleClass="icon">
-                                    <image>
-                                        <Image url="@../Images/notepad.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                        </Menu>
-
-                        <Menu text="Kanban">
-                            <graphic>
-                                <ImageView styleClass="icon">
-                                    <image>
-                                        <Image url="@../Images/kanban.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                     <items>
-                        <MenuItem fx:id="viewNotebook1" onAction="#switchToNotebook" text="Kanban Board" />
-                     </items>
-                        </Menu>
-                    </menus>
-                </MenuBar>
-            </top>
+                  <Menu text="Kanban">
+                      <graphic>
+                          <ImageView styleClass="icon">
+                              <image>
+                                  <Image url="@../Images/kanban.png" />
+                              </image>
+                          </ImageView>
+                      </graphic>
+               <items>
+                  <MenuItem fx:id="viewNotebook1" onAction="#switchToNotebook" text="Kanban Board" />
+               </items>
+                  </Menu>
+              </menus>
+          </MenuBar>
+        <BorderPane layoutY="39.2" prefHeight="571.0" prefWidth="950.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="39.0">
 
             <left>
                 <AnchorPane prefHeight="572.0">
@@ -151,13 +148,23 @@
             </left>
 
             <center>
-                    <HBox fx:id="boardHBox" spacing="20" styleClass="board_hbox" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                    <HBox fx:id="boardHBox" prefWidth="870.0" spacing="20" styleClass="board_hbox" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
                         <padding>
                             <Insets bottom="15" left="15" right="15" top="15" />
                         </padding>
                     </HBox>
             </center>
+         <top>
+            <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="950.0" styleClass="board_header" BorderPane.alignment="CENTER">
+               <children>
+                  <Label fx:id="boardTitle" text="Example Board Title" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+         </top>
 
         </BorderPane>
     </children>

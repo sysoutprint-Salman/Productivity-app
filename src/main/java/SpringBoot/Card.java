@@ -17,6 +17,5 @@ public class Card {
     private String description;
     private String hexColor;
     private CardStatus status;
-    public enum CardStatus {ACTIVE, ARCHIVED, DELETED}
-
+    public enum CardStatus {ACTIVE, ARCHIVED, PARENT_ARCHIVED, DELETED}
 }
