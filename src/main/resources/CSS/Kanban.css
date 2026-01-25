@@ -84,7 +84,16 @@ sidebar_expansion_vbox:focused{
 .header_title{
     -fx-padding:10 0 0 15;
     -fx-font-size:15;
-    -fx-pref-width:275;
+    //-fx-pref-width:275;
+}
+.header_TF{
+    -fx-padding:10 0 0 15;
+    -fx-font-size:15;
+    -fx-background-color:transparent;
+}
+.header_TF:disabled{
+    -fx-text-fill:black;
+    -fx-opacity: 1;
 }
 .list_options{
     -fx-background-color:transparent;

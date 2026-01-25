@@ -64,7 +64,7 @@ public class KanbanFX {
     private VBox layoutContainer;
 
     private enum Sidebar{ CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES }
-    public enum Mode { ADD, SET }
+    public enum Mode { ADD, LOAD }
     private final VBox sidebarContentVbox = new VBox();
     private final HBox sidebarHeader = new HBox();
     private final Label headerTitle = new Label();
@@ -89,7 +89,7 @@ public class KanbanFX {
 
     @FXML
     private void initialize() {
-        addOrSetLists(Mode.SET);
+        addOrLoadLists(Mode.LOAD);
         cards.setOnMousePressed(this::slidingSidebar);
         reminders.setOnMousePressed(this::slidingSidebar);
         themes.setOnMousePressed(this::slidingSidebar);
@@ -112,6 +112,7 @@ public class KanbanFX {
         sidebarScrollPane.setContent(sidebarContentVbox);
         sidebarScrollPane.setFocusTraversable(false);
         sidebarExpansionVbox.setFocusTraversable(false);
+        boardHBox.setFocusTraversable(true);
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
@@ -598,10 +599,10 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> addOrSetCards(sidebarContentVbox, Mode.ADD));
+                addButton.setOnAction(e -> addOrLoadCards(sidebarContentVbox, Mode.ADD));
 
                 for (int i = 0; i < 6; i++) {
-                    addOrSetCards(sidebarContentVbox, Mode.SET);
+                    addOrLoadCards(sidebarContentVbox, Mode.LOAD);
                 }
                 break;
 
@@ -621,7 +622,7 @@ public class KanbanFX {
                 exampleCardsList.add(card3);
                 exampleListsList.add(exampleList1);
                 exampleListsList.add(exampleList2);
-                addOrSetArchiveContent(exampleListsList, exampleCardsList, Mode.SET);
+                addOrLoadArchiveContent(exampleListsList, exampleCardsList, Mode.LOAD);
                 break;
 
             case BOARDS:
@@ -679,8 +680,8 @@ public class KanbanFX {
         return timeline;
     }
 
-    private void addOrSetLists(Mode mode) {
-        boolean isSet = mode == Mode.SET;
+    private void addOrLoadLists(Mode mode) {
+        boolean isSet = mode == Mode.LOAD;
         if (isSet) {
             listData = List.of("Start");
         } else {
@@ -699,8 +700,28 @@ public class KanbanFX {
             HBox headerSection = new HBox();
             headerSection.getStyleClass().add("header_section");
 
-            Label headerTitle = new Label(title);
-            headerTitle.getStyleClass().add("header_title");
+            TextField headerTitle = new TextField(title);
+            headerTitle.getStyleClass().add("header_TF");
+            HBox.setHgrow(headerTitle,Priority.ALWAYS);
+            if (isSet) {
+                headerTitle.setDisable(true);
+                headerTitle.setEditable(false);
+                headerTitle.deselect();
+            }
+
+            headerTitle.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (!isNowFocused && !headerTitle.isDisabled()) {
+                    headerTitle.setEditable(false);
+                    headerTitle.setDisable(true);
+                    System.out.println("Edited title");
+                }
+            });
+            headerTitle.setOnAction(e -> {
+                headerTitle.setEditable(false);
+                headerTitle.setDisable(true);
+                headerTitle.deselect();
+                System.out.println("Edited title");
+            });
 
             MenuButton listOptionsBtn = new MenuButton();
             listOptionsBtn.getStyleClass().add("list_options");
@@ -717,20 +738,25 @@ public class KanbanFX {
 
             listOptionsBtn.getItems().addAll(addCard, edit, color, archive, delete);
 
-            edit.setOnAction(e->{});
+            edit.setOnAction(e->{
+                headerTitle.setDisable(false);
+                headerTitle.setEditable(true);
+                //headerTitle.setFocusTraversable(true);
+                headerTitle.requestFocus();
+                headerTitle.selectAll();
+            });
             color.setOnAction(e->{});
-            archive.setOnAction(e->{});
+            archive.setOnAction(e-> boardHBox.getChildren().remove(listContainer));
             delete.setOnAction(e -> boardHBox.getChildren().remove(listContainer));
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
             VBox visibleList = new VBox();
             visibleList.getStyleClass().add("visible_list");
 
-            // Cards are only populated when SET
             if (isSet) {
                 //cardDate will be assigned in card method and used from there
                 cardData = List.of("Example Card 1", "Example Card 2");
-                cardData.forEach(c -> addOrSetCards(visibleList, Mode.SET));
+                cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));
             }
 
             ScrollPane listScrollPane = new ScrollPane(visibleList);
@@ -747,7 +773,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardBtn.setPrefWidth(275);
             addCardBtn.setOnAction(e ->
-                    addOrSetCards(visibleList, Mode.ADD)
+                    addOrLoadCards(visibleList, Mode.ADD)
             );
 
             addCardSection.getChildren().add(addCardBtn);
@@ -782,17 +808,17 @@ public class KanbanFX {
 
             addListButton.setGraphic(plusIcon);
             addListButton.setOnAction(e ->
-                    addOrSetLists(Mode.ADD)
+                    addOrLoadLists(Mode.ADD)
             );
 
             boardHBox.getChildren().add(addListButton);
         }
     }
 
-    private void addOrSetCards(VBox visibleList, Mode addOrSet) {
-        //When the mode is SET, the below cardDate list will be assigned and date will be extracted from DB
+    private void addOrLoadCards(VBox visibleList, Mode addOrLoad) {
+        //When the mode is LOAD, the below cardDate list will be assigned and date will be extracted from DB
         //List<Card> CardDate = HTTPHandler.GET("condition for getting cards goes here...");
-        boolean isAdd = "add".equalsIgnoreCase(addOrSet.toString());
+        boolean isAdd = "add".equalsIgnoreCase(addOrLoad.toString());
         boolean startEditing = isAdd;
 
         StackPane card = new StackPane();
@@ -1007,9 +1033,9 @@ public class KanbanFX {
         });
     }
 
-    public void addOrSetArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
+    public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
 
-        if (mode != Mode.SET) {
+        if (mode != Mode.LOAD) {
             return;
         }
 
@@ -1037,6 +1063,14 @@ public class KanbanFX {
                 TitledPane archivePane = new TitledPane();
                 archivePane.setText(list.getTitle());
                 archivePane.getStyleClass().add("archive_list");
+
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem recover = new MenuItem("Recover");
+                contextMenu.getItems().add(recover);
+                archivePane.setOnContextMenuRequested(e -> {
+                    contextMenu.show(archivePane, e.getScreenX(),e.getScreenY());
+                    recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(archivePane));
+                });
 
                 AnchorPane contentPane = new AnchorPane();
                 contentPane.setMinHeight(0);
@@ -1077,6 +1111,13 @@ public class KanbanFX {
         area.setEditable(false);
         area.setWrapText(true);
         area.getStyleClass().add("archive_card");
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem recover = new MenuItem("Recover card");
+        contextMenu.getItems().add(recover);
+        area.setOnContextMenuRequested(e -> {
+            contextMenu.show(area, e.getScreenX(),e.getScreenY());
+            recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(area));
+        });
 
         /*if (card.getHexColor() != null) {
             area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
