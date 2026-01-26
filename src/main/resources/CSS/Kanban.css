@@ -2,6 +2,27 @@
 .board_hbox {
     -fx-background-color: transparent;
 }
+.board_scrollpane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.board_scrollpane .viewport {
+    -fx-background-color: transparent;
+}
+
+.board_scrollpane .content {
+    -fx-background-color: transparent;
+}
+.board_scrollpane:focused,
+.board_scrollpane .viewport:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
 
 .board_header{
     -fx-background-color:white;
@@ -48,17 +69,19 @@ sidebar_expansion_vbox:focused{
     -fx-faint-focus-color: transparent;
 }
 .sidebar_scroll{
-    -fx-background-color: white;
-    -fx-border-width:0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 .sidebar_scroll .viewport{
     -fx-background-color: white;
     -fx-border-width:0;
 }
-.sidebar_scroll:focused {
+.sidebar_scroll:focused,
+.sidebar_scroll .viewport:focused {
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-border-width:0;
 }
 
 .sidebar_header{
@@ -169,40 +192,28 @@ sidebar_expansion_vbox:focused{
 
 .card_textA {
     -fx-text-fill: black;
-
-    /* wipe background */
     -fx-background-color: transparent, transparent, transparent;
     -fx-control-inner-background: transparent;
-
-    /* match card rounding */
     -fx-background-radius: 10;
     -fx-border-radius: 10;
 
     /* remove padding that causes weird indent on new line */
-    -fx-padding: 6 8 6 8; /* clean minimal padding */
+    -fx-padding: 6 8 6 8;
     -fx-background-insets: 0;
-
-    /* remove borders */
     -fx-border-color: transparent;
     -fx-border-width: 0;
-
-    /* remove focus effects */
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-
-    /* selection color */
     -fx-highlight-fill: #cccccc;
     -fx-highlight-text-fill: black;
 }
 
-/* kill the internal "content" background layer of TextArea */
 .card_textA .content {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 0;
 }
 
-/* kill underlying scrollpane background that causes white patches */
 .card_textA .scroll-pane,
 .card_textA .scroll-pane .viewport {
     -fx-background-color: transparent;
@@ -481,4 +492,19 @@ sidebar_expansion_vbox:focused{
 .archive_card .scroll-pane .viewport {
     -fx-background-color: transparent;
     -fx-background-radius: 10;
+}
+.existing_board{
+    -fx-alignment:center-left;
+    -fx-font-size:14;
+    -fx-background-color: white;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: black;
+    -fx-pref-height:50;
+    -fx-pref-width:300;
+}
+.existing_board:hover{
+    -fx-background-color: #eeeeee;
+}
+.existing_board:pressed{
+    -fx-background-color: #bebebe;
 }

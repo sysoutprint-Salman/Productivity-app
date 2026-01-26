@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Board {
     private Long boardId;
+    private Long userId;
     private String boardTitle;
     private LocalDateTime creationDate;
 }

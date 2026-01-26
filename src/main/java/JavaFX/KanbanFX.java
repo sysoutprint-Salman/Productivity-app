@@ -48,7 +48,7 @@ public class KanbanFX {
     @FXML private VBox boards;
     @FXML private VBox deleted;
     @FXML private VBox reminders;
-    @FXML private VBox themes;
+    //@FXML private VBox themes; //Will work on in the future
 
     @FXML private Label menuLabel;
     @FXML private Label cardsLabel;
@@ -58,6 +58,7 @@ public class KanbanFX {
     @FXML private VBox sidebar;
     @FXML private VBox sidebarExpansionVbox;
     @FXML private Button addListButton;
+    @FXML private ScrollPane boardScrollPane;
 
     private Stage stage;
     private Scene scene;
@@ -92,7 +93,7 @@ public class KanbanFX {
         addOrLoadLists(Mode.LOAD);
         cards.setOnMousePressed(this::slidingSidebar);
         reminders.setOnMousePressed(this::slidingSidebar);
-        themes.setOnMousePressed(this::slidingSidebar);
+        //themes.setOnMousePressed(this::slidingSidebar);
         archive.setOnMousePressed(this::slidingSidebar);
         boards.setOnMousePressed(this::slidingSidebar);
         deleted.setOnMousePressed(this::slidingSidebar);
@@ -113,6 +114,9 @@ public class KanbanFX {
         sidebarScrollPane.setFocusTraversable(false);
         sidebarExpansionVbox.setFocusTraversable(false);
         boardHBox.setFocusTraversable(true);
+        boardScrollPane.setFocusTraversable(false);
+        boardScrollPane.getStyleClass().add("board_scrollpane");
+
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
@@ -630,7 +634,6 @@ public class KanbanFX {
                 addButton.setText("Create board");
                 addButton.setVisible(true);
                 addButton.setOnAction(e -> createBoardPopup());
-                sidebarContentVbox.getChildren().add(new Label("Boards section"));
                 break;
 
             case DELETED:
@@ -796,7 +799,7 @@ public class KanbanFX {
             Button addListButton = new Button("Add a list");
             addListButton.setId("addListButton");
             addListButton.getStyleClass().add("add_button");
-            addListButton.setPrefSize(120, 30);
+            addListButton.setMinSize(120, 30);
 
             ImageView plusIcon = new ImageView(
                     new Image(Objects.requireNonNull(

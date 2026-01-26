@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -100,16 +101,6 @@
                         <Label fx:id="menuLabel41" text="Reminders" />
                      </children>
                   </VBox>
-                  <VBox id="themes" fx:id="themes" alignment="TOP_CENTER" maxWidth="-Infinity" styleClass="icon_containers">
-                     <children>
-                                <ImageView>
-                                    <image>
-                              <Image url="@../Images/theme.png" />
-                           </image>
-                                </ImageView>
-                        <Label fx:id="menuLabel2" text="Themes" />
-                     </children>
-                  </VBox>
                   <VBox id="archive" fx:id="archive" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
                      <children>
                                 <ImageView>
@@ -146,15 +137,6 @@
                <VBox fx:id="sidebarExpansionVbox" layoutX="79.2" layoutY="6.0" prefHeight="572.0" prefWidth="0.0" styleClass="sidebar_expansion_vbox" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="0.0" />
                 </AnchorPane>
             </left>
-
-            <center>
-                    <HBox fx:id="boardHBox" prefWidth="870.0" spacing="20" styleClass="board_hbox" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-
-                        <padding>
-                            <Insets bottom="15" left="15" right="15" top="15" />
-                        </padding>
-                    </HBox>
-            </center>
          <top>
             <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="950.0" styleClass="board_header" BorderPane.alignment="CENTER">
                <children>
@@ -165,6 +147,18 @@
                </padding>
             </HBox>
          </top>
+         <center>
+            <ScrollPane fx:id="boardScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" styleClass="board_scrollpane" BorderPane.alignment="CENTER">
+               <content>
+                          <HBox fx:id="boardHBox" prefWidth="870.0" spacing="20" styleClass="board_hbox">
+            
+                              <padding>
+                                  <Insets bottom="15" left="15" right="15" top="15" />
+                              </padding>
+                          </HBox>
+               </content>
+            </ScrollPane>
+         </center>
 
         </BorderPane>
     </children>
