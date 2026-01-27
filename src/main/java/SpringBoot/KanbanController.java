@@ -1,6 +1,9 @@
 package SpringBoot;
 
+import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,7 +15,11 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static SpringBoot.KanbanController.Section.*;
+
 public class KanbanController {
+    protected enum Section {ID, TITLE, DESCRIPTION, COLOR, STATUS, POSITION}
+}
 @RestController
 @RequestMapping("/boards")
 @RequiredArgsConstructor
@@ -21,22 +28,27 @@ class BoardController {
 
     @GetMapping("/user/{userId}")
     protected List<Board> getAllBoardsByUserId(@PathVariable Long userId) {
-        return boardRepository.findByUserId(userId);
+        return boardRepository.findAllByUserId(userId);
     }
 
     @PostMapping
-    protected void createBoard(@RequestBody Board board) {
-        boardRepository.createBoard(board);
+    protected void createBoard(@RequestBody Board boardInfo) {
+        boardRepository.createBoard(boardInfo);
     }
 
     @GetMapping("/{boardId}")
     protected Board getBoardById(@PathVariable Long boardId) {
-        return boardRepository.findById(boardId);
+        return boardRepository.getBoardById(boardId);
     }
 
     @PutMapping("/{boardId}")
-    protected void updateBoardTitle(@PathVariable Long id, @RequestBody String newTitle){
-        boardRepository.updateBoardTitle(id, newTitle);
+    protected void updateBoardTitle(@PathVariable Long boardId, @RequestBody String newTitle){
+        boardRepository.updateBoardTitle(boardId, newTitle);
+    }
+
+    @DeleteMapping("/{boardId}")
+    protected void deleteBoard(@PathVariable Long boardId){
+        boardRepository.deleteBoard(boardId);
     }
 }
 
@@ -46,12 +58,12 @@ class BoardRepository {
     private JdbcTemplate jdbc;
     private final BoardRowMapper boardRowMapper = new BoardRowMapper();
 
-    protected List<Board> findByUserId(Long userId) {
+    protected List<Board> findAllByUserId(Long userId) {
         return jdbc.query("SELECT * FROM boards WHERE user_id = ?",
                 boardRowMapper, userId);
     }
 
-    protected Board findById(Long boardId) {
+    protected Board getBoardById(Long boardId) {
         return jdbc.queryForObject(
                 "SELECT * FROM boards WHERE board_id = ?",
                 boardRowMapper, boardId
@@ -66,16 +78,13 @@ class BoardRepository {
                 board.getUserId()
         );
     }
-    protected void deleteBoard(Long id){
-        jdbc.update("DELETE from boards WHERE id = ?", id);
+    protected void deleteBoard(Long boardId){
+        jdbc.update("DELETE from boards WHERE board_id = ?", boardId);
     }
 
-    protected void updateBoardTitle(Long id, String newTitle){
-        jdbc.update("UPDATE board SET board_title = ? WHERE id = ?", newTitle, id);
+    protected void updateBoardTitle(Long boardId, String newTitle){
+        jdbc.update("UPDATE boards SET board_title = ? WHERE board_id = ?", newTitle, boardId);
     }
-
-    //DELETE board
-    //UPDATE boardtitle
 }
 
 class BoardRowMapper implements RowMapper<Board> {
@@ -93,48 +102,117 @@ class BoardRowMapper implements RowMapper<Board> {
 @RestController
 @RequestMapping("/lists")
 @RequiredArgsConstructor
-public class KListController {
-
-
+class KListController {
     private final KListRepository listRepository;
-    @GetMapping("/board/{boardId}")
-    protected List<KList> getListsByBoard(@PathVariable Long boardId) {
-        return listRepository.findByBoardId(boardId);
+
+    @GetMapping("/all/{boardId}")
+    protected List<KList> findAllListsByBoardId(@PathVariable Long boardId) {
+        return listRepository.findAllListsByBoardId(boardId);
+    }
+    @GetMapping("/{listId}")
+    protected KList findListById(@PathVariable Long listId) {
+        return listRepository.findListById(listId);
     }
 
     @PostMapping
     protected void createList(@RequestBody KList list) {
         listRepository.create(list);
+        System.out.println("SpringBoot: List created successfully.");
+    }
+
+    @PutMapping("/{listId}")
+    protected void updateList(@PathVariable Long listId, @RequestBody KList newListInfo){
+        listRepository.updateList(listId, newListInfo);
+        System.out.println("SpringBoot: List updated successfully.");
+    }
+
+    @PutMapping("/{listId}/modular")
+    protected void updateListSection(@PathVariable Long listId, @RequestParam KanbanController.Section section, KList newListInfo){
+        Object valueToUpdate = switch (section) {
+            case TITLE -> newListInfo.getTitle();
+            case POSITION -> newListInfo.getPosition();
+            case STATUS -> newListInfo.getStatus();
+            case COLOR -> newListInfo.getHexColor();
+            default -> null;
+        };
+        if (valueToUpdate == null){
+            System.out.println("SpringBoot: Null value detected, list couldn't be updated.");
+        } else {
+            listRepository.updateListSection(listId,valueToUpdate,section);
+            System.out.println("SpringBoot: List section sucessfully updated.");
+        }
+
     }
 }
 
 @Repository
 class KListRepository {
-
-
     @Autowired
     private JdbcTemplate jdbc;
-    protected List<KList> findByBoardId(Long boardId) {
-        return jdbc.query(
-                "SELECT * FROM lists WHERE board_id = ?",
-                new KListRowMapper(), boardId
-        );
+    private final KListRowMapper kListRowMapper = new KListRowMapper();
+
+
+    protected List<KList> findByStatus(Long userId, Long boardId, KList.ListStatus status){
+        return jdbc.query("SELECT * FROM lists WHERE user_id = ? AND board_id = ? AND status = ?",
+                kListRowMapper, userId, boardId, status);
     }
+
 
     protected void create(KList list) {
         jdbc.update(
-                "INSERT INTO lists (user_id, board_id, title, hex_color, status) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO lists (user_id, board_id, position, title, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
                 list.getUserId(),
                 list.getBoardId(),
+                list.getPosition(),
                 list.getTitle(),
                 list.getHexColor(),
                 list.getStatus().name()
         );
     }
-    //DELETE list
-    //Change STATUS to archive
-}
+    protected void updateList(Long ListId, KList newListInfo){
+        jdbc.update(
+                "UPDATE lists SET user_id = ?, board_id = ?, position = ?, title = ?, hex_color = ?, status = ?" +
+                        "WHERE list_id = ?",
+                newListInfo.getUserId(),
+                newListInfo.getBoardId(),
+                newListInfo.getPosition(),
+                newListInfo.getTitle(),
+                newListInfo.getHexColor(),
+                newListInfo.getStatus().name(),
+                ListId
+        );
+    }
+    protected void updateListSection(Long ListId, Object value, KanbanController.Section section){
+        String query;
+        switch (section){
+            case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
+                jdbc.update(query, value, ListId);
+                break;
+            case POSITION : query = "UPDATE lists SET position = ? WHERE list_id = ?";
+                jdbc.update(query, value, ListId);
+                break;
+            case STATUS: query = "UPDATE lists SET status = ? WHERE list_id = ?";
+                jdbc.update(query, value, ListId);
+                break;
+            case COLOR: query = "UPDATE lists SET color = ? WHERE list_id = ?";
+                jdbc.update(query, value, ListId);
+                break;
+        }
+    }
 
+    protected void deleteList(Long listId){
+        jdbc.update("DELETE FROM lists where list_id = ?", listId);
+    }
+
+    public List<KList> findAllListsByBoardId(Long boardId) {
+        return jdbc.query("SELECT * FROM lists where board_id = ?", kListRowMapper, boardId);
+    }
+
+    public KList findListById(Long listId) {
+        return jdbc.queryForObject("SELECT * FROM lists where list_id = ?", kListRowMapper, listId);
+
+    }
+}
 
 
 class KListRowMapper implements RowMapper<KList> {
@@ -144,6 +222,7 @@ class KListRowMapper implements RowMapper<KList> {
                 rs.getLong("list_id"),
                 rs.getLong("user_id"),
                 rs.getLong("board_id"),
+                rs.getLong("position"),
                 rs.getString("title"),
                 rs.getString("hex_color"),
                 KList.ListStatus.valueOf(rs.getString("status"))
@@ -154,49 +233,93 @@ class KListRowMapper implements RowMapper<KList> {
 @RestController
 @RequestMapping("/cards")
 @RequiredArgsConstructor
-public class CardController {
-
-
+class CardController {
     private final CardRepository cardRepository;
-    @GetMapping("/list/{listId}")
-    protected List<Card> getCardsByList(@PathVariable Long listId) {
-        return cardRepository.findByListId(listId);
-    }
 
     @PostMapping
     protected void createCard(@RequestBody Card card) {
-        cardRepository.create(card);
+        cardRepository.createCard(card);
+    }
+    @GetMapping("/parentList/{listId}")
+    protected List<Card> getCardsByList(@PathVariable Long listId) {
+        return cardRepository.findAllCardsByListId(listId);
     }
 
+    @GetMapping("/status")
+    protected List<Card> findByStatus(Long userId, Long boardId, @RequestParam Card.CardStatus cardStatus){
+        return cardRepository.findByStatus(userId, boardId, cardStatus);
+    }
+    @PutMapping("/{cardId}/modular")
+    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam KanbanController.Section section){
+        Object valueToUpdate = switch (section){
+            case ID -> newCardInfo.getListId();
+            case DESCRIPTION -> newCardInfo.getDescription();
+            case COLOR -> newCardInfo.getHexColor();
+            case POSITION -> newCardInfo.getPosition();
+            default -> null;
+        };
+        if (!(valueToUpdate == null)){
+            cardRepository.updateCardSection(cardId,valueToUpdate,section);
+        } else {
+            System.out.println("SpringBoot: Null value detected, card couldn't be updated.");
+        }
+    }
 }
 
 @Repository
 class CardRepository {
-
-
     @Autowired
     private JdbcTemplate jdbc;
-    protected List<Card> findByListId(Long listId) {
+    private final CardRowMapper cardRowMapper = new CardRowMapper();
+
+    protected List<Card> findAllCardsByListId(Long listId) {
         return jdbc.query(
                 "SELECT * FROM cards WHERE list_id = ?",
-                new CardRowMapper(), listId
+                cardRowMapper, listId
         );
     }
 
-    protected void create(Card card) {
+    protected List<Card> findByStatus(Long userId, Long boardId, Card.CardStatus status){
+        return jdbc.query("SELECT * FROM cards WHERE user_id = ? AND board_id = ? AND status = ?",
+                cardRowMapper, userId, boardId, status);
+    }
+    protected void createCard(Card card) {
         jdbc.update(
-                "INSERT INTO cards (user_id, list_id, board_id, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO cards (user_id, list_id, board_id, position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 card.getUserId(),
                 card.getListId(),
                 card.getBoardId(),
+                card.getPosition(),
                 card.getDescription(),
                 card.getHexColor(),
                 card.getStatus().name()
         );
     }
-    //DELETE card
-    //UPDATE card info
-    //Change STATUS to ARCHIVE or PARENT_ARCHIVE
+
+    protected void updateCardSection(Long cardId, Object value, KanbanController.Section section){
+        String query;
+        switch (section){
+            case ID : query = "UPDATE cards SET list_id = ? WHERE card_id = ?";
+                jdbc.update(query, value, cardId);
+                break;
+            case DESCRIPTION : query = "UPDATE cards SET description = ? WHERE card_id = ?";
+                jdbc.update(query, value, cardId);
+                break;
+            case POSITION : query = "UPDATE cards SET position = ? WHERE card_id = ?";
+                jdbc.update(query, value, cardId);
+                break;
+            case STATUS: query = "UPDATE cards SET status = ? WHERE card_id = ?";
+                jdbc.update(query, value, cardId);
+                break;
+            case COLOR: query = "UPDATE cards SET color = ? WHERE card_id = ?";
+                jdbc.update(query, value, cardId);
+                break;
+        }
+    }
+
+    protected void deleteCard(Long cardId){
+        jdbc.update("DELETE FROM cards WHERE card_id = ?", cardId);
+    }
 }
 
 class CardRowMapper implements RowMapper<Card> {
@@ -207,6 +330,7 @@ class CardRowMapper implements RowMapper<Card> {
                 rs.getLong("user_id"),
                 rs.getLong("list_id"),
                 rs.getLong("board_id"),
+                rs.getLong("position"),
                 rs.getString("description"),
                 rs.getString("hex_color"),
                 Card.CardStatus.valueOf(rs.getString("status"))
@@ -217,8 +341,7 @@ class CardRowMapper implements RowMapper<Card> {
 @RestController
 @RequestMapping("/reminders")
 @RequiredArgsConstructor
-public class ReminderController {
-
+class ReminderController {
 
     private final ReminderRepository reminderRepository;
     @GetMapping("/board/{boardId}")
@@ -234,14 +357,13 @@ public class ReminderController {
 
 @Repository
 class ReminderRepository {
-
-
     @Autowired
     private JdbcTemplate jdbc;
+    private final ReminderRowMapper reminderRowMapper = new ReminderRowMapper();
     protected List<Reminder> findByBoardId(Long boardId) {
         return jdbc.query(
                 "SELECT * FROM reminders WHERE board_id = ?",
-                new ReminderRowMapper(), boardId
+                reminderRowMapper, boardId
         );
     }
 
@@ -272,4 +394,4 @@ class ReminderRowMapper implements RowMapper<Reminder> {
         );
     }
 }
-}
+

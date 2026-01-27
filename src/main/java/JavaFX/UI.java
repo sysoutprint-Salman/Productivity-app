@@ -1,6 +1,6 @@
 package JavaFX;
 
-//import SpringBoot.*;
+import SpringBoot.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -25,32 +25,26 @@ import java.util.prefs.Preferences;
 //Putting SpringApp & Rest annotations here didn't work likely because of Application extension.
 @Slf4j
 public class UI extends Application {
-    //private final LogInFX logInFX = new LogInFX();
+    private final LogInFX logInFX = new LogInFX();
 
     public static void main(String[] args) {
-        /*CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
             Rest.context = SpringApplication.run(Rest.class, args);
             User.setUserId(UserPrefs.getSavedUserId());
 
-        }).thenRun(() -> launch(args));*/
-        launch(args);
+        }).thenRun(() -> launch(args));
     }
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            //logInFX.autoLogIn(primaryStage);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/kanbanBoard.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
+            logInFX.autoLogIn(primaryStage);
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();
             primaryStage.setAlwaysOnTop(false);
-            primaryStage.setScene(scene);
             primaryStage.getIcons().add(new Image("/Images/App Icon.png"));
             // Shutdown on window close
             primaryStage.setOnCloseRequest(event -> shutdown());
-            primaryStage.show();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,10 +53,10 @@ public class UI extends Application {
 
 
     private void shutdown() {
- /*       ConfigurableApplicationContext ctx = Rest.getApplicationContext();
+        ConfigurableApplicationContext ctx = Rest.getApplicationContext();
         if (ctx != null) {
             ctx.close();
-        }*/
+        }
         Platform.exit(); //exits out of both javafx window & springboot
         System.exit(0);
     }

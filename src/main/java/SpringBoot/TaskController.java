@@ -59,10 +59,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/modular")
-    protected ResponseEntity<?> updateSection(@PathVariable Long id,
-                                           @RequestParam String section,
-                                           @RequestBody Task receivedInfo) {
-
+    protected ResponseEntity<?> updateSection(@PathVariable Long id, @RequestParam String section, @RequestBody Task receivedInfo) {
         Object value;
 
         switch (section) {

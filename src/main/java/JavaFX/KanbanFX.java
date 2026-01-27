@@ -612,21 +612,6 @@ public class KanbanFX {
 
             case ARCHIVE:
                 title.setText("Archive");
-                KList exampleList1 = new KList(1L, 1L, 1L, "Todo", "", KList.ListStatus.ARCHIVED);
-                KList exampleList2 = new KList(2L, 1L, 1L, "Todo2", "", KList.ListStatus.ARCHIVED);
-
-                ArrayList<Card> exampleCardsList = new ArrayList<>();
-                ArrayList<KList> exampleListsList = new ArrayList<>();
-
-                Card card1 = new Card(1L,1L,1L,1L, "Example...", "", Card.CardStatus.PARENT_ARCHIVED);
-                Card card2 = new Card(2L,1L,2L,1L, "Example...", "", Card.CardStatus.PARENT_ARCHIVED);
-                Card card3 = new Card(3L,1L,2L,1L, "Example...", "", Card.CardStatus.ARCHIVED);
-                exampleCardsList.add(card1);
-                exampleCardsList.add(card2);
-                exampleCardsList.add(card3);
-                exampleListsList.add(exampleList1);
-                exampleListsList.add(exampleList2);
-                addOrLoadArchiveContent(exampleListsList, exampleCardsList, Mode.LOAD);
                 break;
 
             case BOARDS:
