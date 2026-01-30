@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Card {
     private Long cardId;
-    private Long userId;
     private Long listId;
     private Long boardId;
     private Long cardPosition;

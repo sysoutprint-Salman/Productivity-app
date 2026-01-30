@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KList {
     private Long listId;
-    private Long userId;
     private Long boardId;
     private Long listPosition;
     private String title;

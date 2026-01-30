@@ -18,8 +18,11 @@ import java.util.List;
 import static SpringBoot.KanbanController.Section.*;
 
 public class KanbanController {
-    protected enum Section {ID, TITLE, DESCRIPTION, COLOR, STATUS, POSITION}
+    protected enum Section {ID, TITLE, DESCRIPTION, COLOR, STATUS, POSITION, PRIORITY, DUE_DATE}
 }
+
+
+
 @RestController
 @RequestMapping("/boards")
 @RequiredArgsConstructor
@@ -41,7 +44,7 @@ class BoardController {
         return boardRepository.getBoardById(boardId);
     }
 
-    @PutMapping("/{boardId}")
+    @PatchMapping("/{boardId}")
     protected void updateBoardTitle(@PathVariable Long boardId, @RequestBody String newTitle){
         boardRepository.updateBoardTitle(boardId, newTitle);
     }
@@ -51,7 +54,6 @@ class BoardController {
         boardRepository.deleteBoard(boardId);
     }
 }
-
 @Repository
 class BoardRepository {
     @Autowired
@@ -86,7 +88,6 @@ class BoardRepository {
         jdbc.update("UPDATE boards SET board_title = ? WHERE board_id = ?", newTitle, boardId);
     }
 }
-
 class BoardRowMapper implements RowMapper<Board> {
     @Override
     public Board mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -98,6 +99,8 @@ class BoardRowMapper implements RowMapper<Board> {
         );
     }
 }
+
+
 
 @RestController
 @RequestMapping("/lists")
@@ -126,7 +129,7 @@ class KListController {
         System.out.println("SpringBoot: List updated successfully.");
     }
 
-    @PutMapping("/{listId}/modular")
+    @PatchMapping("/{listId}/modular")
     protected void updateListSection(@PathVariable Long listId, @RequestParam KanbanController.Section section, @RequestBody KList newListInfo){
         Object valueToUpdate = switch (section) {
             case TITLE -> newListInfo.getTitle();
@@ -141,10 +144,12 @@ class KListController {
             listRepository.updateListSection(listId,valueToUpdate,section);
             System.out.println("SpringBoot: List section sucessfully updated.");
         }
-
+    }
+    @DeleteMapping("/{listId}")
+    protected void deleteList(@PathVariable Long listId){
+        listRepository.deleteList(listId);
     }
 }
-
 @Repository
 class KListRepository {
     @Autowired
@@ -152,16 +157,15 @@ class KListRepository {
     private final KListRowMapper kListRowMapper = new KListRowMapper();
 
 
-    protected List<KList> findByStatus(Long userId, Long boardId, KList.ListStatus status){
-        return jdbc.query("SELECT * FROM lists WHERE user_id = ? AND board_id = ? AND status = ?",
-                kListRowMapper, userId, boardId, status);
+    protected List<KList> findByStatus(Long boardId, KList.ListStatus status){
+        return jdbc.query("SELECT * FROM lists WHERE board_id = ? AND status = ?",
+                kListRowMapper, boardId, status);
     }
 
 
     protected void create(KList list) {
         jdbc.update(
-                "INSERT INTO lists (user_id, board_id, list_position, title, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
-                list.getUserId(),
+                "INSERT INTO lists (board_id, list_position, title, hex_color, status) VALUES (?, ?, ?, ?, ?)",
                 list.getBoardId(),
                 list.getListPosition(),
                 list.getTitle(),
@@ -171,9 +175,8 @@ class KListRepository {
     }
     protected void updateList(Long ListId, KList newListInfo){
         jdbc.update(
-                "UPDATE lists SET user_id = ?, board_id = ?, list_position = ?, title = ?, hex_color = ?, status = ? " +
+                "UPDATE lists SET board_id = ?, list_position = ?, title = ?, hex_color = ?, status = ? " +
                         "WHERE list_id = ?",
-                newListInfo.getUserId(),
                 newListInfo.getBoardId(),
                 newListInfo.getListPosition(),
                 newListInfo.getTitle(),
@@ -213,14 +216,11 @@ class KListRepository {
 
     }
 }
-
-
 class KListRowMapper implements RowMapper<KList> {
     @Override
     public KList mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new KList(
                 rs.getLong("list_id"),
-                rs.getLong("user_id"),
                 rs.getLong("board_id"),
                 rs.getLong("list_position"),
                 rs.getString("title"),
@@ -229,6 +229,8 @@ class KListRowMapper implements RowMapper<KList> {
         );
     }
 }
+
+
 
 @RestController
 @RequestMapping("/cards")
@@ -249,13 +251,14 @@ class CardController {
     protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Card.CardStatus cardStatus){
         return cardRepository.findByStatus(boardId, cardStatus);
     }
-    @PutMapping("/{cardId}/modular")
+    @PatchMapping("/{cardId}/modular")
     protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam KanbanController.Section section){
         Object valueToUpdate = switch (section){
             case ID -> newCardInfo.getListId();
             case DESCRIPTION -> newCardInfo.getDescription();
             case COLOR -> newCardInfo.getHexColor();
             case POSITION -> newCardInfo.getCardPosition();
+            case STATUS -> newCardInfo.getStatus();
             default -> null;
         };
         if (!(valueToUpdate == null)){
@@ -264,8 +267,11 @@ class CardController {
             System.out.println("SpringBoot: Null value detected, card couldn't be updated.");
         }
     }
+    @DeleteMapping("/{cardId}")
+    protected void deleteCard(@PathVariable Long cardId){
+        cardRepository.deleteCard(cardId);
+    }
 }
-
 @Repository
 class CardRepository {
     @Autowired
@@ -285,8 +291,7 @@ class CardRepository {
     }
     protected void createCard(Card card) {
         jdbc.update(
-                "INSERT INTO cards (user_id, list_id, board_id, card_position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                card.getUserId(),
+                "INSERT INTO cards (list_id, board_id, card_position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
                 card.getListId(),
                 card.getBoardId(),
                 card.getCardPosition(),
@@ -321,13 +326,11 @@ class CardRepository {
         jdbc.update("DELETE FROM cards WHERE card_id = ?", cardId);
     }
 }
-
 class CardRowMapper implements RowMapper<Card> {
     @Override
     public Card mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Card(
                 rs.getLong("card_id"),
-                rs.getLong("user_id"),
                 rs.getLong("list_id"),
                 rs.getLong("board_id"),
                 rs.getLong("card_position"),
@@ -337,6 +340,8 @@ class CardRowMapper implements RowMapper<Card> {
         );
     }
 }
+
+
 
 @RestController
 @RequestMapping("/reminders")
@@ -353,8 +358,22 @@ class ReminderController {
     protected void createReminder(@RequestBody Reminder reminder) {
         reminderRepository.create(reminder);
     }
-}
 
+    @DeleteMapping("/{reminderId}")
+    protected void deleteReminder(@PathVariable Long reminderId) {
+        reminderRepository.delete(reminderId);
+    }
+
+    @PatchMapping("/{reminderId}")
+    protected void updateReminderSection(
+            @PathVariable Long reminderId,
+            @RequestParam KanbanController.Section section,
+            @RequestBody Reminder reminder
+    ) {
+        reminderRepository.update(reminderId, section, reminder);
+
+    }
+}
 @Repository
 class ReminderRepository {
     @Autowired
@@ -363,24 +382,74 @@ class ReminderRepository {
     protected List<Reminder> findByBoardId(Long boardId) {
         return jdbc.query(
                 "SELECT * FROM reminders WHERE board_id = ?",
-                reminderRowMapper, boardId
+                reminderRowMapper,
+                boardId
         );
     }
 
     protected void create(Reminder reminder) {
         jdbc.update(
-                "INSERT INTO reminders (board_id, reminder_title, description, priority, date_time) VALUES (?, ?, ?, ?, ?)",
+                """
+                INSERT INTO reminders (board_id, reminder_title, description, priority, due_date)
+                VALUES (?, ?, ?, ?, ?)
+                """,
                 reminder.getBoardId(),
                 reminder.getReminderTitle(),
                 reminder.getDescription(),
                 reminder.getPriority().name(),
-                reminder.getDateTime()
+                reminder.getDueDate()
         );
+    }
+
+    protected void delete(Long reminderId) {
+        jdbc.update(
+                "DELETE FROM reminders WHERE reminder_id = ?",
+                reminderId
+        );
+    }
+
+    protected void update(Long reminderId, KanbanController.Section section, Reminder reminder) {
+        switch (section) {
+            case TITLE -> {
+                if (reminder.getReminderTitle() == null) return;
+                jdbc.update(
+                        "UPDATE reminders SET reminder_title = ? WHERE reminder_id = ?",
+                        reminder.getReminderTitle(),
+                        reminderId
+                );
+            }
+
+            case DESCRIPTION -> {
+                if (reminder.getDescription() == null) return;
+                jdbc.update(
+                        "UPDATE reminders SET description = ? WHERE reminder_id = ?",
+                        reminder.getDescription(),
+                        reminderId
+                );
+            }
+
+            case PRIORITY -> {
+                if (reminder.getPriority() == null) return;
+                jdbc.update(
+                        "UPDATE reminders SET priority = ? WHERE reminder_id = ?",
+                        reminder.getPriority().name(),
+                        reminderId
+                );
+            }
+
+            case DUE_DATE -> {
+                if (reminder.getDueDate() == null) return;
+                jdbc.update(
+                        "UPDATE reminders SET due_date = ? WHERE reminder_id = ?",
+                        reminder.getDueDate(),
+                        reminderId
+                );
+            }
+        }
     }
     //DELETE reminder
     //UPDATE
 }
-
 class ReminderRowMapper implements RowMapper<Reminder> {
     @Override
     public Reminder mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -390,7 +459,7 @@ class ReminderRowMapper implements RowMapper<Reminder> {
                 rs.getString("reminder_title"),
                 rs.getString("description"),
                 Reminder.Priority.valueOf(rs.getString("priority")),
-                rs.getObject("date_time", LocalDateTime.class)
+                rs.getObject("due_date", LocalDateTime.class)
         );
     }
 }

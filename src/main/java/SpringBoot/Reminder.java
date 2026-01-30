@@ -18,6 +18,6 @@ public class Reminder {
     private String reminderTitle;
     private String description;
     private Priority priority;
-    private LocalDateTime dateTime;
+    private LocalDateTime dueDate;
     public enum Priority {NONE, LOW, MEDIUM, HIGH}
 }
