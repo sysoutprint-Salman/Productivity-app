@@ -74,8 +74,8 @@ class BoardRepository {
         jdbc.update(
                 "INSERT INTO boards (board_title, user_id, creation_date) VALUES (?, ?, ?)",
                 board.getBoardTitle(),
-                board.getCreationDate(),
-                board.getUserId()
+                board.getUserId(),
+                board.getCreationDate()
         );
     }
     protected void deleteBoard(Long boardId){
@@ -127,10 +127,10 @@ class KListController {
     }
 
     @PutMapping("/{listId}/modular")
-    protected void updateListSection(@PathVariable Long listId, @RequestParam KanbanController.Section section, KList newListInfo){
+    protected void updateListSection(@PathVariable Long listId, @RequestParam KanbanController.Section section, @RequestBody KList newListInfo){
         Object valueToUpdate = switch (section) {
             case TITLE -> newListInfo.getTitle();
-            case POSITION -> newListInfo.getPosition();
+            case POSITION -> newListInfo.getListPosition();
             case STATUS -> newListInfo.getStatus();
             case COLOR -> newListInfo.getHexColor();
             default -> null;
@@ -160,10 +160,10 @@ class KListRepository {
 
     protected void create(KList list) {
         jdbc.update(
-                "INSERT INTO lists (user_id, board_id, position, title, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO lists (user_id, board_id, list_position, title, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
                 list.getUserId(),
                 list.getBoardId(),
-                list.getPosition(),
+                list.getListPosition(),
                 list.getTitle(),
                 list.getHexColor(),
                 list.getStatus().name()
@@ -171,11 +171,11 @@ class KListRepository {
     }
     protected void updateList(Long ListId, KList newListInfo){
         jdbc.update(
-                "UPDATE lists SET user_id = ?, board_id = ?, position = ?, title = ?, hex_color = ?, status = ?" +
+                "UPDATE lists SET user_id = ?, board_id = ?, list_position = ?, title = ?, hex_color = ?, status = ? " +
                         "WHERE list_id = ?",
                 newListInfo.getUserId(),
                 newListInfo.getBoardId(),
-                newListInfo.getPosition(),
+                newListInfo.getListPosition(),
                 newListInfo.getTitle(),
                 newListInfo.getHexColor(),
                 newListInfo.getStatus().name(),
@@ -188,13 +188,13 @@ class KListRepository {
             case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
                 jdbc.update(query, value, ListId);
                 break;
-            case POSITION : query = "UPDATE lists SET position = ? WHERE list_id = ?";
+            case POSITION : query = "UPDATE lists SET list_position = ? WHERE list_id = ?";
                 jdbc.update(query, value, ListId);
                 break;
             case STATUS: query = "UPDATE lists SET status = ? WHERE list_id = ?";
                 jdbc.update(query, value, ListId);
                 break;
-            case COLOR: query = "UPDATE lists SET color = ? WHERE list_id = ?";
+            case COLOR: query = "UPDATE lists SET hex_color = ? WHERE list_id = ?";
                 jdbc.update(query, value, ListId);
                 break;
         }
@@ -222,7 +222,7 @@ class KListRowMapper implements RowMapper<KList> {
                 rs.getLong("list_id"),
                 rs.getLong("user_id"),
                 rs.getLong("board_id"),
-                rs.getLong("position"),
+                rs.getLong("list_position"),
                 rs.getString("title"),
                 rs.getString("hex_color"),
                 KList.ListStatus.valueOf(rs.getString("status"))
@@ -240,14 +240,14 @@ class CardController {
     protected void createCard(@RequestBody Card card) {
         cardRepository.createCard(card);
     }
-    @GetMapping("/parentList/{listId}")
-    protected List<Card> getCardsByList(@PathVariable Long listId) {
+    @GetMapping("/lists/{listId}/cards")
+    protected List<Card> findAllCardsByListId(@PathVariable Long listId) {
         return cardRepository.findAllCardsByListId(listId);
     }
 
-    @GetMapping("/status")
-    protected List<Card> findByStatus(Long userId, Long boardId, @RequestParam Card.CardStatus cardStatus){
-        return cardRepository.findByStatus(userId, boardId, cardStatus);
+    @GetMapping("/{boardId}/status")
+    protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Card.CardStatus cardStatus){
+        return cardRepository.findByStatus(boardId, cardStatus);
     }
     @PutMapping("/{cardId}/modular")
     protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam KanbanController.Section section){
@@ -255,7 +255,7 @@ class CardController {
             case ID -> newCardInfo.getListId();
             case DESCRIPTION -> newCardInfo.getDescription();
             case COLOR -> newCardInfo.getHexColor();
-            case POSITION -> newCardInfo.getPosition();
+            case POSITION -> newCardInfo.getCardPosition();
             default -> null;
         };
         if (!(valueToUpdate == null)){
@@ -279,17 +279,17 @@ class CardRepository {
         );
     }
 
-    protected List<Card> findByStatus(Long userId, Long boardId, Card.CardStatus status){
-        return jdbc.query("SELECT * FROM cards WHERE user_id = ? AND board_id = ? AND status = ?",
-                cardRowMapper, userId, boardId, status);
+    protected List<Card> findByStatus(Long boardId, Card.CardStatus status){
+        return jdbc.query("SELECT * FROM cards WHERE board_id = ? AND status = ?",
+                cardRowMapper, boardId, status.name());
     }
     protected void createCard(Card card) {
         jdbc.update(
-                "INSERT INTO cards (user_id, list_id, board_id, position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO cards (user_id, list_id, board_id, card_position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 card.getUserId(),
                 card.getListId(),
                 card.getBoardId(),
-                card.getPosition(),
+                card.getCardPosition(),
                 card.getDescription(),
                 card.getHexColor(),
                 card.getStatus().name()
@@ -305,13 +305,13 @@ class CardRepository {
             case DESCRIPTION : query = "UPDATE cards SET description = ? WHERE card_id = ?";
                 jdbc.update(query, value, cardId);
                 break;
-            case POSITION : query = "UPDATE cards SET position = ? WHERE card_id = ?";
+            case POSITION : query = "UPDATE cards SET card_position = ? WHERE card_id = ?";
                 jdbc.update(query, value, cardId);
                 break;
             case STATUS: query = "UPDATE cards SET status = ? WHERE card_id = ?";
                 jdbc.update(query, value, cardId);
                 break;
-            case COLOR: query = "UPDATE cards SET color = ? WHERE card_id = ?";
+            case COLOR: query = "UPDATE cards SET hex_color = ? WHERE card_id = ?";
                 jdbc.update(query, value, cardId);
                 break;
         }
@@ -330,7 +330,7 @@ class CardRowMapper implements RowMapper<Card> {
                 rs.getLong("user_id"),
                 rs.getLong("list_id"),
                 rs.getLong("board_id"),
-                rs.getLong("position"),
+                rs.getLong("card_position"),
                 rs.getString("description"),
                 rs.getString("hex_color"),
                 Card.CardStatus.valueOf(rs.getString("status"))

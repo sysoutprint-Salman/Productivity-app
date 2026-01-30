@@ -14,7 +14,7 @@ public class Card {
     private Long userId;
     private Long listId;
     private Long boardId;
-    private Long position;
+    private Long cardPosition;
     private String description;
     private String hexColor;
     private CardStatus status;

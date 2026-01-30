@@ -13,7 +13,7 @@ public class KList {
     private Long listId;
     private Long userId;
     private Long boardId;
-    private Long position;
+    private Long listPosition;
     private String title;
     private String hexColor;
     private ListStatus status;
