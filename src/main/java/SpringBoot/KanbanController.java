@@ -15,10 +15,9 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static SpringBoot.KanbanController.Section.*;
+import static SpringBoot.Types.Section.*;
 
 public class KanbanController {
-    protected enum Section {ID, TITLE, DESCRIPTION, COLOR, STATUS, POSITION, PRIORITY, DUE_DATE}
 }
 
 
@@ -130,11 +129,11 @@ class KListController {
     }
 
     @PatchMapping("/{listId}/modular")
-    protected void updateListSection(@PathVariable Long listId, @RequestParam KanbanController.Section section, @RequestBody KList newListInfo){
+    protected void updateListSection(@PathVariable Long listId, @RequestParam Types.Section section, @RequestBody KList newListInfo){
         Object valueToUpdate = switch (section) {
             case TITLE -> newListInfo.getTitle();
             case POSITION -> newListInfo.getListPosition();
-            case STATUS -> newListInfo.getStatus();
+            case STATUS -> newListInfo.getStatus().name();
             case COLOR -> newListInfo.getHexColor();
             default -> null;
         };
@@ -142,7 +141,7 @@ class KListController {
             System.out.println("SpringBoot: Null value detected, list couldn't be updated.");
         } else {
             listRepository.updateListSection(listId,valueToUpdate,section);
-            System.out.println("SpringBoot: List section sucessfully updated.");
+            System.out.println("SpringBoot: List section successfully updated.");
         }
     }
     @DeleteMapping("/{listId}")
@@ -157,7 +156,7 @@ class KListRepository {
     private final KListRowMapper kListRowMapper = new KListRowMapper();
 
 
-    protected List<KList> findByStatus(Long boardId, KList.ListStatus status){
+    protected List<KList> findByStatus(Long boardId, Types.ListStatus status){
         return jdbc.query("SELECT * FROM lists WHERE board_id = ? AND status = ?",
                 kListRowMapper, boardId, status);
     }
@@ -185,7 +184,7 @@ class KListRepository {
                 ListId
         );
     }
-    protected void updateListSection(Long ListId, Object value, KanbanController.Section section){
+    protected void updateListSection(Long ListId, Object value, Types.Section section){
         String query;
         switch (section){
             case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
@@ -225,7 +224,7 @@ class KListRowMapper implements RowMapper<KList> {
                 rs.getLong("list_position"),
                 rs.getString("title"),
                 rs.getString("hex_color"),
-                KList.ListStatus.valueOf(rs.getString("status"))
+                Types.ListStatus.valueOf(rs.getString("status"))
         );
     }
 }
@@ -248,17 +247,17 @@ class CardController {
     }
 
     @GetMapping("/{boardId}/status")
-    protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Card.CardStatus cardStatus){
+    protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Types.CardStatus cardStatus){
         return cardRepository.findByStatus(boardId, cardStatus);
     }
     @PatchMapping("/{cardId}/modular")
-    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam KanbanController.Section section){
+    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Types.Section section){
         Object valueToUpdate = switch (section){
             case ID -> newCardInfo.getListId();
             case DESCRIPTION -> newCardInfo.getDescription();
             case COLOR -> newCardInfo.getHexColor();
             case POSITION -> newCardInfo.getCardPosition();
-            case STATUS -> newCardInfo.getStatus();
+            case STATUS -> newCardInfo.getStatus().name();
             default -> null;
         };
         if (!(valueToUpdate == null)){
@@ -285,7 +284,7 @@ class CardRepository {
         );
     }
 
-    protected List<Card> findByStatus(Long boardId, Card.CardStatus status){
+    protected List<Card> findByStatus(Long boardId, Types.CardStatus status){
         return jdbc.query("SELECT * FROM cards WHERE board_id = ? AND status = ?",
                 cardRowMapper, boardId, status.name());
     }
@@ -301,7 +300,7 @@ class CardRepository {
         );
     }
 
-    protected void updateCardSection(Long cardId, Object value, KanbanController.Section section){
+    protected void updateCardSection(Long cardId, Object value, Types.Section section){
         String query;
         switch (section){
             case ID : query = "UPDATE cards SET list_id = ? WHERE card_id = ?";
@@ -336,7 +335,7 @@ class CardRowMapper implements RowMapper<Card> {
                 rs.getLong("card_position"),
                 rs.getString("description"),
                 rs.getString("hex_color"),
-                Card.CardStatus.valueOf(rs.getString("status"))
+                Types.CardStatus.valueOf(rs.getString("status"))
         );
     }
 }
@@ -367,7 +366,7 @@ class ReminderController {
     @PatchMapping("/{reminderId}")
     protected void updateReminderSection(
             @PathVariable Long reminderId,
-            @RequestParam KanbanController.Section section,
+            @RequestParam Types.Section section,
             @RequestBody Reminder reminder
     ) {
         reminderRepository.update(reminderId, section, reminder);
@@ -408,7 +407,7 @@ class ReminderRepository {
         );
     }
 
-    protected void update(Long reminderId, KanbanController.Section section, Reminder reminder) {
+    protected void update(Long reminderId, Types.Section section, Reminder reminder) {
         switch (section) {
             case TITLE -> {
                 if (reminder.getReminderTitle() == null) return;
@@ -448,7 +447,7 @@ class ReminderRepository {
         }
     }
     //DELETE reminder
-    //UPDATE
+    //PUT
 }
 class ReminderRowMapper implements RowMapper<Reminder> {
     @Override

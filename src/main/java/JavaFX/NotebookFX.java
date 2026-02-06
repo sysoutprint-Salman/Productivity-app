@@ -6,20 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.util.*;
@@ -145,7 +141,7 @@ public class NotebookFX{
                     objectNode.put("tabTitle", title);
                     objectNode.put("hexColor", hexColor);
                     String notebookJson = mapper.writeValueAsString(objectNode);
-                    HTTPHandler.UPDATE(notebookJson, "notebooks/" + id + "/tab");
+                    HTTPHandler.PUT(notebookJson, "notebooks/" + id + "/tab");
                     notebook.setTabTitle(title);
                     notebook.setHexColor(hexColor);
                     String cssStyle = hexColor != null ? hexColor + ";" : "transparent;";
@@ -227,7 +223,7 @@ public class NotebookFX{
                             Map<String, String> updateMap = new HashMap<>();
                             updateMap.put("notebookText", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
-                            HTTPHandler.UPDATE(updatedJson, "notebooks/" + notebookId + "/text");
+                            HTTPHandler.PUT(updatedJson, "notebooks/" + notebookId + "/text");
                             //notepadArea.setVisible(true);
                             notebook.setNotebookText(updatedText);
 

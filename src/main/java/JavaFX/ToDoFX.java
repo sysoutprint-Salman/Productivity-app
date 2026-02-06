@@ -153,7 +153,7 @@ public class ToDoFX {
                     jsonBlock.put("date", date.toString());
                     jsonBlock.put("description",description);
                     String json = mapper.writeValueAsString(jsonBlock);
-                    HTTPHandler.UPDATE(json, "tasks/"+taskId);
+                    HTTPHandler.PUT(json, "tasks/"+taskId);
                 } else {
 
                     return;
@@ -186,7 +186,7 @@ public class ToDoFX {
             String updatedJson = String.format(
                     "{\"date\":\"%s\"}", selectedEditDate != null ? selectedEditDate.toString() : "");
             if (selectedEditDate != null) {
-                HTTPHandler.UPDATE(updatedJson,"tasks/" + id + "/modular?section=date");
+                HTTPHandler.PUT(updatedJson,"tasks/" + id + "/modular?section=date");
                 container.setText("Due: " + selectedEditDate.format(dateFormatter));
             }
             else return;
@@ -208,7 +208,7 @@ public class ToDoFX {
                             Map<String, String> updateMap = new HashMap<>();
                             updateMap.put("description", updatedText);
                             String updatedJson = mapper.writeValueAsString(updateMap);
-                            HTTPHandler.UPDATE(updatedJson,"tasks/" + taskId + "/modular?section=description");
+                            HTTPHandler.PUT(updatedJson,"tasks/" + taskId + "/modular?section=description");
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -379,7 +379,7 @@ public class ToDoFX {
                     radio.setOnAction(f -> {
                         if (radio.isSelected()){
                             String json = String.format("{\"status\":\"%s\"}", Task.Status.COMPLETED);
-                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.PUT(json,"tasks/" + task.getId() + "/modular?section=status");
                             mainTaskVbox.getChildren().remove(taskCard);
                         }
                     });
@@ -393,7 +393,7 @@ public class ToDoFX {
                         completeItem.setOnAction(f -> {
                             Task.Status saveStatus = Task.Status.COMPLETED;
                             String json = String.format("{\"status\":\"%s\"}", saveStatus);
-                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.PUT(json,"tasks/" + task.getId() + "/modular?section=status");
                             this.completedTaskTime = LocalDateTime.now();
                             mainTaskVbox.getChildren().remove(taskCard);
                         });
@@ -403,7 +403,7 @@ public class ToDoFX {
                         deleteItem.setOnAction(f -> {
                             Task.Status saveStatus = Task.Status.DELETED;
                             String json = String.format("{\"status\":\"%s\"}", saveStatus);
-                            HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                            HTTPHandler.PUT(json,"tasks/" + task.getId() + "/modular?section=status");
                             mainTaskVbox.getChildren().remove(taskCard);
                         });
                     });
@@ -426,7 +426,7 @@ public class ToDoFX {
                         Task.Status saveStatus = Task.Status.POSTED;
                         String json = String.format("{\"status\":\"%s\"}", saveStatus);
                         recoverItem.setDisable(true);
-                        HTTPHandler.UPDATE(json,"tasks/" + task.getId() + "/modular?section=status");
+                        HTTPHandler.PUT(json,"tasks/" + task.getId() + "/modular?section=status");
                         mainTaskVbox.getChildren().remove(taskCard);
                     });
                     taskCard.setContextMenu(rightClickMenu);

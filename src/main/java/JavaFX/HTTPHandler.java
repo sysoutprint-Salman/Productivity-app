@@ -4,6 +4,7 @@ import SpringBoot.PortHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.aot.hint.TypeReference;
 
 import java.io.IOException;
 import java.net.URI;
@@ -54,13 +55,11 @@ public class HTTPHandler {
                     .uri(URI.create(url)).GET().build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             String json = response.body();
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            JsonNode rootNode = mapper.readTree(json);
+            JsonNode rootNode = Json.MAPPER.readTree(json);
             if (rootNode.isArray()) {
-                return mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(List.class, objectType));
+                return Json.MAPPER.readValue(json, Json.MAPPER.getTypeFactory().constructCollectionType(List.class, objectType));
             } else if (rootNode.isObject()) {
-                T singleObject = mapper.treeToValue(rootNode, objectType);
+                T singleObject = Json.MAPPER.treeToValue(rootNode, objectType);
                 return List.of(singleObject);
             }
         }catch(IOException | InterruptedException e){
@@ -84,7 +83,7 @@ public class HTTPHandler {
         }
         return false;
     }
-    public static void UPDATE(String JSON, String path) {
+    public static void PUT(String JSON, String path) {
         try {
             String url = "http://localhost:" + port + "/" + path;
             HttpRequest request = HttpRequest.newBuilder() //Building the HTTP request
@@ -93,7 +92,27 @@ public class HTTPHandler {
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
+            System.out.println("HTTP: PUT failed.");
             e.printStackTrace();
         }
     }
+    public static void PATCH(String JSON, String path) {
+        try {
+            String url = "http://localhost:" + port + "/" + path;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(JSON))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response =
+                    client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException | IOException e) {
+            System.out.println("HTTP: PATCH failed");
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -16,6 +16,5 @@ public class Card {
     private Long cardPosition;
     private String description;
     private String hexColor;
-    private CardStatus status;
-    public enum CardStatus {ACTIVE, ARCHIVED, PARENT_ARCHIVED, DELETED}
+    private Types.CardStatus status;
 }

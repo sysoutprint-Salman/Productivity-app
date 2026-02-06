@@ -1,13 +1,14 @@
 package JavaFX;
 
-import SpringBoot.Card;
-import SpringBoot.KList;
-import SpringBoot.Reminder;
+import SpringBoot.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.JavaFXBuilderFactory;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -33,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import JavaFX.Json.*;
 
 public class KanbanFX {
     @FXML
@@ -71,8 +73,9 @@ public class KanbanFX {
     private final Label headerTitle = new Label();
     private final ScrollPane sidebarScrollPane = new ScrollPane();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
-    private List<String> listData;
+    private List<KList> listData;
     private List<String> cardData;
+    private Long boardID = 1l;
 
     private Label label;
     private double dragOffsetX;
@@ -85,6 +88,8 @@ public class KanbanFX {
     private double dragOffsetY;
     private SwitchScenes handler = new SwitchScenes();
     private static final double DRAG_VISUAL_OFFSET = 5;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private ObjectNode jsonBlock = mapper.createObjectNode();
 
     public KanbanFX(){}
 
@@ -116,6 +121,7 @@ public class KanbanFX {
         boardHBox.setFocusTraversable(true);
         boardScrollPane.setFocusTraversable(false);
         boardScrollPane.getStyleClass().add("board_scrollpane");
+        boardScrollPane.setHvalue(0);
 
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
@@ -669,14 +675,17 @@ public class KanbanFX {
     }
 
     private void addOrLoadLists(Mode mode) {
-        boolean isSet = mode == Mode.LOAD;
-        if (isSet) {
-            listData = List.of("Start");
+        boolean isLoad = mode == Mode.LOAD;
+        if (isLoad) {
+            listData = HTTPHandler.GET("lists/all/" + boardID, KList.class);
+            listData.sort(Comparator.comparing(KList::getListPosition));
+
         } else {
-            listData = List.of("Untitled List");
+           listData = List.of(new KList());
         }
 
-        listData.forEach(title -> {
+
+        listData.forEach(list -> {
             VBox listContainer = new VBox();
             listContainer.getStyleClass().add("list_column");
             listContainer.setAlignment(Pos.TOP_CENTER);
@@ -688,10 +697,10 @@ public class KanbanFX {
             HBox headerSection = new HBox();
             headerSection.getStyleClass().add("header_section");
 
-            TextField headerTitle = new TextField(title);
+            TextField headerTitle = new TextField(list.getTitle());
             headerTitle.getStyleClass().add("header_TF");
             HBox.setHgrow(headerTitle,Priority.ALWAYS);
-            if (isSet) {
+            if (isLoad) {
                 headerTitle.setDisable(true);
                 headerTitle.setEditable(false);
                 headerTitle.deselect();
@@ -735,13 +744,20 @@ public class KanbanFX {
             });
             color.setOnAction(e->{});
             archive.setOnAction(e-> boardHBox.getChildren().remove(listContainer));
-            delete.setOnAction(e -> boardHBox.getChildren().remove(listContainer));
+            delete.setOnAction(e -> {
+                boardHBox.getChildren().remove(listContainer);
+                String json = Json.JsonBuilder(new String[]{"status"}, new Object[]{Types.ListStatus.DELETED});
+                System.out.println(json + "\n" + list.getListId() + "/modular?section=" + Types.Section.STATUS.name());
+                HTTPHandler.PATCH(
+                        json, "lists/" + list.getListId() + "/modular?section=" + Types.Section.STATUS.name()
+                );
+            });
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
             VBox visibleList = new VBox();
             visibleList.getStyleClass().add("visible_list");
 
-            if (isSet) {
+            if (isLoad) {
                 //cardDate will be assigned in card method and used from there
                 cardData = List.of("Example Card 1", "Example Card 2");
                 cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));
@@ -801,6 +817,7 @@ public class KanbanFX {
 
             boardHBox.getChildren().add(addListButton);
         }
+
     }
 
     private void addOrLoadCards(VBox visibleList, Mode addOrLoad) {
@@ -1034,12 +1051,12 @@ public class KanbanFX {
 
         for (Card card : archivedCards) {
 
-            if (card.getStatus() == Card.CardStatus.PARENT_ARCHIVED) {
+            if (card.getStatus() == Types.CardStatus.PARENT_ARCHIVED) {
                 cardsByListId
                         .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
                         .add(card);
             }
-            else if (card.getStatus() == Card.CardStatus.ARCHIVED) {
+            else if (card.getStatus() == Types.CardStatus.ARCHIVED) {
                 standaloneArchivedCards.add(card);
             }
         }
