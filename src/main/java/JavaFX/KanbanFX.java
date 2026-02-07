@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.*;
+import SpringBoot.Enum;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
@@ -8,7 +9,6 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -34,7 +34,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import JavaFX.Json.*;
 
 public class KanbanFX {
     @FXML
@@ -76,6 +75,7 @@ public class KanbanFX {
     private List<KList> listData;
     private List<String> cardData;
     private Long boardID = 1l;
+    private String json;
 
     private Label label;
     private double dragOffsetX;
@@ -121,7 +121,7 @@ public class KanbanFX {
         boardHBox.setFocusTraversable(true);
         boardScrollPane.setFocusTraversable(false);
         boardScrollPane.getStyleClass().add("board_scrollpane");
-        boardScrollPane.setHvalue(0);
+
 
 
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
@@ -677,7 +677,7 @@ public class KanbanFX {
     private void addOrLoadLists(Mode mode) {
         boolean isLoad = mode == Mode.LOAD;
         if (isLoad) {
-            listData = HTTPHandler.GET("lists/all/" + boardID, KList.class);
+            listData = HTTPHandler.GET("lists/all/" + boardID + "/condition?status=ACTIVE", KList.class);
             listData.sort(Comparator.comparing(KList::getListPosition));
 
         } else {
@@ -710,14 +710,40 @@ public class KanbanFX {
                 if (!isNowFocused && !headerTitle.isDisabled()) {
                     headerTitle.setEditable(false);
                     headerTitle.setDisable(true);
-                    System.out.println("Edited title");
+                    if(!headerTitle.getText().equals(list.getTitle())){
+                        list.setTitle(headerTitle.getText());
+                        json = Json.JsonBuilder(Map.of("title", headerTitle.getText()));
+                        HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
+                    }
                 }
             });
             headerTitle.setOnAction(e -> {
                 headerTitle.setEditable(false);
                 headerTitle.setDisable(true);
                 headerTitle.deselect();
-                System.out.println("Edited title");
+                String title = headerTitle.getText() == null || headerTitle.getText().isEmpty() ? "Untitled" : headerTitle.getText();
+                if(!title.equals(list.getTitle())){
+                    if (!isLoad){
+                        json = Json.JsonBuilder(Map.of(
+                                "board_id", boardID,
+                                "list_position", boardHBox.getChildren().size()-2,
+                                "title", title,
+                                "hex_color", "#FFFFFF",
+                                "status", Enum.LS.ACTIVE
+                        ));
+                        HTTPHandler.POST("lists", json);
+                        headerTitle.setText(title);
+                        /* TODO:
+                            Figure out how to make duplicates not appear when editing a newly
+                            created list. The !isLoad condition continues to return true on the new list.
+                       */
+                    } else {
+                        list.setTitle(headerTitle.getText());
+                        json = Json.JsonBuilder(Map.of("title", headerTitle.getText()));
+                        HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
+                    }
+
+                }
             });
 
             MenuButton listOptionsBtn = new MenuButton();
@@ -746,11 +772,9 @@ public class KanbanFX {
             archive.setOnAction(e-> boardHBox.getChildren().remove(listContainer));
             delete.setOnAction(e -> {
                 boardHBox.getChildren().remove(listContainer);
-                String json = Json.JsonBuilder(new String[]{"status"}, new Object[]{Types.ListStatus.DELETED});
-                System.out.println(json + "\n" + list.getListId() + "/modular?section=" + Types.Section.STATUS.name());
+                json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
                 HTTPHandler.PATCH(
-                        json, "lists/" + list.getListId() + "/modular?section=" + Types.Section.STATUS.name()
-                );
+                        json, "lists/"+list.getListId()+"/modular?section=STATUS");
             });
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
@@ -816,6 +840,7 @@ public class KanbanFX {
             );
 
             boardHBox.getChildren().add(addListButton);
+            boardScrollPane.setHvalue(0);
         }
 
     }
@@ -1051,12 +1076,12 @@ public class KanbanFX {
 
         for (Card card : archivedCards) {
 
-            if (card.getStatus() == Types.CardStatus.PARENT_ARCHIVED) {
+            if (card.getStatus() == Enum.CS.PARENT_ARCHIVED) {
                 cardsByListId
                         .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
                         .add(card);
             }
-            else if (card.getStatus() == Types.CardStatus.ARCHIVED) {
+            else if (card.getStatus() == Enum.CS.ARCHIVED) {
                 standaloneArchivedCards.add(card);
             }
         }

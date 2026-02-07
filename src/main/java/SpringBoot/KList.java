@@ -15,5 +15,5 @@ public class KList {
     private Long listPosition;
     private String title;
     private String hexColor;
-    private Types.ListStatus status;
+    private Enum.LS status;
 }

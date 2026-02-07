@@ -1,9 +1,6 @@
 package SpringBoot;
 
-import lombok.Data;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -14,8 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static SpringBoot.Types.Section.*;
 
 public class KanbanController {
 }
@@ -111,11 +106,14 @@ class KListController {
     protected List<KList> findAllListsByBoardId(@PathVariable Long boardId) {
         return listRepository.findAllListsByBoardId(boardId);
     }
+    @GetMapping("/all/{boardId}/condition")
+    protected List<KList> findByStatus(@PathVariable Long boardId, @RequestParam Enum.LS status){
+        return listRepository.findByStatus(boardId, status);
+    }
     @GetMapping("/{listId}")
     protected KList findListById(@PathVariable Long listId) {
         return listRepository.findListById(listId);
     }
-
     @PostMapping
     protected void createList(@RequestBody KList list) {
         listRepository.create(list);
@@ -129,7 +127,7 @@ class KListController {
     }
 
     @PatchMapping("/{listId}/modular")
-    protected void updateListSection(@PathVariable Long listId, @RequestParam Types.Section section, @RequestBody KList newListInfo){
+    protected void updateListSection(@PathVariable Long listId, @RequestParam Enum.Section section, @RequestBody KList newListInfo){
         Object valueToUpdate = switch (section) {
             case TITLE -> newListInfo.getTitle();
             case POSITION -> newListInfo.getListPosition();
@@ -156,9 +154,9 @@ class KListRepository {
     private final KListRowMapper kListRowMapper = new KListRowMapper();
 
 
-    protected List<KList> findByStatus(Long boardId, Types.ListStatus status){
+    protected List<KList> findByStatus(Long boardId, Enum.LS status){
         return jdbc.query("SELECT * FROM lists WHERE board_id = ? AND status = ?",
-                kListRowMapper, boardId, status);
+                kListRowMapper, boardId, status.name());
     }
 
 
@@ -184,7 +182,7 @@ class KListRepository {
                 ListId
         );
     }
-    protected void updateListSection(Long ListId, Object value, Types.Section section){
+    protected void updateListSection(Long ListId, Object value, Enum.Section section){
         String query;
         switch (section){
             case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
@@ -224,7 +222,7 @@ class KListRowMapper implements RowMapper<KList> {
                 rs.getLong("list_position"),
                 rs.getString("title"),
                 rs.getString("hex_color"),
-                Types.ListStatus.valueOf(rs.getString("status"))
+                Enum.LS.valueOf(rs.getString("status"))
         );
     }
 }
@@ -247,11 +245,11 @@ class CardController {
     }
 
     @GetMapping("/{boardId}/status")
-    protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Types.CardStatus cardStatus){
+    protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Enum.CS cardStatus){
         return cardRepository.findByStatus(boardId, cardStatus);
     }
     @PatchMapping("/{cardId}/modular")
-    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Types.Section section){
+    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Enum.Section section){
         Object valueToUpdate = switch (section){
             case ID -> newCardInfo.getListId();
             case DESCRIPTION -> newCardInfo.getDescription();
@@ -284,7 +282,7 @@ class CardRepository {
         );
     }
 
-    protected List<Card> findByStatus(Long boardId, Types.CardStatus status){
+    protected List<Card> findByStatus(Long boardId, Enum.CS status){
         return jdbc.query("SELECT * FROM cards WHERE board_id = ? AND status = ?",
                 cardRowMapper, boardId, status.name());
     }
@@ -300,7 +298,7 @@ class CardRepository {
         );
     }
 
-    protected void updateCardSection(Long cardId, Object value, Types.Section section){
+    protected void updateCardSection(Long cardId, Object value, Enum.Section section){
         String query;
         switch (section){
             case ID : query = "UPDATE cards SET list_id = ? WHERE card_id = ?";
@@ -335,7 +333,7 @@ class CardRowMapper implements RowMapper<Card> {
                 rs.getLong("card_position"),
                 rs.getString("description"),
                 rs.getString("hex_color"),
-                Types.CardStatus.valueOf(rs.getString("status"))
+                Enum.CS.valueOf(rs.getString("status"))
         );
     }
 }
@@ -366,7 +364,7 @@ class ReminderController {
     @PatchMapping("/{reminderId}")
     protected void updateReminderSection(
             @PathVariable Long reminderId,
-            @RequestParam Types.Section section,
+            @RequestParam Enum.Section section,
             @RequestBody Reminder reminder
     ) {
         reminderRepository.update(reminderId, section, reminder);
@@ -407,7 +405,7 @@ class ReminderRepository {
         );
     }
 
-    protected void update(Long reminderId, Types.Section section, Reminder reminder) {
+    protected void update(Long reminderId, Enum.Section section, Reminder reminder) {
         switch (section) {
             case TITLE -> {
                 if (reminder.getReminderTitle() == null) return;

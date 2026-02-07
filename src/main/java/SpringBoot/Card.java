@@ -16,5 +16,5 @@ public class Card {
     private Long cardPosition;
     private String description;
     private String hexColor;
-    private Types.CardStatus status;
+    private Enum.CS status;
 }

@@ -21,20 +21,7 @@ public final class Json {
         MAPPER.registerModule(new JavaTimeModule());
     }
 
-    public static String JsonBuilder(String[] fieldNames, Object[] args) {
-        if (fieldNames.length != args.length) {
-            throw new IllegalArgumentException(
-                    "fieldNames and args must have the same length"
-            );
-        }
-
-        Map<String, Object> jsonMap = new LinkedHashMap<>();
-
-        for (int i = 0; i < fieldNames.length; i++) {
-            Object value = args[i];
-            jsonMap.put(fieldNames[i], value);
-        }
-
+    public static String JsonBuilder(Map<String, Object> jsonMap) {
         try {
             return MAPPER.writeValueAsString(jsonMap);
         } catch (JsonProcessingException e) {
