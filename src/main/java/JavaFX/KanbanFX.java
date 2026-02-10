@@ -76,6 +76,7 @@ public class KanbanFX {
     private List<String> cardData;
     private Long boardID = 1l;
     private String json;
+    private boolean recalListIndices = false;
 
     private Label label;
     private double dragOffsetX;
@@ -674,6 +675,31 @@ public class KanbanFX {
         return timeline;
     }
 
+    private void reorderListIndices(){
+        Long position = 0L;
+        for (Node listNode : boardHBox.getChildren()){
+            if (!(listNode instanceof VBox listContainer)) {
+                continue;
+            }
+            if (!listContainer.getStyleClass().contains("list_column")) {
+                continue;
+            }
+            json = Json.JsonBuilder(Map.of("list_position", position));
+            HTTPHandler.PATCH(json, "lists/" + listNode.getUserData() + "/modular?section=POSITION");
+            position++;
+        }
+        /*
+        Keeping this for later:
+        rList.getListIds().add((Long) listNode.getUserData());
+            rList.getListPositions().add(position);
+            position++;
+
+        json = Json.JsonBuilder(Map.of(
+                "listPositions", rList.getListPositions(),
+                "listIds", rList.getListIds()));
+        HTTPHandler.PATCH(json,"lists/reorder");*/
+    }
+
     private void addOrLoadLists(Mode mode) {
         boolean isLoad = mode == Mode.LOAD;
         if (isLoad) {
@@ -681,12 +707,14 @@ public class KanbanFX {
             listData.sort(Comparator.comparing(KList::getListPosition));
 
         } else {
-           listData = List.of(new KList());
+            listData = new ArrayList<>();
+            listData.add(new KList());
         }
 
 
         listData.forEach(list -> {
             VBox listContainer = new VBox();
+            listContainer.setUserData(list.getListId());
             listContainer.getStyleClass().add("list_column");
             listContainer.setAlignment(Pos.TOP_CENTER);
             listContainer.setPrefWidth(275);
@@ -696,6 +724,7 @@ public class KanbanFX {
 
             HBox headerSection = new HBox();
             headerSection.getStyleClass().add("header_section");
+
 
             TextField headerTitle = new TextField(list.getTitle());
             headerTitle.getStyleClass().add("header_TF");
@@ -710,9 +739,11 @@ public class KanbanFX {
                 if (!isNowFocused && !headerTitle.isDisabled()) {
                     headerTitle.setEditable(false);
                     headerTitle.setDisable(true);
-                    if(!headerTitle.getText().equals(list.getTitle())){
-                        list.setTitle(headerTitle.getText());
-                        json = Json.JsonBuilder(Map.of("title", headerTitle.getText()));
+                    String title = headerTitle.getText() == null || headerTitle.getText().isEmpty() ? "Untitled" : headerTitle.getText();
+                    if(!title.equals(list.getTitle())){
+                        list.setTitle(title);
+                        headerTitle.setText(title);
+                        json = Json.JsonBuilder(Map.of("title", title));
                         HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
                     }
                 }
@@ -733,13 +764,13 @@ public class KanbanFX {
                         ));
                         HTTPHandler.POST("lists", json);
                         headerTitle.setText(title);
-                        /* TODO:
-                            Figure out how to make duplicates not appear when editing a newly
-                            created list. The !isLoad condition continues to return true on the new list.
-                       */
+                        boardHBox.getChildren().clear();
+                        Platform.runLater(() ->{addOrLoadLists(Mode.LOAD);});
+                        //Lazy solution: the issue of duplicates being saved when reediting a new list is still there.
                     } else {
-                        list.setTitle(headerTitle.getText());
-                        json = Json.JsonBuilder(Map.of("title", headerTitle.getText()));
+                        list.setTitle(title);
+                        headerTitle.setText(title);
+                        json = Json.JsonBuilder(Map.of("title", title));
                         HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
                     }
 
@@ -764,7 +795,6 @@ public class KanbanFX {
             edit.setOnAction(e->{
                 headerTitle.setDisable(false);
                 headerTitle.setEditable(true);
-                //headerTitle.setFocusTraversable(true);
                 headerTitle.requestFocus();
                 headerTitle.selectAll();
             });
@@ -773,8 +803,8 @@ public class KanbanFX {
             delete.setOnAction(e -> {
                 boardHBox.getChildren().remove(listContainer);
                 json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
-                HTTPHandler.PATCH(
-                        json, "lists/"+list.getListId()+"/modular?section=STATUS");
+                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/modular?section=STATUS");
+                reorderListIndices();
             });
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
@@ -812,12 +842,17 @@ public class KanbanFX {
                     addCardSection
             );
 
-            makeListDraggable(listContainer, headerSection, listScrollPane, addCardSection);
+            makeListDraggable(list, listContainer, headerSection, listScrollPane, addCardSection);
 
-            // Insert BEFORE addListButton
-            int insertIndex = Math.max(0, boardHBox.getChildren().size() - 1);
-            boardHBox.getChildren().add(insertIndex, listContainer);
+            //This if ensures proper load of lists as sorted above & that no new list appears after the ALB
+            if (isLoad) {
+                boardHBox.getChildren().add(listContainer);
+            } else {
+                int insertIndex = Math.max(0, boardHBox.getChildren().size() - 1);
+                boardHBox.getChildren().add(insertIndex, listContainer);
+            }
         });
+
 
         if (boardHBox.lookup("#addListButton") == null) {
 
@@ -1156,7 +1191,7 @@ public class KanbanFX {
         return area;
     }
 
-    private void makeListDraggable(VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
+    private void makeListDraggable(KList list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
 
         listContainer.setOnMousePressed(e -> {
             draggedList = listContainer;
@@ -1184,7 +1219,7 @@ public class KanbanFX {
             dragOffsetY = e.getSceneY() - startY;
 
             double visibleListHeight = Math.min(listScrollPane.getHeight(), listContainer.getHeight());
-            // Noticable shifting of components happen if using orignal height and widths,
+            //Noticeable shifting of components happen if using original height and widths,
             //Subtracting by 0.25 fixes it.
 
             double placeholderHeight = headerSection.getHeight() + visibleListHeight-0.25
@@ -1200,7 +1235,7 @@ public class KanbanFX {
             boardHBox.getChildren().add(index, placeholder);
             boardHBox.getChildren().remove(listContainer);
 
-            //Ghost overlay
+
             Pane rootPane = (Pane) boardHBox.getScene().getRoot();
             rootPane.getChildren().add(ghostList);
         });
@@ -1226,6 +1261,7 @@ public class KanbanFX {
             // Place list back into the layout
             boardHBox.getChildren().remove(placeholder);
             boardHBox.getChildren().add(dropIndex, draggedList);
+            reorderListIndices();
 
             // Clean up ghost
             Pane rootPane = (Pane) boardHBox.getScene().getRoot();

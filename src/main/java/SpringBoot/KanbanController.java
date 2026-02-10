@@ -5,11 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class KanbanController {
@@ -117,13 +120,11 @@ class KListController {
     @PostMapping
     protected void createList(@RequestBody KList list) {
         listRepository.create(list);
-        System.out.println("SpringBoot: List created successfully.");
     }
 
     @PutMapping("/{listId}")
     protected void updateList(@PathVariable Long listId, @RequestBody KList newListInfo){
         listRepository.updateList(listId, newListInfo);
-        System.out.println("SpringBoot: List updated successfully.");
     }
 
     @PatchMapping("/{listId}/modular")
@@ -136,11 +137,15 @@ class KListController {
             default -> null;
         };
         if (valueToUpdate == null){
-            System.out.println("SpringBoot: Null value detected, list couldn't be updated.");
+            throw new NullPointerException("SpringBoot: Null value detected, list couldn't be updated.");
         } else {
             listRepository.updateListSection(listId,valueToUpdate,section);
-            System.out.println("SpringBoot: List section successfully updated.");
         }
+    }
+    @PatchMapping("/reorder")
+    protected void updateListPositions(@RequestBody DTO.ListReorder listDTO){
+        System.out.println("Controller test" + listDTO.getListIds() + "\n" + listDTO.getListPositions());
+        listRepository.updateListPositions(listDTO.getListIds(), listDTO.getListPositions());
     }
     @DeleteMapping("/{listId}")
     protected void deleteList(@PathVariable Long listId){
@@ -158,8 +163,6 @@ class KListRepository {
         return jdbc.query("SELECT * FROM lists WHERE board_id = ? AND status = ?",
                 kListRowMapper, boardId, status.name());
     }
-
-
     protected void create(KList list) {
         jdbc.update(
                 "INSERT INTO lists (board_id, list_position, title, hex_color, status) VALUES (?, ?, ?, ?, ?)",
@@ -198,6 +201,19 @@ class KListRepository {
                 jdbc.update(query, value, ListId);
                 break;
         }
+    }
+    //Rollback on any unchecked exception
+    @Transactional(rollbackFor = Exception.class)
+    protected void updateListPositions(List<Long> listIds, List<Long> listPostions){
+        if (listIds.size() != listPostions.size()){
+            throw new IllegalArgumentException("ListId and listPosition Arraylists must be the same length.");
+        }
+        String query = "UPDATE lists SET list_position = ? WHERE list_id = ?";
+        List<Object[]> batch = new ArrayList<>();
+        for (int i = 0; i < listIds.size(); i++){
+            batch.add(new Object[]{ listPostions.get(i), listIds.get(i) });
+        }
+        jdbc.batchUpdate(query, batch);
     }
 
     protected void deleteList(Long listId){
