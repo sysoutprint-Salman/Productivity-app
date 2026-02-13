@@ -128,7 +128,7 @@ class KListController {
     }
 
     @PatchMapping("/{listId}/modular")
-    protected void updateListSection(@PathVariable Long listId, @RequestParam Enum.Section section, @RequestBody KList newListInfo){
+    protected void updateListSection(@PathVariable Long listId, @RequestParam Enum.Section section, @RequestBody KList newListInfo ){
         Object valueToUpdate = switch (section) {
             case TITLE -> newListInfo.getTitle();
             case POSITION -> newListInfo.getListPosition();
@@ -139,7 +139,7 @@ class KListController {
         if (valueToUpdate == null){
             throw new NullPointerException("SpringBoot: Null value detected, list couldn't be updated.");
         } else {
-            listRepository.updateListSection(listId,valueToUpdate,section);
+            listRepository.updateListSection(listId,section,valueToUpdate);
         }
     }
     @PatchMapping("/reorder")
@@ -147,6 +147,11 @@ class KListController {
         System.out.println("Controller test" + listDTO.getListIds() + "\n" + listDTO.getListPositions());
         listRepository.updateListPositions(listDTO.getListIds(), listDTO.getListPositions());
     }
+    @PatchMapping("/{listId}/status")
+    public void updateStatusAndPosition(@PathVariable Long listId, @RequestParam Enum.LS status, @RequestParam(required = false) Long position) {
+        listRepository.updateStatusAndPosition(listId, status, position);
+    }
+
     @DeleteMapping("/{listId}")
     protected void deleteList(@PathVariable Long listId){
         listRepository.deleteList(listId);
@@ -185,7 +190,7 @@ class KListRepository {
                 ListId
         );
     }
-    protected void updateListSection(Long ListId, Object value, Enum.Section section){
+    protected void updateListSection(Long ListId, Enum.Section section, Object value){
         String query;
         switch (section){
             case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
@@ -202,6 +207,17 @@ class KListRepository {
                 break;
         }
     }
+    protected void updateStatusAndPosition(Long listId, Enum.LS status, Long position) {
+        String query;
+        if (position == null) {
+            query = "UPDATE lists SET status = ?, list_position = NULL WHERE list_id = ?";
+            jdbc.update(query, status.name(), listId);
+        } else {
+            query = "UPDATE lists SET status = ?, list_position = ? WHERE list_id = ?";
+            jdbc.update(query, status.name(), position, listId);
+        }
+    }
+
     //Rollback on any unchecked exception
     @Transactional(rollbackFor = Exception.class)
     protected void updateListPositions(List<Long> listIds, List<Long> listPostions){

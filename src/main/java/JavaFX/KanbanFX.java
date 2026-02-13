@@ -73,7 +73,7 @@ public class KanbanFX {
     private final ScrollPane sidebarScrollPane = new ScrollPane();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
     private List<KList> listData;
-    private List<String> cardData;
+    private List<Card> cardData;
     private Long boardID = 1l;
     private String json;
     private boolean recalListIndices = false;
@@ -799,11 +799,16 @@ public class KanbanFX {
                 headerTitle.selectAll();
             });
             color.setOnAction(e->{});
-            archive.setOnAction(e-> boardHBox.getChildren().remove(listContainer));
+            archive.setOnAction(e-> {
+                boardHBox.getChildren().remove(listContainer);
+                json = Json.JsonBuilder(Map.of("status",Enum.LS.ARCHIVED));
+                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=ARCHIVED");
+            });
             delete.setOnAction(e -> {
                 boardHBox.getChildren().remove(listContainer);
                 json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
-                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/modular?section=STATUS");
+                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=DELETED");
+
                 reorderListIndices();
             });
 
@@ -812,9 +817,9 @@ public class KanbanFX {
             visibleList.getStyleClass().add("visible_list");
 
             if (isLoad) {
-                //cardDate will be assigned in card method and used from there
+                /*//cardDate will be assigned in card method and used from there
                 cardData = List.of("Example Card 1", "Example Card 2");
-                cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));
+                cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));*/
             }
 
             ScrollPane listScrollPane = new ScrollPane(visibleList);
@@ -882,8 +887,8 @@ public class KanbanFX {
 
     private void addOrLoadCards(VBox visibleList, Mode addOrLoad) {
         //When the mode is LOAD, the below cardDate list will be assigned and date will be extracted from DB
-        //List<Card> CardDate = HTTPHandler.GET("condition for getting cards goes here...");
-        boolean isAdd = "add".equalsIgnoreCase(addOrLoad.toString());
+        //cardData = HTTPHandler.GET("cards/lists/"+ list.getListId() + "cards");
+        boolean isAdd = addOrLoad == addOrLoad.ADD;
         boolean startEditing = isAdd;
 
         StackPane card = new StackPane();
@@ -1096,6 +1101,7 @@ public class KanbanFX {
             ghostCard[0] = null;
             placeholder[0] = null;
         });
+
     }
 
     public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
@@ -1273,6 +1279,8 @@ public class KanbanFX {
             placeholder = null;
         });
     }
+
+    private void makeCardDraggable(){}
 
     private int getDropIndex(double sceneX) {
         int index = 0;
