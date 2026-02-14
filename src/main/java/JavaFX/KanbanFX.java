@@ -610,11 +610,8 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> addOrLoadCards(sidebarContentVbox, Mode.ADD));
-
-                for (int i = 0; i < 6; i++) {
-                    addOrLoadCards(sidebarContentVbox, Mode.LOAD);
-                }
+                addButton.setOnAction(e -> addOrLoadCards(sidebarContentVbox, Mode.ADD, Enum.Section.INBOX));
+                addOrLoadCards(sidebarContentVbox, Mode.LOAD, Enum.Section.INBOX);
                 break;
 
             case ARCHIVE:
@@ -815,8 +812,10 @@ public class KanbanFX {
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
             VBox visibleList = new VBox();
             visibleList.getStyleClass().add("visible_list");
+            visibleList.setUserData(list.getListId());
 
             if (isLoad) {
+                addOrLoadCards(visibleList, Mode.LOAD, Enum.Section.LIST);
                 /*//cardDate will be assigned in card method and used from there
                 cardData = List.of("Example Card 1", "Example Card 2");
                 cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));*/
@@ -836,7 +835,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardBtn.setPrefWidth(275);
             addCardBtn.setOnAction(e ->
-                    addOrLoadCards(visibleList, Mode.ADD)
+                    addOrLoadCards(visibleList, Mode.ADD, Enum.Section.LIST)
             );
 
             addCardSection.getChildren().add(addCardBtn);
@@ -885,19 +884,135 @@ public class KanbanFX {
 
     }
 
-    private void addOrLoadCards(VBox visibleList, Mode addOrLoad) {
-        //When the mode is LOAD, the below cardDate list will be assigned and date will be extracted from DB
-        //cardData = HTTPHandler.GET("cards/lists/"+ list.getListId() + "cards");
-        boolean isAdd = addOrLoad == addOrLoad.ADD;
-        boolean startEditing = isAdd;
+    private void addOrLoadCards(VBox visibleList, Mode mode, Enum.Section section) {
+        /*
+        TODO: New cards should be saved on ENTER not patched.
+            Fix up
+        * */
+        boolean isAdd = mode == Mode.ADD;
+        if (!isAdd) {
+
+            if (section == Enum.Section.LIST) {
+                cardData = HTTPHandler.GET(
+                        "cards/lists/" + visibleList.getUserData() + "/cards",
+                        Card.class
+                );
+            }
+            else if (section == Enum.Section.INBOX) {
+                cardData = HTTPHandler.GET(
+                        "cards/"+boardID+"/status?cardStatus=INBOXED",
+                        Card.class
+                );
+            }
+
+            // If backend returns empty list → do nothing
+            if (cardData == null || cardData.isEmpty()) {
+                return;
+            }
+
+            cardData.forEach(listCard -> {
+                StackPane card = buildCardUI(
+                        visibleList,
+                        listCard,
+                        false
+                );
+                visibleList.getChildren().add(card);
+            });
+
+            return;
+        }
+
+        Card newCard = new Card();
+        newCard.setDescription("Untitled");
+
+        StackPane card = buildCardUI(
+                visibleList,
+                newCard,
+                true
+        );
+
+        visibleList.getChildren().add(0, card);
+    }
+
+    public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
+
+        if (mode != Mode.LOAD) {
+            return;
+        }
+
+        sidebarContentVbox.getChildren().clear();
+
+        Map<Long, ArrayList<Card>> cardsByListId = new HashMap<>();
+        ArrayList<Card> standaloneArchivedCards = new ArrayList<>();
+
+        for (Card card : archivedCards) {
+
+            if (card.getStatus() == Enum.CS.PARENT_ARCHIVED) {
+                cardsByListId
+                        .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
+                        .add(card);
+            }
+            else if (card.getStatus() == Enum.CS.ARCHIVED) {
+                standaloneArchivedCards.add(card);
+            }
+        }
+
+        if (!archivedLists.isEmpty()) {
+
+            for (KList list : archivedLists) {
+
+                TitledPane archivePane = new TitledPane();
+                archivePane.setText(list.getTitle());
+                archivePane.getStyleClass().add("archive_list");
+
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem recover = new MenuItem("Recover");
+                contextMenu.getItems().add(recover);
+                archivePane.setOnContextMenuRequested(e -> {
+                    contextMenu.show(archivePane, e.getScreenX(),e.getScreenY());
+                    recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(archivePane));
+                });
+
+                AnchorPane contentPane = new AnchorPane();
+                contentPane.setMinHeight(0);
+                contentPane.setMinWidth(0);
+
+                double topOffset = 0;
+
+                ArrayList<Card> listCards =
+                        cardsByListId.getOrDefault(list.getListId(), new ArrayList<>());
+
+                for (Card card : listCards) {
+
+                    TextArea cardNode = createArchiveCard(card);
+
+                    AnchorPane.setTopAnchor(cardNode, topOffset);
+                    AnchorPane.setLeftAnchor(cardNode, 0.0);
+                    AnchorPane.setRightAnchor(cardNode, 0.0);
+
+                    contentPane.getChildren().add(cardNode);
+                    topOffset += 50;
+                }
+
+                archivePane.setContent(contentPane);
+                sidebarContentVbox.getChildren().add(archivePane);
+            }
+        }
+
+        for (Card card : standaloneArchivedCards) {
+            TextArea cardNode = createArchiveCard(card);
+            sidebarContentVbox.getChildren().add(cardNode);
+        }
+    }
+
+    private StackPane buildCardUI(VBox visibleList, Card listCard, boolean startEditing) {
 
         StackPane card = new StackPane();
         card.getStyleClass().add("card");
         card.setPadding(new Insets(6));
         VBox.setVgrow(card, Priority.NEVER);
 
-
-        TextArea text = new TextArea(isAdd ? "Untitled" : "Card desc...");
+        TextArea text = new TextArea(listCard.getDescription());
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
         text.setPrefRowCount(1);
@@ -907,59 +1022,44 @@ public class KanbanFX {
         text.setEditable(startEditing);
         text.setMouseTransparent(!startEditing);
 
-        text.textProperty().addListener((obs, oldText, newText) -> {
-            Text textNode = (Text) text.lookup(".text");
-            if (textNode != null) {
-                double height = textNode.getLayoutBounds().getHeight()
-                        + text.getInsets().getTop()
-                        + text.getInsets().getBottom()
-                        + 10; // padding buffer
+        text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
+            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
 
-                text.setPrefHeight(height);
-                card.requestLayout();
-            }
-        });
-
-
-        text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused) {
+                card.requestFocus();
                 text.setEditable(false);
                 text.setMouseTransparent(true);
-                card.requestFocus();
                 text.deselect();
+
+                json = Json.JsonBuilder(
+                        Map.of("description", text.getText())
+                );
+
+                HTTPHandler.PATCH(
+                        json,
+                        "cards/" + listCard.getCardId() +
+                                "/modular?section=DESCRIPTION"
+                );
+
+                ke.consume();
             }
         });
+
         StackPane.setAlignment(text, Pos.TOP_LEFT);
+
         MenuButton cardOptions = new MenuButton();
         cardOptions.getStyleClass().add("card_options");
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
 
         MenuItem edit = new MenuItem("Edit");
-        MenuItem archive = new MenuItem("Archive");
-        MenuItem delete = new MenuItem("Delete");
-        MenuItem color = new MenuItem("Color");
-
-        cardOptions.getItems().addAll(
-            edit, archive, delete, color
-        );
         edit.setOnAction(e -> {
             text.setEditable(true);
             text.setMouseTransparent(false);
             text.requestFocus();
             Platform.runLater(text::selectAll);
-
         });
-        archive.setOnAction(e -> {});
-        delete.setOnAction(e -> {});
-        color.setOnAction(e -> {});
 
+        cardOptions.getItems().add(edit);
         card.getChildren().addAll(text, cardOptions);
-
-        if (isAdd) {
-            visibleList.getChildren().add(0, card);
-        } else {
-            visibleList.getChildren().add(card);
-        }
 
         if (startEditing) {
             Platform.runLater(() -> {
@@ -968,21 +1068,117 @@ public class KanbanFX {
             });
         }
 
-        text.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused) {
-                text.setEditable(false);
-                text.setMouseTransparent(true);
-                card.requestFocus();
-            }
+        makeCardDraggable(visibleList, card, text);
+
+        return card;
+    }
+
+    private TextArea createArchiveCard(Card card) {
+        TextArea area = new TextArea(card.getDescription());
+        area.setPrefWidth(230);
+        area.setPrefHeight(45);
+        area.setEditable(false);
+        area.setWrapText(true);
+        area.getStyleClass().add("archive_card");
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem recover = new MenuItem("Recover card");
+        contextMenu.getItems().add(recover);
+        area.setOnContextMenuRequested(e -> {
+            contextMenu.show(area, e.getScreenX(),e.getScreenY());
+            recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(area));
         });
 
-        text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
-            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
-                card.requestFocus();
-                ke.consume();
-            }
+        /*if (card.getHexColor() != null) {
+            area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
+        }*/
+
+        return area;
+    }
+
+    private void makeListDraggable(KList list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
+
+        listContainer.setOnMousePressed(e -> {
+            draggedList = listContainer;
+
+            // Create ghost snapshot
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+
+            ImageView ghostImg = new ImageView(listContainer.snapshot(params, null));
+            ghostImg.setOpacity(0.30);
+
+            ghostList = new Pane(ghostImg);
+            ghostList.setMouseTransparent(true);
+
+            // BEFORE ADDING TO ROOT → place it where it should appear
+            Bounds b = listContainer.localToScene(listContainer.getBoundsInLocal());
+
+            double startX = b.getMinX() + DRAG_VISUAL_OFFSET;
+            double startY = b.getMinY() + DRAG_VISUAL_OFFSET;
+
+            ghostList.setLayoutX(startX);
+            ghostList.setLayoutY(startY);
+
+            dragOffsetX = e.getSceneX() - startX;
+            dragOffsetY = e.getSceneY() - startY;
+
+            double visibleListHeight = Math.min(listScrollPane.getHeight(), listContainer.getHeight());
+            //Noticeable shifting of components happen if using original height and widths,
+            //Subtracting by 0.25 fixes it.
+
+            double placeholderHeight = headerSection.getHeight() + visibleListHeight-0.25
+                    + addCardSection.getHeight();
+
+            placeholder = new Rectangle(listContainer.getWidth()-0.25, placeholderHeight);
+            placeholder.setArcWidth(10);
+            placeholder.setArcHeight(10);
+            placeholder.setFill(Color.rgb(0, 0, 0, 0.18));
+
+            // Insert placeholder where the list originally was
+            int index = boardHBox.getChildren().indexOf(listContainer);
+            boardHBox.getChildren().add(index, placeholder);
+            boardHBox.getChildren().remove(listContainer);
+
+
+            Pane rootPane = (Pane) boardHBox.getScene().getRoot();
+            rootPane.getChildren().add(ghostList);
         });
 
+
+        listContainer.setOnMouseDragged(e -> {
+            if (draggedList == null) return;
+
+            // Move ghost freely
+            ghostList.setLayoutX(e.getSceneX() - dragOffsetX);
+            ghostList.setLayoutY(e.getSceneY() - dragOffsetY);
+
+            int newIndex = getDropIndex(e.getSceneX());
+            movePlaceholder(newIndex);
+        });
+
+
+        listContainer.setOnMouseReleased(e -> {
+            if (draggedList == null) return;
+
+            int dropIndex = getDropIndex(e.getSceneX());
+
+            // Place list back into the layout
+            boardHBox.getChildren().remove(placeholder);
+            boardHBox.getChildren().add(dropIndex, draggedList);
+            reorderListIndices();
+
+            // Clean up ghost
+            Pane rootPane = (Pane) boardHBox.getScene().getRoot();
+            rootPane.getChildren().remove(ghostList);
+
+            ghostList = null;
+            draggedList.setOpacity(1);
+            draggedList = null;
+            placeholder = null;
+        });
+    }
+
+    private void makeCardDraggable(VBox visibleList, StackPane card, TextArea text){
         final StackPane[] ghostCard = {null};
         final Rectangle[] placeholder = {null};
         final Group[] overlayRef = {null};
@@ -1103,184 +1299,6 @@ public class KanbanFX {
         });
 
     }
-
-    public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
-
-        if (mode != Mode.LOAD) {
-            return;
-        }
-
-        sidebarContentVbox.getChildren().clear();
-
-        Map<Long, ArrayList<Card>> cardsByListId = new HashMap<>();
-        ArrayList<Card> standaloneArchivedCards = new ArrayList<>();
-
-        for (Card card : archivedCards) {
-
-            if (card.getStatus() == Enum.CS.PARENT_ARCHIVED) {
-                cardsByListId
-                        .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
-                        .add(card);
-            }
-            else if (card.getStatus() == Enum.CS.ARCHIVED) {
-                standaloneArchivedCards.add(card);
-            }
-        }
-
-        if (!archivedLists.isEmpty()) {
-
-            for (KList list : archivedLists) {
-
-                TitledPane archivePane = new TitledPane();
-                archivePane.setText(list.getTitle());
-                archivePane.getStyleClass().add("archive_list");
-
-                ContextMenu contextMenu = new ContextMenu();
-                MenuItem recover = new MenuItem("Recover");
-                contextMenu.getItems().add(recover);
-                archivePane.setOnContextMenuRequested(e -> {
-                    contextMenu.show(archivePane, e.getScreenX(),e.getScreenY());
-                    recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(archivePane));
-                });
-
-                AnchorPane contentPane = new AnchorPane();
-                contentPane.setMinHeight(0);
-                contentPane.setMinWidth(0);
-
-                double topOffset = 0;
-
-                ArrayList<Card> listCards =
-                        cardsByListId.getOrDefault(list.getListId(), new ArrayList<>());
-
-                for (Card card : listCards) {
-
-                    TextArea cardNode = createArchiveCard(card);
-
-                    AnchorPane.setTopAnchor(cardNode, topOffset);
-                    AnchorPane.setLeftAnchor(cardNode, 0.0);
-                    AnchorPane.setRightAnchor(cardNode, 0.0);
-
-                    contentPane.getChildren().add(cardNode);
-                    topOffset += 50;
-                }
-
-                archivePane.setContent(contentPane);
-                sidebarContentVbox.getChildren().add(archivePane);
-            }
-        }
-
-        for (Card card : standaloneArchivedCards) {
-            TextArea cardNode = createArchiveCard(card);
-            sidebarContentVbox.getChildren().add(cardNode);
-        }
-    }
-
-    private TextArea createArchiveCard(Card card) {
-        TextArea area = new TextArea(card.getDescription());
-        area.setPrefWidth(230);
-        area.setPrefHeight(45);
-        area.setEditable(false);
-        area.setWrapText(true);
-        area.getStyleClass().add("archive_card");
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem recover = new MenuItem("Recover card");
-        contextMenu.getItems().add(recover);
-        area.setOnContextMenuRequested(e -> {
-            contextMenu.show(area, e.getScreenX(),e.getScreenY());
-            recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(area));
-        });
-
-        /*if (card.getHexColor() != null) {
-            area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
-        }*/
-
-        return area;
-    }
-
-    private void makeListDraggable(KList list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
-
-        listContainer.setOnMousePressed(e -> {
-            draggedList = listContainer;
-
-            // Create ghost snapshot
-            SnapshotParameters params = new SnapshotParameters();
-            params.setFill(Color.TRANSPARENT);
-
-            ImageView ghostImg = new ImageView(listContainer.snapshot(params, null));
-            ghostImg.setOpacity(0.30);
-
-            ghostList = new Pane(ghostImg);
-            ghostList.setMouseTransparent(true);
-
-            // BEFORE ADDING TO ROOT → place it where it should appear
-            Bounds b = listContainer.localToScene(listContainer.getBoundsInLocal());
-
-            double startX = b.getMinX() + DRAG_VISUAL_OFFSET;
-            double startY = b.getMinY() + DRAG_VISUAL_OFFSET;
-
-            ghostList.setLayoutX(startX);
-            ghostList.setLayoutY(startY);
-
-            dragOffsetX = e.getSceneX() - startX;
-            dragOffsetY = e.getSceneY() - startY;
-
-            double visibleListHeight = Math.min(listScrollPane.getHeight(), listContainer.getHeight());
-            //Noticeable shifting of components happen if using original height and widths,
-            //Subtracting by 0.25 fixes it.
-
-            double placeholderHeight = headerSection.getHeight() + visibleListHeight-0.25
-                    + addCardSection.getHeight();
-
-            placeholder = new Rectangle(listContainer.getWidth()-0.25, placeholderHeight);
-            placeholder.setArcWidth(10);
-            placeholder.setArcHeight(10);
-            placeholder.setFill(Color.rgb(0, 0, 0, 0.18));
-
-            // Insert placeholder where the list originally was
-            int index = boardHBox.getChildren().indexOf(listContainer);
-            boardHBox.getChildren().add(index, placeholder);
-            boardHBox.getChildren().remove(listContainer);
-
-
-            Pane rootPane = (Pane) boardHBox.getScene().getRoot();
-            rootPane.getChildren().add(ghostList);
-        });
-
-
-        listContainer.setOnMouseDragged(e -> {
-            if (draggedList == null) return;
-
-            // Move ghost freely
-            ghostList.setLayoutX(e.getSceneX() - dragOffsetX);
-            ghostList.setLayoutY(e.getSceneY() - dragOffsetY);
-
-            int newIndex = getDropIndex(e.getSceneX());
-            movePlaceholder(newIndex);
-        });
-
-
-        listContainer.setOnMouseReleased(e -> {
-            if (draggedList == null) return;
-
-            int dropIndex = getDropIndex(e.getSceneX());
-
-            // Place list back into the layout
-            boardHBox.getChildren().remove(placeholder);
-            boardHBox.getChildren().add(dropIndex, draggedList);
-            reorderListIndices();
-
-            // Clean up ghost
-            Pane rootPane = (Pane) boardHBox.getScene().getRoot();
-            rootPane.getChildren().remove(ghostList);
-
-            ghostList = null;
-            draggedList.setOpacity(1);
-            draggedList = null;
-            placeholder = null;
-        });
-    }
-
-    private void makeCardDraggable(){}
 
     private int getDropIndex(double sceneX) {
         int index = 0;
