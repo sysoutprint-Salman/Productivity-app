@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.AI;
+import SpringBoot.Enum;
 import SpringBoot.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +54,7 @@ public class AI_AssistantFX {
     private NotebookFX notebooks;
     public VBox placeholderVbox;
     public Label emptyLogsMessage;
+    private String json;
 
     public AI_AssistantFX(){}
 
@@ -188,13 +190,21 @@ public class AI_AssistantFX {
 
                 () -> {
                     try {
-                        Map<String, Object> jsonPayload = new HashMap<>();
+                        /*Map<String, Object> jsonPayload = new HashMap<>();
                         jsonPayload.put("response", fullResponse.toString());
                         jsonPayload.put("timestamp", LocalDateTime.now().toString());
                         jsonPayload.put("prompt", prompt);
-                        jsonPayload.put("userId", User.getUserId());
-                        String refinedJson = new ObjectMapper().writeValueAsString(jsonPayload);
-                        HTTPHandler.POST("gptresponses", refinedJson);
+                        jsonPayload.put("userId", User.getUserId());*/
+
+                        json = Json.JsonBuilder(Map.of(
+                                "response", fullResponse.toString(),
+                                "timestamp", LocalDateTime.now().toString(),
+                                "prompt", prompt,
+                                "userId", User.getUserId()
+                        ));
+                        System.out.println(json);
+                        //String refinedJson = new ObjectMapper().writeValueAsString(jsonPayload);
+                        HTTPHandler.POST("gptresponses", json);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

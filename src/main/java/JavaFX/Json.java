@@ -17,7 +17,6 @@ public final class Json {
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
-        MAPPER.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         MAPPER.registerModule(new JavaTimeModule());
     }
 

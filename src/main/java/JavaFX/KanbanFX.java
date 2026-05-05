@@ -681,7 +681,7 @@ public class KanbanFX {
             if (!listContainer.getStyleClass().contains("list_column")) {
                 continue;
             }
-            json = Json.JsonBuilder(Map.of("list_position", position));
+            json = Json.JsonBuilder(Map.of("listPosition", position));
             HTTPHandler.PATCH(json, "lists/" + listNode.getUserData() + "/modular?section=POSITION");
             position++;
         }
@@ -753,10 +753,10 @@ public class KanbanFX {
                 if(!title.equals(list.getTitle())){
                     if (!isLoad){
                         json = Json.JsonBuilder(Map.of(
-                                "board_id", boardID,
-                                "list_position", boardHBox.getChildren().size()-2,
+                                "boardId", boardID,
+                                "listPosition", boardHBox.getChildren().size()-2,
                                 "title", title,
-                                "hex_color", "#FFFFFF",
+                                "hexColor", "#FFFFFF",
                                 "status", Enum.LS.ACTIVE
                         ));
                         HTTPHandler.POST("lists", json);
@@ -887,7 +887,6 @@ public class KanbanFX {
     private void addOrLoadCards(VBox visibleList, Mode mode, Enum.Section section) {
         /*
         TODO: New cards should be saved on ENTER not patched.
-            Fix up
         * */
         boolean isAdd = mode == Mode.ADD;
         if (!isAdd) {
@@ -905,7 +904,6 @@ public class KanbanFX {
                 );
             }
 
-            // If backend returns empty list → do nothing
             if (cardData == null || cardData.isEmpty()) {
                 return;
             }
@@ -932,6 +930,109 @@ public class KanbanFX {
         );
 
         visibleList.getChildren().add(0, card);
+    }
+
+    private StackPane buildCardUI(VBox visibleList, Card listCard, boolean startEditing) {
+        StackPane card = new StackPane();
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(6));
+        VBox.setVgrow(card, Priority.NEVER);
+
+        TextArea text = new TextArea(listCard.getDescription());
+        text.getStyleClass().add("card_textA");
+        text.setWrapText(true);
+        text.setPrefRowCount(1);
+        text.setMinHeight(Region.USE_PREF_SIZE);
+        text.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        text.setMaxHeight(Double.MAX_VALUE);
+        text.setEditable(startEditing);
+        text.setMouseTransparent(!startEditing);
+
+        text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
+            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
+                text.setEditable(false);
+                text.setMouseTransparent(true);
+                text.deselect();
+                String txt = text.getText();
+                String description = txt.isEmpty() ? "Untitled" : text.getText();
+                if (listCard.getCardId() == null) {
+                    //Map.of doesn't allow nulls
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("listId", visibleList.getUserData());
+                    payload.put("boardId", boardID);
+                    payload.put("cardPosition", null);
+                    payload.put("description", description);
+                    payload.put("hexColor", "#FFFFFF");
+                    payload.put("status", Enum.CS.ACTIVE.name());
+                    json = Json.JsonBuilder(payload);
+                    Card createdCard = HTTPHandler.POST("cards", json, Card.class);
+                    assert createdCard != null;
+                    listCard.setCardId(createdCard.getCardId());
+                    card.requestFocus();
+                } else {
+                json = Json.JsonBuilder(
+                        Map.of("description", text.getText())
+                );
+
+                HTTPHandler.PATCH(
+                        json,
+                        "cards/" + listCard.getCardId() +
+                                "/modular?section=DESCRIPTION"
+                );
+            }
+                ke.consume();
+            }
+        });
+
+        StackPane.setAlignment(text, Pos.TOP_LEFT);
+
+        MenuButton cardOptions = new MenuButton();
+        cardOptions.getStyleClass().add("card_options");
+        StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
+
+        MenuItem edit = new MenuItem("Edit");
+        edit.setOnAction(e -> {
+            text.setEditable(true);
+            text.setMouseTransparent(false);
+            text.requestFocus();
+            Platform.runLater(text::selectAll);
+        });
+
+        cardOptions.getItems().add(edit);
+        card.getChildren().addAll(text, cardOptions);
+
+        if (startEditing) {
+            Platform.runLater(() -> {
+                text.requestFocus();
+                text.selectAll();
+            });
+        }
+
+        makeCardDraggable(visibleList, card, text);
+
+        return card;
+    }
+
+    private TextArea createArchiveCard(Card card) {
+        TextArea area = new TextArea(card.getDescription());
+        area.setPrefWidth(230);
+        area.setPrefHeight(45);
+        area.setEditable(false);
+        area.setWrapText(true);
+        area.getStyleClass().add("archive_card");
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem recover = new MenuItem("Recover card");
+        contextMenu.getItems().add(recover);
+        area.setOnContextMenuRequested(e -> {
+            contextMenu.show(area, e.getScreenX(),e.getScreenY());
+            recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(area));
+        });
+
+        /*if (card.getHexColor() != null) {
+            area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
+        }*/
+
+        return area;
     }
 
     public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
@@ -1003,96 +1104,6 @@ public class KanbanFX {
             TextArea cardNode = createArchiveCard(card);
             sidebarContentVbox.getChildren().add(cardNode);
         }
-    }
-
-    private StackPane buildCardUI(VBox visibleList, Card listCard, boolean startEditing) {
-
-        StackPane card = new StackPane();
-        card.getStyleClass().add("card");
-        card.setPadding(new Insets(6));
-        VBox.setVgrow(card, Priority.NEVER);
-
-        TextArea text = new TextArea(listCard.getDescription());
-        text.getStyleClass().add("card_textA");
-        text.setWrapText(true);
-        text.setPrefRowCount(1);
-        text.setMinHeight(Region.USE_PREF_SIZE);
-        text.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        text.setMaxHeight(Double.MAX_VALUE);
-        text.setEditable(startEditing);
-        text.setMouseTransparent(!startEditing);
-
-        text.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
-            if (ke.getCode() == KeyCode.ENTER && !ke.isControlDown()) {
-
-                card.requestFocus();
-                text.setEditable(false);
-                text.setMouseTransparent(true);
-                text.deselect();
-
-                json = Json.JsonBuilder(
-                        Map.of("description", text.getText())
-                );
-
-                HTTPHandler.PATCH(
-                        json,
-                        "cards/" + listCard.getCardId() +
-                                "/modular?section=DESCRIPTION"
-                );
-
-                ke.consume();
-            }
-        });
-
-        StackPane.setAlignment(text, Pos.TOP_LEFT);
-
-        MenuButton cardOptions = new MenuButton();
-        cardOptions.getStyleClass().add("card_options");
-        StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
-
-        MenuItem edit = new MenuItem("Edit");
-        edit.setOnAction(e -> {
-            text.setEditable(true);
-            text.setMouseTransparent(false);
-            text.requestFocus();
-            Platform.runLater(text::selectAll);
-        });
-
-        cardOptions.getItems().add(edit);
-        card.getChildren().addAll(text, cardOptions);
-
-        if (startEditing) {
-            Platform.runLater(() -> {
-                text.requestFocus();
-                text.selectAll();
-            });
-        }
-
-        makeCardDraggable(visibleList, card, text);
-
-        return card;
-    }
-
-    private TextArea createArchiveCard(Card card) {
-        TextArea area = new TextArea(card.getDescription());
-        area.setPrefWidth(230);
-        area.setPrefHeight(45);
-        area.setEditable(false);
-        area.setWrapText(true);
-        area.getStyleClass().add("archive_card");
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem recover = new MenuItem("Recover card");
-        contextMenu.getItems().add(recover);
-        area.setOnContextMenuRequested(e -> {
-            contextMenu.show(area, e.getScreenX(),e.getScreenY());
-            recover.setOnAction(f -> sidebarContentVbox.getChildren().remove(area));
-        });
-
-        /*if (card.getHexColor() != null) {
-            area.setStyle("-fx-background-color: " + card.getHexColor() + ";");
-        }*/
-
-        return area;
     }
 
     private void makeListDraggable(KList list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {

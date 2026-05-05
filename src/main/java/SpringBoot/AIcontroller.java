@@ -26,6 +26,7 @@ public class AIcontroller {
 
     @PostMapping
     protected void createResponse(@RequestBody AI response) {
+        System.out.println(response);
         aIrepository.createResponse(response);
     }
     @GetMapping("filter")

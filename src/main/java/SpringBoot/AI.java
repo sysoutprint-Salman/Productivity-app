@@ -1,5 +1,6 @@
 package SpringBoot;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 public class AI {
 
     private Long id;
+    //@JsonAlias({"userId", "user_id"}) //
     private Long userId;
     private String prompt;
     //@Column(columnDefinition = "TEXT")

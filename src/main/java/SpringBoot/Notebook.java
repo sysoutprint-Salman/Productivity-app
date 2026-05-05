@@ -1,5 +1,6 @@
 package SpringBoot;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true) //Jackson Annotation
+//@JsonIgnoreProperties(ignoreUnknown = true) //Jackson Annotation
 //Ignores properties that don't match fields in Java
 public class Notebook {
     private Long id;

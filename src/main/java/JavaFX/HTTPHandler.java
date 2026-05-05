@@ -27,11 +27,33 @@ public class HTTPHandler {
                     .POST(HttpRequest.BodyPublishers.ofString(JSON))
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response.statusCode() == 200 ? "Successfully posted." : "Failed to post.");
+            System.out.println(response.statusCode() == 200 ? "HTTP: Successfully posted." : "HTTP: Failed to post.");
         } catch (Exception ex) {
             System.out.println("HTTP: An issue arose with POST request.");
             ex.printStackTrace();
         }
+    }
+    public static <T> T POST(String path, String JSON, Class<T> objectType) {
+        //TODO: Understand and fix why 404s constantly keep coming back
+        try {
+            URL url = new URL("http://localhost:" + port + "/");
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + path))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(JSON))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            JsonNode rootNode = Json.MAPPER.readTree(response.body());
+            T singleObject = Json.MAPPER.treeToValue(rootNode, objectType);
+            System.out.println(singleObject);
+
+            return singleObject;
+        } catch (Exception ex) {
+            System.out.println("HTTP: An issue arose with POST request.");
+            ex.printStackTrace();
+        }
+        return null;
     }
     public static void DELETE(Long id, String path, String archive) {
         String url = "http://localhost:" + port + "/" + path + "/" + id + "?archive=".concat(archive);
@@ -62,8 +84,9 @@ public class HTTPHandler {
                 T singleObject = Json.MAPPER.treeToValue(rootNode, objectType);
                 return List.of(singleObject);
             }
-        }catch(IOException | InterruptedException e){
+        }catch(Exception e){
             System.out.println("HTTP: An issue arose with GET request. (ignorable).");
+            e.printStackTrace();
         }   return Collections.emptyList();
     }
     public static boolean GET(String path){
