@@ -2,12 +2,17 @@ package SpringBoot;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -268,8 +273,8 @@ class CardController {
     private final CardRepository cardRepository;
 
     @PostMapping
-    protected void createCard(@RequestBody Card card) {
-        cardRepository.createCard(card);
+    protected Card createCard(@RequestBody Card card) {
+        return cardRepository.createCard(card);
     }
     @GetMapping("/lists/{listId}/cards")
     protected List<Card> findAllCardsByListId(@PathVariable Long listId) {
@@ -279,6 +284,7 @@ class CardController {
     @GetMapping("/{boardId}/status")
     protected List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Enum.CS cardStatus){
         return cardRepository.findByStatus(boardId, cardStatus);
+
     }
     @PatchMapping("/{cardId}/modular")
     protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Enum.Section section){
@@ -295,6 +301,19 @@ class CardController {
         } else {
             System.out.println("SpringBoot: Null value detected, card couldn't be updated.");
         }
+    }
+
+    @PatchMapping("/batch/modular")
+    protected void updateCardSectionBatch(
+            @RequestBody List<Card> cardsToUpdate,
+            @RequestParam Enum.Section section
+    ) {
+        cardRepository.updateCardSectionBatch(cardsToUpdate, section);
+    }
+
+    @PatchMapping("/{cardId}/inbox")
+    protected void updateCardToInboxed(@PathVariable Long cardId) {
+        cardRepository.updateCardToInboxed(cardId);
     }
     @DeleteMapping("/{cardId}")
     protected void deleteCard(@PathVariable Long cardId){
@@ -318,16 +337,27 @@ class CardRepository {
         return jdbc.query("SELECT * FROM cards WHERE board_id = ? AND status = ?",
                 cardRowMapper, boardId, status.name());
     }
-    protected void createCard(Card card) {
-        jdbc.update(
-                "INSERT INTO cards (list_id, board_id, card_position, description, hex_color, status) VALUES (?, ?, ?, ?, ?, ?)",
-                card.getListId(),
-                card.getBoardId(),
-                card.getCardPosition(),
-                card.getDescription(),
-                card.getHexColor(),
-                card.getStatus().name()
-        );
+
+    protected Card createCard(Card card) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbc.update(connection -> {
+                PreparedStatement statement = connection.prepareStatement(
+                        """
+                                INSERT INTO cards (list_id, board_id, card_position, description, hex_color, status)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """, new String[]{"card_id"});
+                statement.setLong(1, card.getListId());
+                statement.setLong(2, card.getBoardId());
+                statement.setLong(3, card.getCardPosition());
+                statement.setString(4, card.getDescription());
+                statement.setString(5, card.getHexColor());
+                statement.setString(6, card.getStatus().name());
+                return statement;
+            }, keyHolder);
+
+        Number generatedId = keyHolder.getKey();
+        if (generatedId != null) card.setCardId(generatedId.longValue());
+        return card;
     }
 
     protected void updateCardSection(Long cardId, Object value, Enum.Section section){
@@ -349,6 +379,47 @@ class CardRepository {
                 jdbc.update(query, value, cardId);
                 break;
         }
+    }
+
+    protected void updateCardSectionBatch(List<Card> cardsToUpdate, Enum.Section section) {
+        String query = switch (section) {
+            case ID -> "UPDATE cards SET list_id = ? WHERE card_id = ?";
+            case DESCRIPTION -> "UPDATE cards SET description = ? WHERE card_id = ?";
+            case COLOR -> "UPDATE cards SET hex_color = ? WHERE card_id = ?";
+            case POSITION -> "UPDATE cards SET card_position = ? WHERE card_id = ?";
+            case STATUS -> "UPDATE cards SET status = ? WHERE card_id = ?";
+            default -> null;
+        };
+
+        if (query == null) {
+            return;
+        }
+
+        jdbc.batchUpdate(query, cardsToUpdate, cardsToUpdate.size(), (ps, card) -> {
+            Object valueToUpdate = switch (section) {
+                case ID -> card.getListId();
+                case DESCRIPTION -> card.getDescription();
+                case COLOR -> card.getHexColor();
+                case POSITION -> card.getCardPosition();
+                case STATUS -> card.getStatus().name();
+                default -> null;
+            };
+
+            ps.setObject(1, valueToUpdate);
+            ps.setLong(2, card.getCardId());
+        });
+    }
+
+    protected void updateCardToInboxed(Long cardId) {
+        String query = """
+            UPDATE cards
+            SET card_position = NULL,
+                status = 'INBOXED',
+                list_id = NULL
+            WHERE card_id = ?
+            """;
+
+        jdbc.update(query, cardId);
     }
 
     protected void deleteCard(Long cardId){

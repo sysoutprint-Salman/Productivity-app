@@ -1,6 +1,7 @@
 package JavaFX;
 
 import SpringBoot.PortHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -14,9 +15,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 
 public class HTTPHandler {
     public static int port = PortHandler.getCurrentPort();
+    //
     public static void POST(String path, String JSON) {
         try {
             URL url = new URL("http://localhost:" + port + "/");
@@ -27,36 +31,40 @@ public class HTTPHandler {
                     .POST(HttpRequest.BodyPublishers.ofString(JSON))
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response.statusCode() == 200 ? "HTTP: Successfully posted." : "HTTP: Failed to post.");
+            System.out.println(response.statusCode() == 200 ?
+                    "HTTP: Successfully posted." : "HTTP: Failed to post.");
         } catch (Exception ex) {
             System.out.println("HTTP: An issue arose with POST request.");
             ex.printStackTrace();
         }
     }
-    public static <T> T POST(String path, String JSON, Class<T> objectType) {
-        //TODO: Understand and fix why 404s constantly keep coming back
+    public static <T, R> R POST(String path, T object, Class<R> objectType) {
         try {
-            URL url = new URL("http://localhost:" + port + "/");
+            String JSON = Json.MAPPER.writeValueAsString(object);
+            URI uri = URI.create("http://localhost:" + port + "/" + path);
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url + path))
+                    .uri(uri)
                     .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(JSON))
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            JsonNode rootNode = Json.MAPPER.readTree(response.body());
-            T singleObject = Json.MAPPER.treeToValue(rootNode, objectType);
-            System.out.println(singleObject);
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                System.out.println("HTTP: POST failed: "  + response.statusCode());
+                System.out.println("Response Body: " + response.body());
+                return null;
+            }
+            return Json.MAPPER.readValue(response.body(), objectType);
 
-            return singleObject;
         } catch (Exception ex) {
             System.out.println("HTTP: An issue arose with POST request.");
             ex.printStackTrace();
         }
         return null;
     }
-    public static void DELETE(Long id, String path, String archive) {
-        String url = "http://localhost:" + port + "/" + path + "/" + id + "?archive=".concat(archive);
+    public static void DELETE(String path) {
+        String url = "http://localhost:" + port + "/" + path;
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build();
         HttpClient client = HttpClient.newHttpClient();
         try {
@@ -135,6 +143,31 @@ public class HTTPHandler {
         } catch (InterruptedException | IOException e) {
             System.out.println("HTTP: PATCH failed");
             e.printStackTrace();
+        }
+    }
+    public static void PATCH(String path) {
+        try {
+            String url = "http://localhost:" + port + "/" + path;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        } catch (InterruptedException | IOException e) {
+            System.out.println("HTTP: PATCH failed");
+            e.printStackTrace();
+        }
+    }
+    public static void PATCH(List<Map<String, Object>> jsonList, String path) {
+        try {
+            String json = Json.MAPPER.writeValueAsString(jsonList);
+            PATCH(json, path);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to build batch PATCH JSON", e);
         }
     }
 

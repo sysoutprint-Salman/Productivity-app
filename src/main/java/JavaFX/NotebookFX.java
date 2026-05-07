@@ -204,7 +204,7 @@ public class NotebookFX{
                 editTab.setOnAction(event -> {
                     editNewTab(notebook.getTabTitle(), notebook.getId(), notebook, tabButton);});
                 deleteTab.setOnAction(event -> {
-                    HTTPHandler.DELETE(notebook.getId(), "notebooks", "false");
+                    HTTPHandler.DELETE("notebooks/" + notebook.getId());
                     tabsVbox.getChildren().remove(tabButton);
                     notepadArea.setVisible(false);});
                 tabButton.setContextMenu(contextMenu);

@@ -672,29 +672,54 @@ public class KanbanFX {
         return timeline;
     }
 
-    private void reorderListIndices(){
+    private void reorderIndices(Pane pane) {
         Long position = 0L;
-        for (Node listNode : boardHBox.getChildren()){
-            if (!(listNode instanceof VBox listContainer)) {
-                continue;
-            }
-            if (!listContainer.getStyleClass().contains("list_column")) {
-                continue;
-            }
-            json = Json.JsonBuilder(Map.of("listPosition", position));
-            HTTPHandler.PATCH(json, "lists/" + listNode.getUserData() + "/modular?section=POSITION");
-            position++;
-        }
-        /*
-        Keeping this for later:
-        rList.getListIds().add((Long) listNode.getUserData());
-            rList.getListPositions().add(position);
-            position++;
 
-        json = Json.JsonBuilder(Map.of(
-                "listPositions", rList.getListPositions(),
-                "listIds", rList.getListIds()));
-        HTTPHandler.PATCH(json,"lists/reorder");*/
+        if (pane instanceof VBox) {
+            List<Map<String, Object>> batchJson = new ArrayList<>();
+
+            for (Node cardNode : pane.getChildren()) {
+                if (!(cardNode instanceof StackPane)) continue;
+
+                Object cardId = cardNode.getUserData();
+
+                if (!(cardId instanceof Long)) continue;
+
+                batchJson.add(Map.of(
+                        "cardId", cardId,
+                        "cardPosition", position
+                ));
+
+                position++;
+            }
+
+            if (!batchJson.isEmpty()) {
+                HTTPHandler.PATCH(
+                        batchJson,
+                        "cards/batch/modular?section=POSITION"
+                );
+            }
+        }
+        else if (pane instanceof HBox) {
+            for (Node listNode : pane.getChildren()) {
+                if (!(listNode instanceof VBox listContainer)) continue;
+
+                if (!listContainer.getStyleClass().contains("list_column")) continue;
+
+                Object listId = listNode.getUserData();
+
+                if (!(listId instanceof Long)) continue;
+
+                json = Json.JsonBuilder(Map.of("listPosition", position));
+
+                HTTPHandler.PATCH(
+                        json,
+                        "lists/" + listId + "/modular?section=POSITION"
+                );
+
+                position++;
+            }
+        }
     }
 
     private void addOrLoadLists(Mode mode) {
@@ -806,7 +831,7 @@ public class KanbanFX {
                 json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
                 HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=DELETED");
 
-                reorderListIndices();
+                reorderIndices(boardHBox);
             });
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
@@ -908,10 +933,10 @@ public class KanbanFX {
                 return;
             }
 
-            cardData.forEach(listCard -> {
+            cardData.forEach(cardData -> {
                 StackPane card = buildCardUI(
                         visibleList,
-                        listCard,
+                        cardData,
                         false
                 );
                 visibleList.getChildren().add(card);
@@ -932,13 +957,14 @@ public class KanbanFX {
         visibleList.getChildren().add(0, card);
     }
 
-    private StackPane buildCardUI(VBox visibleList, Card listCard, boolean startEditing) {
+    private StackPane buildCardUI(VBox visibleList, Card cardData, boolean startEditing) {
         StackPane card = new StackPane();
         card.getStyleClass().add("card");
         card.setPadding(new Insets(6));
+        card.setUserData(cardData.getCardId());
         VBox.setVgrow(card, Priority.NEVER);
 
-        TextArea text = new TextArea(listCard.getDescription());
+        TextArea text = new TextArea(cardData.getDescription());
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
         text.setPrefRowCount(1);
@@ -953,30 +979,31 @@ public class KanbanFX {
                 text.setEditable(false);
                 text.setMouseTransparent(true);
                 text.deselect();
-                String txt = text.getText();
-                String description = txt.isEmpty() ? "Untitled" : text.getText();
-                if (listCard.getCardId() == null) {
-                    //Map.of doesn't allow nulls
-                    Map<String, Object> payload = new HashMap<>();
-                    payload.put("listId", visibleList.getUserData());
-                    payload.put("boardId", boardID);
-                    payload.put("cardPosition", null);
-                    payload.put("description", description);
-                    payload.put("hexColor", "#FFFFFF");
-                    payload.put("status", Enum.CS.ACTIVE.name());
-                    json = Json.JsonBuilder(payload);
-                    Card createdCard = HTTPHandler.POST("cards", json, Card.class);
-                    assert createdCard != null;
-                    listCard.setCardId(createdCard.getCardId());
+                String description = text.getText().isEmpty() ? "Untitled" : text.getText();
+                if (cardData.getCardId() == null) {
+                    Card transferCard = new Card(
+                            null,
+                            (Long) visibleList.getUserData(),
+                            boardID,
+                            0L,
+                            description,
+                            "#FFFFFF",
+                            Enum.CS.ACTIVE);
+
+                    Card createdCard = HTTPHandler.POST("cards", transferCard, Card.class);
+                    cardData.setCardId(createdCard.getCardId());
+                    card.setUserData(createdCard.getCardId());
+                    reorderIndices(visibleList);
                     card.requestFocus();
                 } else {
+
                 json = Json.JsonBuilder(
                         Map.of("description", text.getText())
                 );
 
                 HTTPHandler.PATCH(
                         json,
-                        "cards/" + listCard.getCardId() +
+                        "cards/" + cardData.getCardId() +
                                 "/modular?section=DESCRIPTION"
                 );
             }
@@ -991,14 +1018,27 @@ public class KanbanFX {
         StackPane.setAlignment(cardOptions, Pos.TOP_RIGHT);
 
         MenuItem edit = new MenuItem("Edit");
+        MenuItem delete = new MenuItem("Delete");
+        MenuItem color = new MenuItem("Color");
+        MenuItem inbox = new MenuItem("Inbox");
         edit.setOnAction(e -> {
             text.setEditable(true);
             text.setMouseTransparent(false);
             text.requestFocus();
             Platform.runLater(text::selectAll);
         });
+        delete.setOnAction(e ->{
+            visibleList.getChildren().remove(card);
+            reorderIndices(visibleList);
+            HTTPHandler.DELETE("cards/" + cardData.getCardId());
+        });
+        inbox.setOnAction(e->{
+            visibleList.getChildren().remove(card);
+            reorderIndices(visibleList);
+            HTTPHandler.PATCH("cards/" + cardData.getCardId() + "/inbox");
+        });
 
-        cardOptions.getItems().add(edit);
+        cardOptions.getItems().addAll(edit, delete, inbox, color);
         card.getChildren().addAll(text, cardOptions);
 
         if (startEditing) {
@@ -1176,7 +1216,7 @@ public class KanbanFX {
             // Place list back into the layout
             boardHBox.getChildren().remove(placeholder);
             boardHBox.getChildren().add(dropIndex, draggedList);
-            reorderListIndices();
+            reorderIndices(boardHBox);
 
             // Clean up ghost
             Pane rootPane = (Pane) boardHBox.getScene().getRoot();
@@ -1299,6 +1339,7 @@ public class KanbanFX {
                 int index = targetList.getChildren().indexOf(placeholder[0]);
                 targetList.getChildren().remove(placeholder[0]);
                 targetList.getChildren().add(index, card);
+                reorderIndices(visibleList);
             }
 
             text.setEditable(false);
