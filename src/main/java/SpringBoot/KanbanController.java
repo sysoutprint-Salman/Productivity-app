@@ -304,16 +304,22 @@ class CardController {
     }
 
     @PatchMapping("/batch/modular")
-    protected void updateCardSectionBatch(
-            @RequestBody List<Card> cardsToUpdate,
-            @RequestParam Enum.Section section
-    ) {
+    protected void updateCardSectionBatch(@RequestBody List<Card> cardsToUpdate, @RequestParam Enum.Section section) {
         cardRepository.updateCardSectionBatch(cardsToUpdate, section);
     }
 
     @PatchMapping("/{cardId}/inbox")
     protected void updateCardToInboxed(@PathVariable Long cardId) {
         cardRepository.updateCardToInboxed(cardId);
+    }
+    @PatchMapping("/list/{listId}/archive")
+    protected void updateCardsToParentArchived(@PathVariable Long listId) {
+        cardRepository.updateCardsToParentArchived(listId);
+    }
+
+    @PatchMapping("/list/{listId}/delete")
+    protected void updateCardsToParentDeleted(@PathVariable Long listId) {
+        cardRepository.updateCardsToParentDeleted(listId);
     }
     @DeleteMapping("/{cardId}")
     protected void deleteCard(@PathVariable Long cardId){
@@ -420,6 +426,34 @@ class CardRepository {
             """;
 
         jdbc.update(query, cardId);
+    }
+
+    protected void updateCardsToParentArchived(Long listId) {
+        String query = """
+            UPDATE cards
+            SET status = ?
+            WHERE list_id = ?
+            """;
+
+        jdbc.update(
+                query,
+                Enum.CS.PARENT_ARCHIVED.name(),
+                listId
+        );
+    }
+
+    protected void updateCardsToParentDeleted(Long listId) {
+        String query = """
+            UPDATE cards
+            SET status = ?
+            WHERE list_id = ?
+            """;
+
+        jdbc.update(
+                query,
+                Enum.CS.PARENT_DELETED.name(),
+                listId
+        );
     }
 
     protected void deleteCard(Long cardId){

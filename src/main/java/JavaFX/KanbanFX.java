@@ -808,11 +808,20 @@ public class KanbanFX {
 
             MenuItem addCard = new MenuItem("Add Card");
             MenuItem edit = new MenuItem("Edit");
-            MenuItem color = new MenuItem("Color");
             MenuItem archive = new MenuItem("Archive");
             MenuItem delete = new MenuItem("Delete");
 
+            ColorPicker colorPicker = new ColorPicker(Color.web(
+                    list.getHexColor() == null ? "#FFFFFF" : list.getHexColor()
+            ));
+
+            CustomMenuItem color = new CustomMenuItem(colorPicker);
+            color.setHideOnClick(false);
+
+
+
             listOptionsBtn.getItems().addAll(addCard, edit, color, archive, delete);
+
 
             edit.setOnAction(e->{
                 headerTitle.setDisable(false);
@@ -820,17 +829,17 @@ public class KanbanFX {
                 headerTitle.requestFocus();
                 headerTitle.selectAll();
             });
-            color.setOnAction(e->{});
             archive.setOnAction(e-> {
                 boardHBox.getChildren().remove(listContainer);
                 json = Json.JsonBuilder(Map.of("status",Enum.LS.ARCHIVED));
                 HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=ARCHIVED");
+                HTTPHandler.PATCH("cards/list/" + list.getListId() + "/archive");
             });
             delete.setOnAction(e -> {
                 boardHBox.getChildren().remove(listContainer);
                 json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
                 HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=DELETED");
-
+                HTTPHandler.PATCH("cards/list/" + list.getListId() + "/delete");
                 reorderIndices(boardHBox);
             });
 
@@ -841,10 +850,12 @@ public class KanbanFX {
 
             if (isLoad) {
                 addOrLoadCards(visibleList, Mode.LOAD, Enum.Section.LIST);
-                /*//cardDate will be assigned in card method and used from there
-                cardData = List.of("Example Card 1", "Example Card 2");
-                cardData.forEach(c -> addOrLoadCards(visibleList, Mode.LOAD));*/
             }
+            addCard.setOnAction(event -> {
+                addOrLoadCards(visibleList, Mode.ADD, null);
+            });
+
+
 
             ScrollPane listScrollPane = new ScrollPane(visibleList);
             listScrollPane.getStyleClass().add("list_scrollP");
@@ -864,6 +875,36 @@ public class KanbanFX {
             );
 
             addCardSection.getChildren().add(addCardBtn);
+
+            colorPicker.setOnAction(e -> {
+                Color selectedColor = colorPicker.getValue();
+
+                String hexColor = String.format(
+                        "#%02X%02X%02X",
+                        (int) (selectedColor.getRed() * 255),
+                        (int) (selectedColor.getGreen() * 255),
+                        (int) (selectedColor.getBlue() * 255)
+                );
+
+                list.setHexColor(hexColor);
+
+                headerSection.setStyle("-fx-background-color: " + hexColor + ";");
+                visibleList.setStyle("-fx-background-color: " + hexColor + ";");
+                addCardSection.setStyle("-fx-background-color: " + hexColor + ";");
+
+                json = Json.JsonBuilder(Map.of("hexColor", hexColor));
+
+                HTTPHandler.PATCH(
+                        json,
+                        "lists/" + list.getListId() + "/modular?section=COLOR"
+                );
+                colorPicker.hide();
+                listOptionsBtn.hide();
+            });
+
+            headerSection.setStyle("-fx-background-color: " + list.getHexColor() + ";");
+            visibleList.setStyle("-fx-background-color: " + list.getHexColor() + ";");
+            addCardSection.setStyle("-fx-background-color: " + list.getHexColor() + ";");
 
             listContainer.getChildren().addAll(
                     headerSection,
