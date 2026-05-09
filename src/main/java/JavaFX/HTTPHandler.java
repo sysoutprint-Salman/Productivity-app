@@ -20,7 +20,6 @@ import java.util.Map;
 
 public class HTTPHandler {
     public static int port = PortHandler.getCurrentPort();
-    //
     public static void POST(String path, String JSON) {
         try {
             URL url = new URL("http://localhost:" + port + "/");
@@ -33,6 +32,34 @@ public class HTTPHandler {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.statusCode() == 200 ?
                     "HTTP: Successfully posted." : "HTTP: Failed to post.");
+        } catch (Exception ex) {
+            System.out.println("HTTP: An issue arose with POST request.");
+            ex.printStackTrace();
+        }
+    } //Old
+    public static void POST(String path, Object object) {
+        try {
+            String json = Json.MAPPER.writeValueAsString(object);
+
+            URL url = new URL("http://localhost:" + port + "/");
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + path))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<String> response = client.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+
+            System.out.println(response.statusCode() == 200
+                    ? "HTTP: Successfully posted."
+                    : "HTTP: Failed to post.");
+
         } catch (Exception ex) {
             System.out.println("HTTP: An issue arose with POST request.");
             ex.printStackTrace();
@@ -126,6 +153,30 @@ public class HTTPHandler {
             System.out.println("HTTP: PUT failed.");
             e.printStackTrace();
         }
+    } //Old
+    public static void PUT(String path, Object object) {
+        try {
+            String json = Json.MAPPER.writeValueAsString(object);
+
+            String url = "http://localhost:" + port + "/" + path;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpResponse<String> response = client.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+
+        } catch (InterruptedException | IOException e) {
+            System.out.println("HTTP: PUT failed.");
+            e.printStackTrace();
+        }
     }
     public static void PATCH(String JSON, String path) {
         try {
@@ -144,7 +195,7 @@ public class HTTPHandler {
             System.out.println("HTTP: PATCH failed");
             e.printStackTrace();
         }
-    }
+    } //Old
     public static void PATCH(String path) {
         try {
             String url = "http://localhost:" + port + "/" + path;

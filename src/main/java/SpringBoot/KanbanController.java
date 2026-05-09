@@ -344,25 +344,46 @@ class CardRepository {
                 cardRowMapper, boardId, status.name());
     }
 
+    // ===== REPLACE CardRepository createCard METHOD =====
     protected Card createCard(Card card) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-            jdbc.update(connection -> {
-                PreparedStatement statement = connection.prepareStatement(
-                        """
-                                INSERT INTO cards (list_id, board_id, card_position, description, hex_color, status)
-                                VALUES (?, ?, ?, ?, ?, ?)
-                                """, new String[]{"card_id"});
+
+        jdbc.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                    INSERT INTO cards (list_id, board_id, card_position, description, hex_color, status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    new String[]{"card_id"}
+            );
+
+            if (card.getListId() == null) {
+                statement.setNull(1, java.sql.Types.BIGINT);
+            } else {
                 statement.setLong(1, card.getListId());
-                statement.setLong(2, card.getBoardId());
+            }
+
+            statement.setLong(2, card.getBoardId());
+
+            if (card.getCardPosition() == null) {
+                statement.setNull(3, java.sql.Types.BIGINT);
+            } else {
                 statement.setLong(3, card.getCardPosition());
-                statement.setString(4, card.getDescription());
-                statement.setString(5, card.getHexColor());
-                statement.setString(6, card.getStatus().name());
-                return statement;
-            }, keyHolder);
+            }
+
+            statement.setString(4, card.getDescription());
+            statement.setString(5, card.getHexColor());
+            statement.setString(6, card.getStatus().name());
+
+            return statement;
+        }, keyHolder);
 
         Number generatedId = keyHolder.getKey();
-        if (generatedId != null) card.setCardId(generatedId.longValue());
+
+        if (generatedId != null) {
+            card.setCardId(generatedId.longValue());
+        }
+
         return card;
     }
 
@@ -507,6 +528,14 @@ class ReminderController {
         reminderRepository.update(reminderId, section, reminder);
 
     }
+    // ===== ADD INSIDE ReminderController =====
+    @PutMapping("/{reminderId}")
+    protected void updateReminder(
+            @PathVariable Long reminderId,
+            @RequestBody Reminder reminder
+    ) {
+        reminderRepository.updateFull(reminderId, reminder);
+    }
 }
 @Repository
 class ReminderRepository {
@@ -580,6 +609,23 @@ class ReminderRepository {
                 );
             }
         }
+    }
+    protected void updateFull(Long reminderId, Reminder reminder) {
+        jdbc.update(
+                """
+                UPDATE reminders
+                SET reminder_title = ?,
+                    description = ?,
+                    priority = ?,
+                    due_date = ?
+                WHERE reminder_id = ?
+                """,
+                reminder.getReminderTitle(),
+                reminder.getDescription(),
+                reminder.getPriority().name(),
+                reminder.getDueDate(),
+                reminderId
+        );
     }
     //DELETE reminder
     //PUT

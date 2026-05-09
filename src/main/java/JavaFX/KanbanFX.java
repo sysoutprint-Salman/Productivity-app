@@ -31,6 +31,7 @@ import javafx.util.Duration;
 import javafx.animation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -129,9 +130,9 @@ public class KanbanFX {
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
     }
 
-    private void remindersPopup() {
+    private void remindersPopup(Boolean isEdit, Reminder reminderToEdit) {
         stage = new Stage();
-        stage.setTitle("Create reminder");
+        stage.setTitle(isEdit ? "Edit reminder" : "Create reminder");
 
         layoutContainer = new VBox();
         layoutContainer.getStyleClass().add("pu_vbox");
@@ -154,7 +155,6 @@ public class KanbanFX {
         times(timeCombo);
         timeCombo.getStyleClass().add("pu_choicebox");
         timeCombo.setPrefWidth(95);
-        timeCombo.getItems().addAll();
 
         Label dateLabel = new Label("Date:");
 
@@ -181,44 +181,64 @@ public class KanbanFX {
         priorityCombo.getStyleClass().add("pu_choicebox");
         priorityCombo.getItems().addAll("None", "Low", "Medium", "High");
 
-        priorityColorRow.getChildren().addAll(
-                priorityLabel,
-                priorityCombo);
+        priorityColorRow.getChildren().addAll(priorityLabel, priorityCombo);
 
-        Button createButton = new Button("Create");
-        createButton.getStyleClass().add("pu_buttons");
-        try {
-            createButton.setOnAction(e -> {
+        if (isEdit && reminderToEdit != null) {
+            titleField.setText(reminderToEdit.getReminderTitle());
+            descriptionArea.setText(reminderToEdit.getDescription());
 
-                String title = titleField.getText();
-                String description = descriptionArea.getText();
-                LocalDate date = datePicker.getValue();
-                if (timeCombo.getValue() == null) return;
-                LocalTime time = LocalTime.parse(
-                        timeCombo.getValue(),
-                        formatter
-                );
-                if (priorityCombo.getValue() == null) return;
-                Reminder.Priority priority = Reminder.Priority.valueOf(
-                        priorityCombo.getValue().toUpperCase()
-                );
+            if (reminderToEdit.getPriority() != null) {
+                String priorityText = reminderToEdit.getPriority().name().substring(0, 1)
+                        + reminderToEdit.getPriority().name().substring(1).toLowerCase();
 
-                if (!(title.isEmpty()) && !(date == null)) {
-                    createReminder(title, description, date, time, priority);
-                    stage.close();
-                }
+                priorityCombo.setValue(priorityText);
+            }
 
-            });
-        } catch (NullPointerException ignored) {
-
+            if (reminderToEdit.getDueDate() != null) {
+                datePicker.setValue(reminderToEdit.getDueDate().toLocalDate());
+                timeCombo.setValue(reminderToEdit.getDueDate().toLocalTime().format(formatter));
+            }
         }
+
+        Button saveButton = new Button(isEdit ? "Save" : "Create");
+        saveButton.getStyleClass().add("pu_buttons");
+
+        saveButton.setOnAction(e -> {
+            String title = titleField.getText();
+            String description = descriptionArea.getText();
+            LocalDate date = datePicker.getValue();
+
+            if (title == null || title.isBlank()) return;
+            if (date == null) return;
+            if (timeCombo.getValue() == null) return;
+            if (priorityCombo.getValue() == null) return;
+
+            LocalTime time = LocalTime.parse(timeCombo.getValue(), formatter);
+
+            Reminder.Priority priority = Reminder.Priority.valueOf(
+                    priorityCombo.getValue().toUpperCase()
+            );
+
+            Reminder reminder = new Reminder(
+                    isEdit && reminderToEdit != null ? reminderToEdit.getReminderId() : null,
+                    boardID,
+                    title,
+                    description,
+                    priority,
+                    LocalDateTime.of(date, time)
+            );
+
+            addOrLoadReminders(isEdit ? Mode.LOAD : Mode.ADD, reminder);
+
+            stage.close();
+        });
 
         layoutContainer.getChildren().addAll(
                 titleField,
                 descriptionArea,
                 timeDateRow,
                 priorityColorRow,
-                createButton
+                saveButton
         );
 
         scene = new Scene(layoutContainer, 350, 300);
@@ -634,12 +654,8 @@ public class KanbanFX {
                 title.setText("Reminders");
                 addButton.setText("Create reminder");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> remindersPopup());
-                for (int i = 0; i < 3; i++) {
-                    createReminder("Test","Test",
-                            LocalDate.now(), LocalTime.now(),
-                            Reminder.Priority.NONE );
-                }
+                addButton.setOnAction(e -> remindersPopup(false, null));
+                addOrLoadReminders(Mode.LOAD, null);
                 break;
 
             case THEMES:
@@ -950,6 +966,147 @@ public class KanbanFX {
 
     }
 
+    private void addOrLoadReminders(Mode mode, Reminder reminderInfo) {
+        boolean isAdd = mode == Mode.ADD;
+
+        if (isAdd) {
+            HTTPHandler.POST("reminders", reminderInfo);
+            addOrLoadReminders(Mode.LOAD, null);
+            return;
+        }
+
+        if (reminderInfo != null && reminderInfo.getReminderId() != null) {
+            HTTPHandler.PUT("reminders/" + reminderInfo.getReminderId(), reminderInfo);
+            addOrLoadReminders(Mode.LOAD, null);
+            return;
+        }
+
+        sidebarContentVbox.getChildren().clear();
+
+        List<Reminder> reminderData = HTTPHandler.GET(
+                "reminders/board/" + boardID,
+                Reminder.class
+        );
+
+        if (reminderData == null || reminderData.isEmpty()) {
+            return;
+        }
+
+        reminderData.sort(
+                Comparator.comparing(Reminder::getReminderId, Comparator.nullsLast(Long::compareTo))
+                        .reversed()
+        );
+
+        for (Reminder reminder : reminderData) {
+            TitledPane reminderPane = new TitledPane();
+            reminderPane.getStyleClass().add("pu_titledpane");
+            reminderPane.setCollapsible(true);
+            reminderPane.setExpanded(false);
+            reminderPane.setMaxWidth(Double.MAX_VALUE);
+            reminderPane.setMinWidth(0);
+            reminderPane.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(8));
+
+            HBox header = new HBox(6);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.setPadding(new Insets(10, 10, 10, 10));
+            header.setMinHeight(70);
+            header.setPrefHeight(Region.USE_COMPUTED_SIZE);
+            header.setMaxHeight(Region.USE_PREF_SIZE);
+            header.setMinWidth(0);
+            header.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(35));
+
+            HBox priorityBox = new HBox(2);
+            priorityBox.setAlignment(Pos.CENTER_LEFT);
+            priorityBox.setMinWidth(Region.USE_PREF_SIZE);
+            priorityBox.setMaxWidth(Region.USE_PREF_SIZE);
+
+            int priorityCount = switch (reminder.getPriority()) {
+                case NONE -> 0;
+                case LOW -> 1;
+                case MEDIUM -> 2;
+                case HIGH -> 3;
+            };
+
+            for (int i = 0; i < priorityCount; i++) {
+                ImageView icon = new ImageView(
+                        new Image(getClass().getResource("/Images/exclamation.png").toExternalForm())
+                );
+                icon.setFitWidth(12);
+                icon.setFitHeight(12);
+                icon.setPreserveRatio(true);
+                priorityBox.getChildren().add(icon);
+            }
+
+            Label title = new Label(reminder.getReminderTitle());
+            title.setFont(Font.font(14));
+            title.setWrapText(true);
+            title.setMinWidth(0);
+            title.setMaxWidth(Double.MAX_VALUE);
+            title.prefWidthProperty().bind(
+                    header.widthProperty()
+                            .subtract(priorityBox.widthProperty())
+                            .subtract(12)
+            );
+            HBox.setHgrow(title, Priority.ALWAYS);
+
+            header.getChildren().addAll(priorityBox, title);
+            reminderPane.setGraphic(header);
+
+            ContextMenu reminderContextMenu = new ContextMenu();
+
+            MenuItem edit = new MenuItem("Edit");
+            MenuItem delete = new MenuItem("Delete");
+
+            reminderContextMenu.getItems().addAll(edit, delete);
+
+            reminderPane.setOnContextMenuRequested(e -> {
+                reminderContextMenu.show(
+                        reminderPane,
+                        e.getScreenX(),
+                        e.getScreenY()
+                );
+                e.consume();
+            });
+
+            VBox contentBox = new VBox(6);
+            contentBox.setPadding(new Insets(8));
+            contentBox.setMaxWidth(Double.MAX_VALUE);
+            contentBox.setMinWidth(0);
+
+            Label description = new Label(reminder.getDescription());
+            description.setWrapText(true);
+            description.setMinWidth(0);
+            description.setMaxWidth(Double.MAX_VALUE);
+            description.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(25));
+
+            Label timestamp = new Label();
+
+            if (reminder.getDueDate() != null) {
+                timestamp.setText(
+                        reminder.getDueDate().toLocalTime().format(formatter)
+                                + " "
+                                + reminder.getDueDate().toLocalDate().format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                );
+            }
+
+            timestamp.setWrapText(true);
+            timestamp.setMinWidth(0);
+            timestamp.setMaxWidth(Double.MAX_VALUE);
+
+            contentBox.getChildren().addAll(description, timestamp);
+            reminderPane.setContent(contentBox);
+
+            edit.setOnAction(e -> remindersPopup(Boolean.TRUE, reminder));
+
+            delete.setOnAction(e -> {
+                sidebarContentVbox.getChildren().remove(reminderPane);
+                HTTPHandler.DELETE("reminders/" + reminder.getReminderId());
+            });
+
+            sidebarContentVbox.getChildren().add(reminderPane);
+        }
+    }
+
     private void addOrLoadCards(VBox visibleList, Mode mode, Enum.Section section) {
         /*
         TODO: New cards should be saved on ENTER not patched.
@@ -1022,19 +1179,24 @@ public class KanbanFX {
                 text.deselect();
                 String description = text.getText().isEmpty() ? "Untitled" : text.getText();
                 if (cardData.getCardId() == null) {
+                    boolean creatingInboxCard = visibleList == sidebarContentVbox;
+
                     Card transferCard = new Card(
                             null,
-                            (Long) visibleList.getUserData(),
+                            creatingInboxCard ? null : (Long) visibleList.getUserData(),
                             boardID,
-                            0L,
+                            creatingInboxCard ? null : 0L,
                             description,
                             "#FFFFFF",
-                            Enum.CS.ACTIVE);
+                            creatingInboxCard ? Enum.CS.INBOXED : Enum.CS.ACTIVE
+                    );
 
                     Card createdCard = HTTPHandler.POST("cards", transferCard, Card.class);
                     cardData.setCardId(createdCard.getCardId());
                     card.setUserData(createdCard.getCardId());
-                    reorderIndices(visibleList);
+                    if (visibleList != sidebarContentVbox) {
+                        reorderIndices(visibleList);
+                    }
                     card.requestFocus();
                 } else {
 
@@ -1069,13 +1231,23 @@ public class KanbanFX {
             Platform.runLater(text::selectAll);
         });
         delete.setOnAction(e ->{
-            visibleList.getChildren().remove(card);
-            reorderIndices(visibleList);
+            if (card.getParent() instanceof VBox currentParent) {
+                currentParent.getChildren().remove(card);
+
+                if (currentParent != sidebarContentVbox) {
+                    reorderIndices(currentParent);
+                }
+            }
             HTTPHandler.DELETE("cards/" + cardData.getCardId());
         });
         inbox.setOnAction(e->{
-            visibleList.getChildren().remove(card);
-            reorderIndices(visibleList);
+            if (card.getParent() instanceof VBox currentParent) {
+                currentParent.getChildren().remove(card);
+
+                if (currentParent != sidebarContentVbox) {
+                    reorderIndices(currentParent);
+                }
+            }
             HTTPHandler.PATCH("cards/" + cardData.getCardId() + "/inbox");
         });
 
@@ -1270,10 +1442,11 @@ public class KanbanFX {
         });
     }
 
-    private void makeCardDraggable(VBox visibleList, StackPane card, TextArea text){
+    private void makeCardDraggable(VBox visibleList, StackPane card, TextArea text) {
         final StackPane[] ghostCard = {null};
         final Rectangle[] placeholder = {null};
         final Group[] overlayRef = {null};
+        final VBox[] sourceListRef = {null};
 
         card.setOnMousePressed(e -> {
             if (text.isEditable() || e.getTarget() instanceof MenuButton) return;
@@ -1290,22 +1463,10 @@ public class KanbanFX {
 
             Parent root = boardHBox.getScene().getRoot();
 
-            if (overlayRef[0] == null) {
-                if (root instanceof Pane pane) {
-                    for (Node n : pane.getChildren()) {
-                        if (n instanceof Group g && g.getProperties().containsKey("kanbanOverlay")) {
-                            overlayRef[0] = g;
-                            break;
-                        }
-                    }
-                    if (overlayRef[0] == null) {
-                        overlayRef[0] = new Group();
-                        overlayRef[0].getProperties().put("kanbanOverlay", true);
-                        pane.getChildren().add(overlayRef[0]);
-                    }
-                } else if (root instanceof Group g) {
-                    overlayRef[0] = g;
-                }
+            if (root instanceof Pane pane) {
+                overlayRef[0] = new Group();
+                overlayRef[0].getProperties().put("kanbanOverlay", true);
+                pane.getChildren().add(overlayRef[0]);
             }
 
             Point2D start = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
@@ -1320,6 +1481,7 @@ public class KanbanFX {
             VBox parent = (VBox) card.getParent();
             int index = parent.getChildren().indexOf(card);
             parent.getChildren().add(index, placeholder[0]);
+            sourceListRef[0] = (VBox) card.getParent();
             parent.getChildren().remove(card);
         });
 
@@ -1329,33 +1491,23 @@ public class KanbanFX {
             Point2D dragPoint = overlayRef[0].sceneToLocal(e.getSceneX(), e.getSceneY());
             ghostCard[0].relocate(dragPoint.getX(), dragPoint.getY());
 
-            VBox targetList = null;
-            for (Node listContainer : boardHBox.getChildren()) {
-                if (listContainer instanceof VBox outer
-                        && outer.getChildren().get(1) instanceof ScrollPane sp
-                        && sp.getContent() instanceof VBox list) {
-
-                    Bounds lb = list.localToScene(list.getBoundsInLocal());
-                    if (e.getSceneX() > lb.getMinX() && e.getSceneX() < lb.getMaxX()) {
-                        targetList = list;
-                        break;
-                    }
-                }
-            }
+            VBox targetList = findCardDropTarget(e);
 
             if (targetList == null) return;
-
-            Bounds ghostBounds = ghostCard[0].localToScene(ghostCard[0].getBoundsInLocal());
-            double centerY = ghostBounds.getCenterY();
 
             if (placeholder[0].getParent() != null) {
                 ((VBox) placeholder[0].getParent()).getChildren().remove(placeholder[0]);
             }
 
+            Bounds ghostBounds = ghostCard[0].localToScene(ghostCard[0].getBoundsInLocal());
+            double centerY = ghostBounds.getCenterY();
+
             int insertIndex = 0;
             for (Node n : targetList.getChildren()) {
                 Bounds nb = n.localToScene(n.getBoundsInLocal());
-                if (centerY > nb.getMinY() + nb.getHeight() / 2) insertIndex++;
+                if (centerY > nb.getMinY() + nb.getHeight() / 2) {
+                    insertIndex++;
+                }
             }
 
             targetList.getChildren().add(insertIndex, placeholder[0]);
@@ -1366,21 +1518,75 @@ public class KanbanFX {
 
             if (overlayRef[0] != null) {
                 overlayRef[0].getChildren().remove(ghostCard[0]);
-                if (overlayRef[0].getChildren().isEmpty()
-                        && overlayRef[0].getParent() instanceof Pane pane) {
+
+                if (overlayRef[0].getParent() instanceof Pane pane) {
                     pane.getChildren().remove(overlayRef[0]);
-                    overlayRef[0] = null;
                 }
             }
 
+            VBox sourceList = sourceListRef[0];
+
             if (placeholder[0] == null || placeholder[0].getParent() == null) {
-                visibleList.getChildren().add(card);
+                sourceList.getChildren().add(card);
             } else {
                 VBox targetList = (VBox) placeholder[0].getParent();
                 int index = targetList.getChildren().indexOf(placeholder[0]);
+
                 targetList.getChildren().remove(placeholder[0]);
                 targetList.getChildren().add(index, card);
-                reorderIndices(visibleList);
+
+                Object cardIdObject = card.getUserData();
+
+                if (cardIdObject instanceof Long cardId) {
+
+                    boolean movedFromInboxToList =
+                            sourceList == sidebarContentVbox && targetList != sidebarContentVbox;
+
+                    boolean movedFromListToInbox =
+                            sourceList != sidebarContentVbox && targetList == sidebarContentVbox;
+
+                    boolean movedListToList =
+                            sourceList != sidebarContentVbox && targetList != sidebarContentVbox;
+
+                    if (sourceList != sidebarContentVbox) {
+                        reorderIndices(sourceList);
+                    }
+
+                    if (targetList != sidebarContentVbox) {
+                        reorderIndices(targetList);
+                    }
+
+                    if (movedFromInboxToList) {
+                        Object targetListIdObject = targetList.getUserData();
+
+                        if (targetListIdObject instanceof Long newListId) {
+                            HTTPHandler.PATCH(
+                                    Json.JsonBuilder(Map.of("listId", newListId)),
+                                    "cards/" + cardId + "/modular?section=ID"
+                            );
+
+                            HTTPHandler.PATCH(
+                                    Json.JsonBuilder(Map.of("status", Enum.CS.ACTIVE)),
+                                    "cards/" + cardId + "/modular?section=STATUS"
+                            );
+                        }
+                    }
+
+                    if (movedFromListToInbox) {
+                        HTTPHandler.PATCH("cards/" + cardId + "/inbox");
+                    }
+
+                    if (movedListToList && sourceList != targetList) {
+                        Object targetListIdObject = targetList.getUserData();
+
+                        if (targetListIdObject instanceof Long newListId) {
+                            HTTPHandler.PATCH(
+                                    Json.JsonBuilder(Map.of("listId", newListId)),
+                                    "cards/" + cardId + "/modular?section=ID"
+                            );
+                        }
+                    }
+                }
             }
 
             text.setEditable(false);
@@ -1389,8 +1595,40 @@ public class KanbanFX {
 
             ghostCard[0] = null;
             placeholder[0] = null;
+            sourceListRef[0] = null;
         });
+    }
 
+    private VBox findCardDropTarget(MouseEvent e) {
+        if (sidebarOpen && previousSidebarButton == cards) {
+            Bounds sidebarBounds = sidebarContentVbox.localToScene(sidebarContentVbox.getBoundsInLocal());
+
+            if (e.getSceneX() > sidebarBounds.getMinX()
+                    && e.getSceneX() < sidebarBounds.getMaxX()
+                    && e.getSceneY() > sidebarBounds.getMinY()
+                    && e.getSceneY() < sidebarBounds.getMaxY()) {
+                return sidebarContentVbox;
+            }
+        }
+
+        for (Node listContainer : boardHBox.getChildren()) {
+            if (listContainer instanceof VBox outer
+                    && outer.getChildren().size() > 1
+                    && outer.getChildren().get(1) instanceof ScrollPane sp
+                    && sp.getContent() instanceof VBox list) {
+
+                Bounds lb = list.localToScene(list.getBoundsInLocal());
+
+                if (e.getSceneX() > lb.getMinX()
+                        && e.getSceneX() < lb.getMaxX()
+                        && e.getSceneY() > lb.getMinY()
+                        && e.getSceneY() < lb.getMaxY()) {
+                    return list;
+                }
+            }
+        }
+
+        return null;
     }
 
     private int getDropIndex(double sceneX) {
