@@ -111,16 +111,6 @@
                         <Label fx:id="menuLabel3" text="Archive" />
                      </children>
                   </VBox>
-                  <VBox id="boards" fx:id="boards" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
-                     <children>
-                                <ImageView>
-                                    <image>
-                              <Image url="@../Images/board.png" />
-                           </image>
-                                </ImageView>
-                        <Label fx:id="menuLabel4" text="Boards" />
-                     </children>
-                  </VBox>
                   <VBox id="deleted" fx:id="deleted" alignment="TOP_CENTER" maxWidth="-Infinity" prefWidth="100.0" styleClass="icon_containers">
                      <children>
                         <ImageView>
@@ -138,9 +128,18 @@
                 </AnchorPane>
             </left>
          <top>
-            <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="950.0" styleClass="board_header" BorderPane.alignment="CENTER">
+            <HBox fx:id="boardHeadherHbox" alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="950.0" styleClass="board_header" BorderPane.alignment="CENTER">
                <children>
                   <Label fx:id="boardTitle" text="Example Board Title" />
+               <VBox fx:id="boards" alignment="CENTER" maxWidth="-Infinity" prefHeight="15.0" prefWidth="35.0" styleClass="boards_section_icon">
+                  <children>
+                             <ImageView>
+                                 <image>
+                           <Image url="@../Images/board.png" />
+                        </image>
+                             </ImageView>
+                  </children>
+               </VBox>
                </children>
                <padding>
                   <Insets bottom="10.0" left="20.0" right="10.0" top="10.0" />

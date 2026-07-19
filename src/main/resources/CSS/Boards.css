@@ -1,0 +1,131 @@
+.root {
+    -canvas-white:            #FFFFFF;
+    -surface-light:           #F8F9FB;
+    -surface-hover:           #F2F4F7;
+    -surface-pressed:         #E8EBEF;
+
+    -border-light:            #E2E6EA;
+    -border-medium:           #D2D8DF;
+
+    -text-primary:            #1F2937;
+    -text-secondary:          #6B7280;
+    -text-disabled:           #9CA3AF;
+
+    -accent-blue:             #4F8EF7;
+    -accent-blue-hover:       #3D7DE8;
+    -accent-blue-light:       #EAF2FF;
+
+    -shadow-light: rgba(0,0,0,.08);
+}
+
+.board_card{
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    //-fx-border-color: derive(-color-medium-gray, 20%);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.12),12,0,0,2);
+    -fx-spacing: 0;
+}
+
+.board_preview{
+    -fx-background-color: lightgray;
+    -fx-background-radius: 12 12 0 0;
+    -fx-min-height: 130;
+    -fx-pref-height: 130;
+}
+
+.board_footer{
+    -fx-padding: 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 8;
+}
+
+.board_info{
+    -fx-spacing: 3;
+}
+
+.board_title{
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+}
+
+.board_last_modified{
+    -fx-font-size: 11;
+    -fx-text-fill: ;
+}
+
+.board_menu{
+    -fx-background-color: transparent;
+}
+
+/*Sidebar*/
+.workspace_sidebar {
+    -fx-background-color: -canvas-white;
+    -fx-padding: 15;
+    -fx-spacing: 12;
+}
+
+.workspace_menu_button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+}
+
+.workspace_menu_button:hover {
+    -fx-background-color: -surface-hover;
+}
+
+.workspace_header {
+    -fx-alignment: center-left;
+    //-fx-padding: 0 5 5 5;
+}
+
+.workspace_title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text-primary;
+}
+
+.workspace_add_button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+}
+
+.workspace_add_button:hover {
+    -fx-background-color: -surface-hover;
+}
+
+.workspace_scrollpane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.workspace_scrollpane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.workspace_list {
+    -fx-spacing: 6;
+}
+
+.workspace_button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-alignment: center-left;
+    -fx-padding: 12 14;
+    -fx-font-size: 14px;
+    -fx-text-fill: -text-primary;
+    -fx-pref-height: 46px;
+    -fx-max-width: Infinity;
+}
+
+.workspace_button:hover {
+    -fx-background-color: -surface-hover;
+}
+
+.workspace_button:pressed {
+    -fx-background-color: -surface-pressed;
+}

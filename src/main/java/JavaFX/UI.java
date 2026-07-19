@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.prefs.Preferences;
 
 
-//Putting SpringApp & Rest annotations here didn't work likely because of Application extension.
 @Slf4j
 public class UI extends Application {
     private final LogInFX logInFX = new LogInFX();
@@ -37,13 +36,13 @@ public class UI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            logInFX.autoLogIn(primaryStage);
+            //logInFX.autoLogIn(primaryStage);
+            new SwitchScenes().switchToBoards(primaryStage);
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();
             primaryStage.setAlwaysOnTop(false);
             primaryStage.getIcons().add(new Image("/Images/App Icon.png"));
-            // Shutdown on window close
             primaryStage.setOnCloseRequest(event -> shutdown());
 
         } catch (Exception e) {

@@ -82,6 +82,10 @@ public class HTTPHandler {
                 System.out.println("Response Body: " + response.body());
                 return null;
             }
+            if (response.body()==null || response.body().isBlank()) {
+                System.out.println("HTTP: Empty response received. Returning null.");
+                return null;
+            }
             return Json.MAPPER.readValue(response.body(), objectType);
 
         } catch (Exception ex) {

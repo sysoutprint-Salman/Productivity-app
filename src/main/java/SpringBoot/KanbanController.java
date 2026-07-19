@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class KanbanController {
 }
@@ -37,7 +38,12 @@ class BoardController {
     }
 
     @PostMapping
-    protected void createBoard(@RequestBody Board boardInfo) {
+    protected Long createBoard(@RequestBody Board boardInfo) {
+        return boardRepository.createBoard(boardInfo);
+    }
+
+    @PostMapping("/loaded")
+    protected void createLoadedBoard(@RequestBody Board boardInfo) {
         boardRepository.createBoard(boardInfo);
     }
 
@@ -74,13 +80,24 @@ class BoardRepository {
         );
     }
 
-    protected void createBoard(Board board) {
-        jdbc.update(
-                "INSERT INTO boards (board_title, user_id, creation_date) VALUES (?, ?, ?)",
-                board.getBoardTitle(),
-                board.getUserId(),
-                board.getCreationDate()
-        );
+    protected Long createBoard(Board board) {
+        return jdbc.queryForObject(
+            """
+            INSERT INTO boards (board_title, user_id, creation_date)
+            VALUES (?, ?, ?)
+            RETURNING board_id
+            """,
+            Long.class,
+            board.getBoardTitle(),
+            board.getUserId(),
+            board.getCreationDate());
+    }
+
+    protected void createLoadedBoard(Board board, List<Map<String, Object>> loadedContent){
+        createBoard(board);
+        for (Map<String, Object> content: loadedContent){
+
+        }
     }
     protected void deleteBoard(Long boardId){
         jdbc.update("DELETE from boards WHERE board_id = ?", boardId);

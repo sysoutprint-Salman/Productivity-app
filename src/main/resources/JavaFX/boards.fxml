@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="610.0" prefWidth="950.0" stylesheets="@../CSS/Boards.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.BoardsFX">
+   <children>
+      <MenuBar layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="950.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <menus>
+            <Menu text="To Do">
+               <items>
+                  <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
+                  <MenuItem mnemonicParsing="false" text="Close" />
+               </items>
+               <graphic>
+                  <ImageView styleClass="icon">
+                     <image>
+                        <Image url="@../Images/check.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Menu>
+            <Menu text="AI Chat">
+               <items>
+                  <MenuItem fx:id="gptMenuItem" onAction="#switchToGPT" text="Chat with AI assistant" />
+               </items>
+               <graphic>
+                  <ImageView styleClass="icon">
+                     <image>
+                        <Image url="@../Images/user.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Menu>
+            <Menu text="Notebook">
+               <items>
+                  <MenuItem fx:id="viewNotebook" onAction="#switchToNotebook" text="View Notebook" />
+               </items>
+               <graphic>
+                  <ImageView styleClass="icon">
+                     <image>
+                        <Image url="@../Images/notepad.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Menu>
+            <Menu text="Kanban">
+               <graphic>
+                  <ImageView styleClass="icon">
+                     <image>
+                        <Image url="@../Images/kanban.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <items>
+                  <MenuItem fx:id="viewNotebook1" onAction="#switchToNotebook" text="Kanban Board" />
+               </items>
+            </Menu>
+         </menus>
+         <stylesheets>
+            <URL value="@../CSS/MenuBar.css" />
+            <URL value="@../CSS/Boards.css" />
+         </stylesheets>
+      </MenuBar>
+      <BorderPane layoutX="134.0" layoutY="66.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="39.0">
+         <center>
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <content>
+                  <VBox>
+                     <children>
+                        <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="765.0">
+                           <children>
+                              <Button mnemonicParsing="false">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../Images/undo.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Region prefHeight="35.0" prefWidth="116.0" HBox.hgrow="ALWAYS" />
+                              <Label prefHeight="35.0" prefWidth="159.0" text="My workspace">
+                                 <font>
+                                    <Font size="24.0" />
+                                 </font>
+                              </Label>
+                              <Region prefHeight="35.0" prefWidth="110.0" HBox.hgrow="ALWAYS" />
+                           </children>
+                           <padding>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </padding>
+                        </HBox>
+                        <HBox>
+                           <children>
+                              <Button fx:id="createBoardButton" mnemonicParsing="false" onAction="#createBoardPopup" prefHeight="35.0" prefWidth="110.0" text="Create board">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../Images/plus%20(5).png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Region HBox.hgrow="ALWAYS" />
+                              <MenuButton mnemonicParsing="false" prefHeight="35.0" text="Sort">
+                                 <items>
+                                    <RadioMenuItem mnemonicParsing="false" text="Unspecified Action" />
+                                 </items>
+                              </MenuButton>
+                           </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="40.0" top="20.0" />
+                           </padding>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </HBox>
+                        <FlowPane fx:id="boardGrid" hgap="10.0" prefHeight="200.0" prefWidth="200.0" vgap="10.0">
+                           <children>
+                               <VBox prefHeight="180.0" prefWidth="250.0" styleClass="board_card">
+
+                                   <children>
+
+                                       <StackPane prefHeight="150.0" prefWidth="250.0" styleClass="board_preview" />
+
+                                       <HBox styleClass="board_footer">
+
+                                           <children>
+
+                                               <VBox styleClass="board_info" HBox.hgrow="ALWAYS">
+
+                                                   <children>
+
+                                                       <Label styleClass="board_title" text="Project A" />
+
+                                                       <Label styleClass="board_last_modified" text="Last Modified: Yesterday" />
+
+                                                   </children>
+
+                                               </VBox>
+
+                                               <MenuButton styleClass="board_menu">
+
+                                                   <items>
+
+                                                       <MenuItem text="Rename" />
+
+                                                       <MenuItem text="Duplicate" />
+
+                                                       <MenuItem text="Archive" />
+
+                                                       <MenuItem text="Delete" />
+
+                                                   </items>
+
+                                               </MenuButton>
+
+                                           </children>
+
+                                       </HBox>
+
+                                   </children>
+
+                               </VBox>                           </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                           </padding>
+                        </FlowPane>
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </center>
+         <left>
+             <VBox prefHeight="571.0" prefWidth="195.0" styleClass="workspace_sidebar">
+
+                 <children>
+
+                     <Button styleClass="workspace_menu_button">
+                         <graphic>
+                             <ImageView fitHeight="28" fitWidth="28" preserveRatio="true">
+                           <image>
+                              <Image url="@../Images/menu.png" />
+                           </image></ImageView>
+                         </graphic>
+                     </Button>
+
+                     <HBox styleClass="workspace_header">
+
+                         <children>
+
+                             <Label styleClass="workspace_title" text="Workspaces" />
+
+                             <Region HBox.hgrow="ALWAYS" />
+
+                             <Button styleClass="workspace_add_button">
+                                 <graphic>
+                                     <ImageView fitHeight="18" fitWidth="18" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../Images/plus%20(5).png" />
+                                 </image></ImageView>
+                                 </graphic>
+                             </Button>
+
+                         </children>
+
+                     </HBox>
+
+                     <ScrollPane fitToWidth="true" styleClass="workspace_scrollpane" VBox.vgrow="ALWAYS">
+
+                         <content>
+
+                             <VBox styleClass="workspace_list">
+
+                                 <children>
+
+                                     <Button styleClass="workspace_button" text="My Workspace" />
+
+                                     <Button styleClass="workspace_button" text="Work" />
+
+                                     <Button styleClass="workspace_button" text="College" />
+
+                                 </children>
+
+                             </VBox>
+
+                         </content>
+
+                     </ScrollPane>
+
+                 </children>
+
+             </VBox>
+         </left>
+      </BorderPane>
+   </children>
+</AnchorPane>

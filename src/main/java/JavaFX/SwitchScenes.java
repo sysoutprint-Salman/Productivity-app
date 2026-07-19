@@ -30,11 +30,9 @@ public class SwitchScenes {
             Stage stage = null;
             Object source = event.getSource();
 
-            if (source instanceof Node node) {
-                // Attempting to get the stage from any UI element.
+            if (source instanceof Node node) { // Attempting to get the stage from any UI element.
                 stage = (Stage) node.getScene().getWindow();
-            } else if (source instanceof MenuItem menuItem) {
-                // Attempting to get the stage through a menuitem's popup window.
+            } else if (source instanceof MenuItem menuItem) { // Attempting to get the stage through a menuitem's popup window.
                 if (menuItem.getParentPopup() != null) {
                     stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
                 }
@@ -106,4 +104,21 @@ public class SwitchScenes {
                 ex.printStackTrace();
             }
     }
+
+    public void switchToBoards(Stage curStage) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/boards.fxml"));
+            Parent root = loader.load();
+            BoardsFX FXHandler = loader.getController();
+            Scene scene = new Scene(root);
+            curStage.setTitle(stageTitle);
+            curStage.setScene(scene);
+            curStage.centerOnScreen();
+            curStage.show();
+            //Platform.runLater(FXHandler::getByPosted);
+        } catch (IOException | RuntimeException ex) {
+            System.err.println("Error trying to load switchToTasks.");
+            ex.printStackTrace();
+        }
+    } //Testing purposes, delete later
 }
