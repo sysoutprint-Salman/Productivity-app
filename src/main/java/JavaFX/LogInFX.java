@@ -66,10 +66,10 @@ public class LogInFX {
         String storedUsername = userPrefs.getStoredUsername();
         String storedEmail = userPrefs.getStoredEmail();
         if (storedUsername != null || storedEmail != null){
-            //Switch to tasks scene
+
             switchScenes.switchToTasks(curStage);
         } else {
-            //Switch to Log scene
+
             switchScenes.switchToLogin();
         }
     }

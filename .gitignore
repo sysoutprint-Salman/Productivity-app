@@ -34,3 +34,5 @@ build/
 .vscode/
 /src/main/java/TODO
 /src/main/resources/application.properties
+/database.db
+/schema.sql

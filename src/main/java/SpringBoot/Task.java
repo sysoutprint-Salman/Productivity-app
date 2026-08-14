@@ -30,4 +30,17 @@ public class Task {
     private LocalDateTime creationDate;
     //Add color column which holds hexadecimal color code
     public enum Status {POSTED,DELETED,COMPLETED }
+
+    @Override
+    public String toString() {
+        return "Task(" + '\'' +
+                "id: " + id + '\'' +
+                ", userId: " + userId + '\'' +
+                ", title: '" + title + '\'' +
+                ", date: " + date + '\'' +
+                ", description: '" + description + '\'' +
+                ", status: " + status + '\'' +
+                ", creationDate: " + creationDate + '\'' +
+                ')';
+    }
 }

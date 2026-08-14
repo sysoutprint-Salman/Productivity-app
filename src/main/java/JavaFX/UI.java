@@ -36,8 +36,8 @@ public class UI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            //logInFX.autoLogIn(primaryStage);
-            new SwitchScenes().switchToBoards(primaryStage);
+            logInFX.autoLogIn(primaryStage);
+            //new SwitchScenes().switchToBoards(primaryStage);
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();

@@ -240,17 +240,16 @@ public class NotebookFX{
     }
 
     public MenuButton colorOptions(List<Color> colors, Consumer<Color> onColorSelected){
-        //Will likely use in the future, but not important now.
+
         MenuButton button = new MenuButton();
         button.setPrefWidth(40);
         button.setPrefHeight(30);
 
-        // default visual
+
         Rectangle preview = new Rectangle(20, 20, colors.get(0));
         preview.setStroke(Color.GRAY);
         button.setGraphic(preview);
 
-        // create swatches
         for (Color color : colors) {
             CustomMenuItem item = new CustomMenuItem();
 
@@ -261,7 +260,7 @@ public class NotebookFX{
             item.setHideOnClick(true);
 
             item.setOnAction(e -> {
-                preview.setFill(color);   // update selected color
+                preview.setFill(color);
                 onColorSelected.accept(color);
             });
 
