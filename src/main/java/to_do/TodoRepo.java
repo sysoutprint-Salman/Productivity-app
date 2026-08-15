@@ -135,13 +135,10 @@ public class TodoRepo {
 
             statement.setString(5, task.getStatus().name());
 
-            // ISO-8601
-            statement.setString(
-                    6,
-                    task.getCreationDate() != null
-                            ? task.getCreationDate().toString()
-                            : null
-            );
+            // ISO-8601 task.getCreationDate().toString()
+            statement.setString(6, task.getCreationDate() != null
+                            ? task.getCreationDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                            : null);
 
             statement.executeUpdate();
 
@@ -195,13 +192,8 @@ public class TodoRepo {
     }
 
 
-    public void updateSection(
-            Long id,
-            String section,
-            Object value) {
-
+    public void updateSection(Long id, String section, Object value) {
         String sql;
-
         switch (section) {
 
             case "date":

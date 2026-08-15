@@ -72,9 +72,9 @@ public class TodoTest {
         System.out.println("Fetched: " + task);
         assertNotNull(task);
 
-        task.setDescription("Updated through SQLite!");
+        task.setStatus(Task.Status.DELETED);
 
-        todoService.updateSection(170L, "description", task);
+        todoService.updateSection(170L, "status", task);
 
         Task updatedTask = todoService.getById(170L);
         System.out.println("Updated: " + task);

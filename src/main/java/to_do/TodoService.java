@@ -64,8 +64,7 @@ public class TodoService {
                 value = receivedInfo.getStatus().name();
                 break;
 
-            default:
-                throw new IllegalArgumentException(
+            default: throw new IllegalArgumentException(
                         "Invalid task section: " + section
                 );
         }
