@@ -1,11 +1,11 @@
 package SpringBoot;
 
+import ai_chat.AI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;
@@ -62,7 +62,7 @@ class AIRowMapper implements RowMapper<AI>{
     @Override
     public AI mapRow(ResultSet rs, int rowNum) throws SQLException {
         AI ai = new AI();
-        ai.setId(rs.getLong("id"));
+        ai.setResponseId(rs.getLong("response_id"));
         ai.setUserId(rs.getLong("user_id"));
         ai.setPrompt(rs.getString("prompt"));
         ai.setResponse(rs.getString("response"));

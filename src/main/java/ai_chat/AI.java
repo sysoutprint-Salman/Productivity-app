@@ -1,6 +1,5 @@
-package SpringBoot;
+package ai_chat;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -15,11 +14,9 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AI {
 
-    private Long id;
-    //@JsonAlias({"userId", "user_id"}) //
+    private Long responseId;
     private Long userId;
     private String prompt;
-    //@Column(columnDefinition = "TEXT")
     private String response;
     private LocalDateTime timestamp;
 }

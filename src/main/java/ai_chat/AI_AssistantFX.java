@@ -1,14 +1,9 @@
-package JavaFX;
+package ai_chat;
 
-import SpringBoot.AI;
-import SpringBoot.Enum;
+import notebook.NotebookFX;
+import JavaFX.SwitchScenes;
 import SpringBoot.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.animation.Animation;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,12 +12,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
+import to_do.ToDoFX;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -31,31 +24,24 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class AI_AssistantFX {
-    public MenuItem gptMenuItem;
     public VBox chatBoxVbox;
     public Button sendButton;
     public TextField userTextField;
     private final DateTimeFormatter dateAndTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yy hh:mm a");
     protected final SwitchScenes handler = new SwitchScenes();
-    private final LocalDateTime timestampNow = LocalDateTime.now();
     public ScrollPane messageScrollPane;
-    private final ObjectMapper mapper = new ObjectMapper();
     public MenuItem mainTasks;
     public MenuItem viewNotebook;
     public ImageView uploadIcon;
     private ToDoFX toDoFX;
     private NotebookFX notebooks;
-    public VBox placeholderVbox;
     public Label emptyLogsMessage;
-    private String json;
-
+    private final AIService aiService = new AIService();
     public AI_AssistantFX(){}
 
     public void initialize(){
@@ -134,15 +120,6 @@ public class AI_AssistantFX {
         });
     }
 
-    public void onEnterPressed(){
-        userTextField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
-                sendButton.fire();
-            }
-            sendButton.setDefaultButton(true);
-        });
-    }
-
     public void onSendMessage() {
         userTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER && !userTextField.getText().isEmpty()) {
@@ -176,11 +153,8 @@ public class AI_AssistantFX {
 
         StringBuilder fullResponse = new StringBuilder();
 
-        // STREAM
         streamGPT(
                 prompt,
-
-                // onToken
                 token -> {
                     fullResponse.append(token);
                     Platform.runLater(() ->
@@ -190,36 +164,26 @@ public class AI_AssistantFX {
 
                 () -> {
                     try {
-                        /*Map<String, Object> jsonPayload = new HashMap<>();
-                        jsonPayload.put("response", fullResponse.toString());
-                        jsonPayload.put("timestamp", LocalDateTime.now().toString());
-                        jsonPayload.put("prompt", prompt);
-                        jsonPayload.put("userId", User.getUserId());*/
-
-                        json = Json.JsonBuilder(Map.of(
-                                "response", fullResponse.toString(),
-                                "timestamp", LocalDateTime.now().toString(),
-                                "prompt", prompt,
-                                "userId", User.getUserId()
-                        ));
-                        System.out.println(json);
-                        //String refinedJson = new ObjectMapper().writeValueAsString(jsonPayload);
-                        HTTPHandler.POST("gptresponses", json);
+                        AI newChat = new AI();
+                        newChat.setResponse(fullResponse.toString());
+                        newChat.setTimestamp(LocalDateTime.now());
+                        newChat.setPrompt(prompt);
+                        newChat.setUserId(User.getUserId());
+                        aiService.createResponse(newChat);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 },
-
-                // onError
                 error -> Platform.runLater(() -> {
-                    gptLabel.setText("Error contacting GPT.");
+                    gptLabel.setText("Error");
                     error.printStackTrace();
                 })
         );
     }
 
     public void GETChatlogs(){
-        List<AI> chatLogs = HTTPHandler.GET("gptresponses/filter?userId=" + User.getUserId(), AI.class);
+        List<AI> chatLogs =aiService.findByUserId(User.getUserId());
+
         chatBoxVbox.getChildren().removeAll();
         if (chatLogs.isEmpty()){
             emptyLogsMessage = new Label("This is your personal AI assistant, ask it whatever you need!");

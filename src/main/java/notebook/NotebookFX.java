@@ -1,7 +1,10 @@
-package JavaFX;
+package notebook;
 
-import SpringBoot.Notebook;
+import JavaFX.HTTPHandler;
+import JavaFX.SwitchScenes;
+import JavaFX.UserPrefs;
 import SpringBoot.User;
+import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
@@ -17,6 +20,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import to_do.ToDoFX;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -39,6 +43,7 @@ public class NotebookFX{
     private Scene scene;
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
+    private final NotebookService notebookService = new NotebookService();
 
     public NotebookFX(){}
 
@@ -74,12 +79,9 @@ public class NotebookFX{
             String hexColor = colorPicker.isDisabled() ? null : hexColorFormatter(colorPicker.getValue());
             if (!title.isEmpty()){
                 try {
-                    ObjectNode objectNode = mapper.createObjectNode();
-                    objectNode.put("tabTitle",title);
-                    objectNode.put("userId", User.getUserId());
-                    objectNode.put("hexColor", hexColor);
-                    String notebookJson = mapper.writeValueAsString(objectNode);
-                    HTTPHandler.POST("notebooks", notebookJson);
+                    Notebook newNB = Notebook.builder().tabTitle(title)
+                                    .hexColor(hexColor).userId(User.getUserId()).build();
+                    notebookService.createNotebook(newNB);
                     popupStage.close();
                     tabsVbox.getChildren().clear();
                     GETNotebooks();
@@ -137,13 +139,9 @@ public class NotebookFX{
             String hexColor = editColorPicker.isDisabled() ? null : hexColorFormatter(editColorPicker.getValue());
             if (!title.isEmpty()){
                 try {
-                    ObjectNode objectNode = mapper.createObjectNode();
-                    objectNode.put("tabTitle", title);
-                    objectNode.put("hexColor", hexColor);
-                    String notebookJson = mapper.writeValueAsString(objectNode);
-                    HTTPHandler.PUT(notebookJson, "notebooks/" + id + "/tab");
                     notebook.setTabTitle(title);
                     notebook.setHexColor(hexColor);
+                    notebookService.updateNotebookTab(notebook.getNotebookId(), notebook);
                     String cssStyle = hexColor != null ? hexColor + ";" : "transparent;";
                     tabButton.setStyle("-fx-border-color: transparent transparent #cfcfcf " + cssStyle);
                     tabButton.setText(notebook.getTabTitle());
@@ -168,7 +166,7 @@ public class NotebookFX{
 
     public void GETNotebooks(){
         try {
-            List<Notebook> notebooks = HTTPHandler.GET("notebooks/filter?userId=" + User.getUserId(),Notebook.class);
+            List<Notebook> notebooks = notebookService.findByUserId(User.getUserId());
             notebookScrollPane.setContent(notepadArea);
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
@@ -194,7 +192,7 @@ public class NotebookFX{
                 tabButton.setOnMouseClicked(e ->{
                     notepadArea.setText(notebook.getNotebookText());
                     notepadArea.setVisible(true);
-                    autoUpdateNotebookText(notebook.getId(), notebook);
+                    autoUpdateNotebookText(notebook.getNotebookId(), notebook);
                     //tabButton.setSelected(true);
                 });
                 ContextMenu contextMenu = new ContextMenu();
@@ -202,9 +200,9 @@ public class NotebookFX{
                 MenuItem deleteTab = new MenuItem("Delete Tab");
                 contextMenu.getItems().addAll(editTab, deleteTab);
                 editTab.setOnAction(event -> {
-                    editNewTab(notebook.getTabTitle(), notebook.getId(), notebook, tabButton);});
+                    editNewTab(notebook.getTabTitle(), notebook.getNotebookId(), notebook, tabButton);});
                 deleteTab.setOnAction(event -> {
-                    HTTPHandler.DELETE("notebooks/" + notebook.getId());
+                    notebookService.deleteNotebook(notebook.getNotebookId());
                     tabsVbox.getChildren().remove(tabButton);
                     notepadArea.setVisible(false);});
                 tabButton.setContextMenu(contextMenu);
@@ -219,14 +217,8 @@ public class NotebookFX{
             Timeline debouncer = new Timeline(
                     new KeyFrame(Duration.millis(DELAY), e -> {
                         try {
-                            String updatedText = notepadArea.getText();
-                            Map<String, String> updateMap = new HashMap<>();
-                            updateMap.put("notebookText", updatedText);
-                            String updatedJson = mapper.writeValueAsString(updateMap);
-                            HTTPHandler.PUT(updatedJson, "notebooks/" + notebookId + "/text");
-                            //notepadArea.setVisible(true);
-                            notebook.setNotebookText(updatedText);
-
+                            notebook.setNotebookText(notepadArea.getText());
+                            notebookService.updateNotebookText(notebookId, notebook);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

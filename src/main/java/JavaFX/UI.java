@@ -36,8 +36,8 @@ public class UI extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            logInFX.autoLogIn(primaryStage);
-            //new SwitchScenes().switchToBoards(primaryStage);
+            //logInFX.autoLogIn(primaryStage);
+            new SwitchScenes().switchScene(primaryStage);
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();
@@ -56,7 +56,7 @@ public class UI extends Application {
         if (ctx != null) {
             ctx.close();
         }
-        Platform.exit(); //exits out of both javafx window & springboot
+        Platform.exit();
         System.exit(0);
     }
 }

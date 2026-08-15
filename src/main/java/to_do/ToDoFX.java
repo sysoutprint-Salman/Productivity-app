@@ -1,10 +1,9 @@
-package JavaFX;
+package to_do;
 
-import SpringBoot.Task;
+import JavaFX.*;
 import SpringBoot.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,8 +18,9 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import kanban.KanbanFX;
 import lombok.Data;
-import to_do.TodoService;
+import notebook.NotebookFX;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

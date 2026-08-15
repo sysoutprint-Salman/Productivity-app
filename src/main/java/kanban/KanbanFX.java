@@ -1,7 +1,11 @@
-package JavaFX;
+package kanban;
 
+import JavaFX.HTTPHandler;
+import JavaFX.Json;
+import JavaFX.SwitchScenes;
 import SpringBoot.*;
 import SpringBoot.Enum;
+import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
@@ -24,11 +28,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.*;
+import notebook.NotebookFX;
+import to_do.ToDoFX;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,6 +1,5 @@
 package to_do;
 
-import SpringBoot.Task;
 import database.DatabaseManager;
 
 import java.sql.*;

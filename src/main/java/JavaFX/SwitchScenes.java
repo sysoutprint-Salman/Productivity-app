@@ -11,7 +11,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import kanban.BoardsFX;
+import kanban.KanbanFX;
 import org.springframework.context.ConfigurableApplicationContext;
+import to_do.ToDoFX;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -120,5 +123,21 @@ public class SwitchScenes {
             System.err.println("Error trying to load switchToTasks.");
             ex.printStackTrace();
         }
-    } //Testing purposes, delete later
+    }
+    public void switchScene(Stage curStage) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/kanbanBoard.fxml"));
+            Parent root = loader.load();
+            KanbanFX FXHandler = loader.getController();
+            Scene scene = new Scene(root);
+            curStage.setTitle(stageTitle);
+            curStage.setScene(scene);
+            curStage.centerOnScreen();
+            curStage.show();
+            //Platform.runLater(FXHandler::);
+        } catch (IOException | RuntimeException ex) {
+            System.err.println("Error trying to load switchToTasks.");
+            ex.printStackTrace();
+        }
+    }
 }

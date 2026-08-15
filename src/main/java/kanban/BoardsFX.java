@@ -1,10 +1,11 @@
-package JavaFX;
+package kanban;
 
-import SpringBoot.Board;
+import JavaFX.HTTPHandler;
+import JavaFX.SwitchScenes;
 import SpringBoot.User;
+import ai_chat.AI_AssistantFX;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -12,11 +13,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.json.HTTP;
+import notebook.NotebookFX;
+import to_do.ToDoFX;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class BoardsFX {
     @FXML private Button createBoardButton;

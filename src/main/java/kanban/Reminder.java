@@ -1,4 +1,4 @@
-package SpringBoot;
+package kanban;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -11,9 +11,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Board {
+public class Reminder {
+    private Long reminderId;
     private Long boardId;
-    private Long userId;
-    private String boardTitle;
-    private LocalDateTime creationDate;
+    private String reminderTitle;
+    private String description;
+    private Priority priority;
+    private LocalDateTime dueDate;
+    public enum Priority {NONE, LOW, MEDIUM, HIGH}
 }

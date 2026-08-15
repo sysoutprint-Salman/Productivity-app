@@ -1,22 +1,17 @@
 package SpringBoot;
 
-import jakarta.websocket.server.PathParam;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import notebook.Notebook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notebooks")
@@ -110,7 +105,7 @@ class NotebookMapper implements RowMapper<Notebook>{
     @Override
     public Notebook mapRow(ResultSet rs, int rowNum) throws SQLException {
         Notebook notebook = new Notebook();
-        notebook.setId(rs.getLong("id"));
+        notebook.setNotebookId(rs.getLong("id"));
         notebook.setUserId(rs.getLong("user_id"));
         notebook.setTabTitle(rs.getString("tab_title"));
         notebook.setNotebookText(rs.getString("notebook_text"));
