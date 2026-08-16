@@ -1,19 +1,21 @@
-package kanban;
+package kanban.card;
 
+import SpringBoot.Enum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Board {
+public class Card {
+    private Long cardId;
+    private Long listId;
     private Long boardId;
-    private Long userId;
-    private String boardTitle;
-    private LocalDateTime creationDate;
+    private Long cardPosition;
+    private String description;
+    private String hexColor;
+    private Enum.CS status;
 }

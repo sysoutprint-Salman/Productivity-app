@@ -11,7 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import kanban.BoardsFX;
+import kanban.boards.BoardsFX;
 import kanban.KanbanFX;
 import org.springframework.context.ConfigurableApplicationContext;
 import to_do.ToDoFX;

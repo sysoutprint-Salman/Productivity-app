@@ -1,5 +1,6 @@
-package SpringBoot;
+package kanban.list;
 
+import SpringBoot.Enum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class KList {
+public class List {
     private Long listId;
     private Long boardId;
     private Long listPosition;

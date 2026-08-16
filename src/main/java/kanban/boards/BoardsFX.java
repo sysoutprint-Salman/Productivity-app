@@ -1,4 +1,4 @@
-package kanban;
+package kanban.boards;
 
 import JavaFX.HTTPHandler;
 import JavaFX.SwitchScenes;

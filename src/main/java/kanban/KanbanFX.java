@@ -3,7 +3,6 @@ package kanban;
 import JavaFX.HTTPHandler;
 import JavaFX.Json;
 import JavaFX.SwitchScenes;
-import SpringBoot.*;
 import SpringBoot.Enum;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +31,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.*;
+import kanban.card.Card;
+import kanban.list.List;
+import kanban.reminder.Reminder;
 import notebook.NotebookFX;
 import to_do.ToDoFX;
 
@@ -81,8 +83,8 @@ public class KanbanFX {
     private final Label headerTitle = new Label();
     private final ScrollPane sidebarScrollPane = new ScrollPane();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
-    private List<KList> listData;
-    private List<Card> cardData;
+    private java.util.List<List> listData;
+    private java.util.List<Card> cardData;
     private Long boardID = 1l;
     private String json;
     private boolean recalListIndices = false;
@@ -538,7 +540,7 @@ public class KanbanFX {
         Long position = 0L;
 
         if (pane instanceof VBox) {
-            List<Map<String, Object>> batchJson = new ArrayList<>();
+            java.util.List<Map<String, Object>> batchJson = new ArrayList<>();
 
             for (Node cardNode : pane.getChildren()) {
                 if (!(cardNode instanceof StackPane)) continue;
@@ -587,12 +589,12 @@ public class KanbanFX {
     private void addOrLoadLists(Mode mode) {
         boolean isLoad = mode == Mode.LOAD;
         if (isLoad) {
-            listData = HTTPHandler.GET("lists/all/" + boardID + "/condition?status=ACTIVE", KList.class);
-            listData.sort(Comparator.comparing(KList::getListPosition));
+            listData = HTTPHandler.GET("lists/all/" + boardID + "/condition?status=ACTIVE", List.class);
+            listData.sort(Comparator.comparing(List::getListPosition));
 
         } else {
             listData = new ArrayList<>();
-            listData.add(new KList());
+            listData.add(new List());
         }
 
 
@@ -828,7 +830,7 @@ public class KanbanFX {
 
         sidebarContentVbox.getChildren().clear();
 
-        List<Reminder> reminderData = HTTPHandler.GET(
+        java.util.List<Reminder> reminderData = HTTPHandler.GET(
                 "reminders/board/" + boardID,
                 Reminder.class
         );
@@ -1133,7 +1135,7 @@ public class KanbanFX {
         return area;
     }
 
-    public void addOrLoadArchiveContent(ArrayList<KList> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
+    public void addOrLoadArchiveContent(ArrayList<List> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
 
         if (mode != Mode.LOAD) {
             return;
@@ -1158,7 +1160,7 @@ public class KanbanFX {
 
         if (!archivedLists.isEmpty()) {
 
-            for (KList list : archivedLists) {
+            for (List list : archivedLists) {
 
                 TitledPane archivePane = new TitledPane();
                 archivePane.setText(list.getTitle());
@@ -1204,7 +1206,7 @@ public class KanbanFX {
         }
     }
 
-    private void makeListDraggable(KList list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
+    private void makeListDraggable(List list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
 
         listContainer.setOnMousePressed(e -> {
             draggedList = listContainer;

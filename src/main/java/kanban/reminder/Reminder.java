@@ -1,21 +1,22 @@
-package kanban;
+package kanban.reminder;
 
-import SpringBoot.Enum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Card {
-    private Long cardId;
-    private Long listId;
+public class Reminder {
+    private Long reminderId;
     private Long boardId;
-    private Long cardPosition;
+    private String reminderTitle;
     private String description;
-    private String hexColor;
-    private Enum.CS status;
+    private Priority priority;
+    private LocalDateTime dueDate;
+    public enum Priority {NONE, LOW, MEDIUM, HIGH}
 }
