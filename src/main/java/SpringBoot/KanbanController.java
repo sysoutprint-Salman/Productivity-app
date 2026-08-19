@@ -1,8 +1,9 @@
 package SpringBoot;
 
+import kanban.Enums;
 import kanban.boards.Board;
 import kanban.card.Card;
-import kanban.list.List;
+import kanban.column.Column;
 import kanban.reminder.Reminder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,34 +129,34 @@ class KListController {
     private final KListRepository listRepository;
 
     @GetMapping("/all/{boardId}")
-    protected java.util.List<List> findAllListsByBoardId(@PathVariable Long boardId) {
+    protected java.util.List<Column> findAllListsByBoardId(@PathVariable Long boardId) {
         return listRepository.findAllListsByBoardId(boardId);
     }
     @GetMapping("/all/{boardId}/condition")
-    protected java.util.List<List> findByStatus(@PathVariable Long boardId, @RequestParam Enum.LS status){
+    protected java.util.List<Column> findByStatus(@PathVariable Long boardId, @RequestParam Enums.LS status){
         return listRepository.findByStatus(boardId, status);
     }
     @GetMapping("/{listId}")
-    protected List findListById(@PathVariable Long listId) {
+    protected Column findListById(@PathVariable Long listId) {
         return listRepository.findListById(listId);
     }
     @PostMapping
-    protected void createList(@RequestBody List list) {
-        listRepository.create(list);
+    protected void createList(@RequestBody Column column) {
+        listRepository.create(column);
     }
 
     @PutMapping("/{listId}")
-    protected void updateList(@PathVariable Long listId, @RequestBody List newListInfo){
-        listRepository.updateList(listId, newListInfo);
+    protected void updateList(@PathVariable Long listId, @RequestBody Column newColumnInfo){
+        listRepository.updateList(listId, newColumnInfo);
     }
 
     @PatchMapping("/{listId}/modular")
-    protected void updateListSection(@PathVariable Long listId, @RequestParam Enum.Section section, @RequestBody List newListInfo ){
+    protected void updateListSection(@PathVariable Long listId, @RequestParam Enums.Section section, @RequestBody Column newColumnInfo){
         Object valueToUpdate = switch (section) {
-            case TITLE -> newListInfo.getTitle();
-            case POSITION -> newListInfo.getListPosition();
-            case STATUS -> newListInfo.getStatus().name();
-            case COLOR -> newListInfo.getHexColor();
+            case TITLE -> newColumnInfo.getTitle();
+            case POSITION -> newColumnInfo.getColumnPosition();
+            case STATUS -> newColumnInfo.getStatus().name();
+            case COLOR -> newColumnInfo.getHexColor();
             default -> null;
         };
         if (valueToUpdate == null){
@@ -170,7 +171,7 @@ class KListController {
         listRepository.updateListPositions(listDTO.getListIds(), listDTO.getListPositions());
     }
     @PatchMapping("/{listId}/status")
-    public void updateStatusAndPosition(@PathVariable Long listId, @RequestParam Enum.LS status, @RequestParam(required = false) Long position) {
+    public void updateStatusAndPosition(@PathVariable Long listId, @RequestParam Enums.LS status, @RequestParam(required = false) Long position) {
         listRepository.updateStatusAndPosition(listId, status, position);
     }
 
@@ -186,33 +187,33 @@ class KListRepository {
     private final KListRowMapper kListRowMapper = new KListRowMapper();
 
 
-    protected java.util.List<List> findByStatus(Long boardId, Enum.LS status){
+    protected java.util.List<Column> findByStatus(Long boardId, Enums.LS status){
         return jdbc.query("SELECT * FROM lists WHERE board_id = ? AND status = ?",
                 kListRowMapper, boardId, status.name());
     }
-    protected void create(List list) {
+    protected void create(Column column) {
         jdbc.update(
                 "INSERT INTO lists (board_id, list_position, title, hex_color, status) VALUES (?, ?, ?, ?, ?)",
-                list.getBoardId(),
-                list.getListPosition(),
-                list.getTitle(),
-                list.getHexColor(),
-                list.getStatus().name()
+                column.getBoardId(),
+                column.getColumnPosition(),
+                column.getTitle(),
+                column.getHexColor(),
+                column.getStatus().name()
         );
     }
-    protected void updateList(Long ListId, List newListInfo){
+    protected void updateList(Long ListId, Column newColumnInfo){
         jdbc.update(
                 "UPDATE lists SET board_id = ?, list_position = ?, title = ?, hex_color = ?, status = ? " +
                         "WHERE list_id = ?",
-                newListInfo.getBoardId(),
-                newListInfo.getListPosition(),
-                newListInfo.getTitle(),
-                newListInfo.getHexColor(),
-                newListInfo.getStatus().name(),
+                newColumnInfo.getBoardId(),
+                newColumnInfo.getColumnPosition(),
+                newColumnInfo.getTitle(),
+                newColumnInfo.getHexColor(),
+                newColumnInfo.getStatus().name(),
                 ListId
         );
     }
-    protected void updateListSection(Long ListId, Enum.Section section, Object value){
+    protected void updateListSection(Long ListId, Enums.Section section, Object value){
         String query;
         switch (section){
             case TITLE : query = "UPDATE lists SET title = ? WHERE list_id = ?";
@@ -229,7 +230,7 @@ class KListRepository {
                 break;
         }
     }
-    protected void updateStatusAndPosition(Long listId, Enum.LS status, Long position) {
+    protected void updateStatusAndPosition(Long listId, Enums.LS status, Long position) {
         String query;
         if (position == null) {
             query = "UPDATE lists SET status = ?, list_position = NULL WHERE list_id = ?";
@@ -258,25 +259,25 @@ class KListRepository {
         jdbc.update("DELETE FROM lists where list_id = ?", listId);
     }
 
-    public java.util.List<List> findAllListsByBoardId(Long boardId) {
+    public java.util.List<Column> findAllListsByBoardId(Long boardId) {
         return jdbc.query("SELECT * FROM lists where board_id = ?", kListRowMapper, boardId);
     }
 
-    public List findListById(Long listId) {
+    public Column findListById(Long listId) {
         return jdbc.queryForObject("SELECT * FROM lists where list_id = ?", kListRowMapper, listId);
 
     }
 }
-class KListRowMapper implements RowMapper<List> {
+class KListRowMapper implements RowMapper<Column> {
     @Override
-    public List mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new List(
+    public Column mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new Column(
                 rs.getLong("list_id"),
                 rs.getLong("board_id"),
                 rs.getLong("list_position"),
                 rs.getString("title"),
                 rs.getString("hex_color"),
-                Enum.LS.valueOf(rs.getString("status"))
+                Enums.LS.valueOf(rs.getString("status"))
         );
     }
 }
@@ -299,14 +300,14 @@ class CardController {
     }
 
     @GetMapping("/{boardId}/status")
-    protected java.util.List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Enum.CS cardStatus){
+    protected java.util.List<Card> findByStatus(@PathVariable Long boardId, @RequestParam Enums.CS cardStatus){
         return cardRepository.findByStatus(boardId, cardStatus);
 
     }
     @PatchMapping("/{cardId}/modular")
-    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Enum.Section section){
+    protected void updateCardSection(@PathVariable Long cardId, @RequestBody Card newCardInfo, @RequestParam Enums.Section section){
         Object valueToUpdate = switch (section){
-            case ID -> newCardInfo.getListId();
+            case ID -> newCardInfo.getColumnId();
             case DESCRIPTION -> newCardInfo.getDescription();
             case COLOR -> newCardInfo.getHexColor();
             case POSITION -> newCardInfo.getCardPosition();
@@ -321,7 +322,7 @@ class CardController {
     }
 
     @PatchMapping("/batch/modular")
-    protected void updateCardSectionBatch(@RequestBody java.util.List<Card> cardsToUpdate, @RequestParam Enum.Section section) {
+    protected void updateCardSectionBatch(@RequestBody java.util.List<Card> cardsToUpdate, @RequestParam Enums.Section section) {
         cardRepository.updateCardSectionBatch(cardsToUpdate, section);
     }
 
@@ -356,7 +357,7 @@ class CardRepository {
         );
     }
 
-    protected java.util.List<Card> findByStatus(Long boardId, Enum.CS status){
+    protected java.util.List<Card> findByStatus(Long boardId, Enums.CS status){
         return jdbc.query("SELECT * FROM cards WHERE board_id = ? AND status = ?",
                 cardRowMapper, boardId, status.name());
     }
@@ -374,10 +375,10 @@ class CardRepository {
                     new String[]{"card_id"}
             );
 
-            if (card.getListId() == null) {
+            if (card.getColumnId() == null) {
                 statement.setNull(1, java.sql.Types.BIGINT);
             } else {
-                statement.setLong(1, card.getListId());
+                statement.setLong(1, card.getColumnId());
             }
 
             statement.setLong(2, card.getBoardId());
@@ -404,7 +405,7 @@ class CardRepository {
         return card;
     }
 
-    protected void updateCardSection(Long cardId, Object value, Enum.Section section){
+    protected void updateCardSection(Long cardId, Object value, Enums.Section section){
         String query;
         switch (section){
             case ID : query = "UPDATE cards SET list_id = ? WHERE card_id = ?";
@@ -425,7 +426,7 @@ class CardRepository {
         }
     }
 
-    protected void updateCardSectionBatch(java.util.List<Card> cardsToUpdate, Enum.Section section) {
+    protected void updateCardSectionBatch(java.util.List<Card> cardsToUpdate, Enums.Section section) {
         String query = switch (section) {
             case ID -> "UPDATE cards SET list_id = ? WHERE card_id = ?";
             case DESCRIPTION -> "UPDATE cards SET description = ? WHERE card_id = ?";
@@ -441,7 +442,7 @@ class CardRepository {
 
         jdbc.batchUpdate(query, cardsToUpdate, cardsToUpdate.size(), (ps, card) -> {
             Object valueToUpdate = switch (section) {
-                case ID -> card.getListId();
+                case ID -> card.getColumnId();
                 case DESCRIPTION -> card.getDescription();
                 case COLOR -> card.getHexColor();
                 case POSITION -> card.getCardPosition();
@@ -475,7 +476,7 @@ class CardRepository {
 
         jdbc.update(
                 query,
-                Enum.CS.PARENT_ARCHIVED.name(),
+                Enums.CS.PARENT_ARCHIVED.name(),
                 listId
         );
     }
@@ -489,7 +490,7 @@ class CardRepository {
 
         jdbc.update(
                 query,
-                Enum.CS.PARENT_DELETED.name(),
+                Enums.CS.PARENT_DELETED.name(),
                 listId
         );
     }
@@ -508,7 +509,7 @@ class CardRowMapper implements RowMapper<Card> {
                 rs.getLong("card_position"),
                 rs.getString("description"),
                 rs.getString("hex_color"),
-                Enum.CS.valueOf(rs.getString("status"))
+                Enums.CS.valueOf(rs.getString("status"))
         );
     }
 }
@@ -539,7 +540,7 @@ class ReminderController {
     @PatchMapping("/{reminderId}")
     protected void updateReminderSection(
             @PathVariable Long reminderId,
-            @RequestParam Enum.Section section,
+            @RequestParam Enums.Section section,
             @RequestBody Reminder reminder
     ) {
         reminderRepository.update(reminderId, section, reminder);
@@ -588,7 +589,7 @@ class ReminderRepository {
         );
     }
 
-    protected void update(Long reminderId, Enum.Section section, Reminder reminder) {
+    protected void update(Long reminderId, Enums.Section section, Reminder reminder) {
         switch (section) {
             case TITLE -> {
                 if (reminder.getReminderTitle() == null) return;

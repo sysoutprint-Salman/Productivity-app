@@ -1,4 +1,4 @@
-package SpringBoot;
+package user;
 
 
 import lombok.*;

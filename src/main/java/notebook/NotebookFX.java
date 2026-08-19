@@ -1,12 +1,10 @@
 package notebook;
 
-import JavaFX.HTTPHandler;
 import JavaFX.SwitchScenes;
 import JavaFX.UserPrefs;
-import SpringBoot.User;
+import user.User;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;

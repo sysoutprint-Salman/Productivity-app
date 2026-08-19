@@ -1,7 +1,7 @@
 package to_do;
 
 import JavaFX.*;
-import SpringBoot.User;
+import user.User;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;

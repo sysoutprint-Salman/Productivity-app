@@ -11,7 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import kanban.boards.BoardsFX;
+import kanban.boards.BoardFX;
 import kanban.KanbanFX;
 import org.springframework.context.ConfigurableApplicationContext;
 import to_do.ToDoFX;
@@ -78,14 +78,7 @@ public class SwitchScenes {
             stage.setScene(scene);
             stage.centerOnScreen();
             stage.show();
-            //Since login uses a different stage than the rest of the app, an explicit shutdown of SB is needed
-            stage.setOnCloseRequest(e -> {
-                ConfigurableApplicationContext ctx = Rest.getApplicationContext();
-                if (ctx != null) {
-                    ctx.close();
-                    System.exit(0);
-                }
-            });
+
         } catch (IOException | RuntimeException ex) {
             System.err.println("Error trying to load switchToLogin.");
             ex.printStackTrace();
@@ -112,7 +105,7 @@ public class SwitchScenes {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/boards.fxml"));
             Parent root = loader.load();
-            BoardsFX FXHandler = loader.getController();
+            BoardFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             curStage.setTitle(stageTitle);
             curStage.setScene(scene);

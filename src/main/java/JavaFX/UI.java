@@ -27,11 +27,7 @@ public class UI extends Application {
     private final LogInFX logInFX = new LogInFX();
 
     public static void main(String[] args) {
-        CompletableFuture.runAsync(() -> {
-            Rest.context = SpringApplication.run(Rest.class, args);
-            User.setUserId(UserPrefs.getSavedUserId());
-
-        }).thenRun(() -> launch(args));
+        launch(args);
     }
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -52,10 +48,10 @@ public class UI extends Application {
 
 
     private void shutdown() {
-        ConfigurableApplicationContext ctx = Rest.getApplicationContext();
+        /*ConfigurableApplicationContext ctx = Rest.getApplicationContext();
         if (ctx != null) {
             ctx.close();
-        }
+        }*/
         Platform.exit();
         System.exit(0);
     }

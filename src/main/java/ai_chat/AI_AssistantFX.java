@@ -2,7 +2,7 @@ package ai_chat;
 
 import notebook.NotebookFX;
 import JavaFX.SwitchScenes;
-import SpringBoot.User;
+import user.User;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;

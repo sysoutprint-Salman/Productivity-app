@@ -1,8 +1,8 @@
 package kanban.boards;
 
-import JavaFX.HTTPHandler;
+import SpringBoot.HTTPHandler;
 import JavaFX.SwitchScenes;
-import SpringBoot.User;
+import user.User;
 import ai_chat.AI_AssistantFX;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,7 +19,7 @@ import to_do.ToDoFX;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class BoardsFX {
+public class BoardFX {
     @FXML private Button createBoardButton;
     @FXML private FlowPane boardGrid;
 
@@ -252,12 +252,7 @@ public class BoardsFX {
             MenuItem archive = new MenuItem("Archive");
             MenuItem delete = new MenuItem("Delete");
 
-            menu.getItems().addAll(
-                    rename,
-                    duplicate,
-                    archive,
-                    delete
-            );
+            menu.getItems().addAll(rename, duplicate, archive, delete);
 
             footer.getChildren().addAll(info, menu);
 

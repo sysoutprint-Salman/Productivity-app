@@ -16,4 +16,5 @@ public class Board {
     private Long userId;
     private String boardTitle;
     private LocalDateTime creationDate;
+
 }

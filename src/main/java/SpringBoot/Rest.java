@@ -6,13 +6,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static javafx.application.Application.launch;
 
-@SpringBootApplication(scanBasePackages = "SpringBoot")
-@RestController
+//@SpringBootApplication(scanBasePackages = "SpringBoot")
+//@RestController
 public class Rest {
-    public static ConfigurableApplicationContext context;
+    /*public static ConfigurableApplicationContext context;
 
     //This class acts as the Rest controller which will handle JSON and launch SB.
     public static ConfigurableApplicationContext getApplicationContext() {
         return context;
-    }
+    }*/
 }

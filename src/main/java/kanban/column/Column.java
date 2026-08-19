@@ -1,20 +1,21 @@
-package kanban.list;
+package kanban.column;
 
-import SpringBoot.Enum;
+import kanban.Enums;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class List {
-    private Long listId;
+public class Column {
+    private Long columnId;
     private Long boardId;
-    private Long listPosition;
+    private Long columnPosition;
     private String title;
     private String hexColor;
-    private Enum.LS status;
+    private Enums.LS status;
 }

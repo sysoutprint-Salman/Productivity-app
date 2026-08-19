@@ -1,12 +1,9 @@
 package kanban;
 
-import JavaFX.HTTPHandler;
-import JavaFX.Json;
+
 import JavaFX.SwitchScenes;
-import SpringBoot.Enum;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -31,9 +28,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.animation.*;
+import kanban.boards.BoardService;
 import kanban.card.Card;
-import kanban.list.List;
+import kanban.card.CardService;
+import kanban.column.Column;
+import kanban.column.ColumnService;
 import kanban.reminder.Reminder;
+import kanban.reminder.ReminderService;
 import notebook.NotebookFX;
 import to_do.ToDoFX;
 
@@ -80,18 +81,14 @@ public class KanbanFX {
     public enum Mode { ADD, LOAD }
     private final VBox sidebarContentVbox = new VBox();
     private final HBox sidebarHeader = new HBox();
-    private final Label headerTitle = new Label();
     private final ScrollPane sidebarScrollPane = new ScrollPane();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
-    private java.util.List<List> listData;
+    private java.util.List<Column> columnData;
     private java.util.List<Card> cardData;
     private Long boardID = 1l;
     private String json;
-    private boolean recalListIndices = false;
 
-    private Label label;
     private double dragOffsetX;
-    private boolean dragging = false;
     private boolean sidebarOpen = false;
     private VBox previousSidebarButton;
     private VBox draggedList = null;
@@ -101,13 +98,16 @@ public class KanbanFX {
     private SwitchScenes handler = new SwitchScenes();
     private static final double DRAG_VISUAL_OFFSET = 5;
     private final ObjectMapper mapper = new ObjectMapper();
-    private ObjectNode jsonBlock = mapper.createObjectNode();
+    private final ColumnService columnService = new ColumnService();
+    private final CardService cardService = new CardService();
+    private final BoardService boardService = new BoardService();
+    private final ReminderService reminderService = new ReminderService();
 
     public KanbanFX(){}
 
     @FXML
     private void initialize() {
-        addOrLoadLists(Mode.LOAD);
+        addOrLoadColumns(Mode.LOAD);
         cards.setOnMousePressed(this::slidingSidebar);
         reminders.setOnMousePressed(this::slidingSidebar);
         //themes.setOnMousePressed(this::slidingSidebar);
@@ -478,8 +478,8 @@ public class KanbanFX {
                 title.setText("Cards");
                 addButton.setText("Create card");
                 addButton.setVisible(true);
-                addButton.setOnAction(e -> addOrLoadCards(sidebarContentVbox, Mode.ADD, Enum.Section.INBOX));
-                addOrLoadCards(sidebarContentVbox, Mode.LOAD, Enum.Section.INBOX);
+                addButton.setOnAction(e -> addOrLoadCards(sidebarContentVbox, Mode.ADD, Enums.Section.INBOX));
+                addOrLoadCards(sidebarContentVbox, Mode.LOAD, Enums.Section.INBOX);
                 break;
 
             case ARCHIVE:
@@ -540,67 +540,63 @@ public class KanbanFX {
         Long position = 0L;
 
         if (pane instanceof VBox) {
-            java.util.List<Map<String, Object>> batchJson = new ArrayList<>();
-
+            List<Card> cardsToUpdate = new ArrayList<>();
             for (Node cardNode : pane.getChildren()) {
                 if (!(cardNode instanceof StackPane)) continue;
-
                 Object cardId = cardNode.getUserData();
 
                 if (!(cardId instanceof Long)) continue;
-
-                batchJson.add(Map.of(
-                        "cardId", cardId,
-                        "cardPosition", position
-                ));
-
+                Card card = Card.builder().cardId((Long) cardId)
+                        .cardPosition(position).build();
+                cardsToUpdate.add(card);
                 position++;
             }
 
-            if (!batchJson.isEmpty()) {
-                HTTPHandler.PATCH(
-                        batchJson,
-                        "cards/batch/modular?section=POSITION"
-                );
+            if (!cardsToUpdate.isEmpty()) {
+                cardService.updateCardSectionBatch(cardsToUpdate, Enums.Section.POSITION);
             }
         }
+
         else if (pane instanceof HBox) {
-            for (Node listNode : pane.getChildren()) {
-                if (!(listNode instanceof VBox listContainer)) continue;
+            List<Column> columnsToUpdate = new ArrayList<>();
+            for (Node columnNode : pane.getChildren()) {
+                if (!(columnNode instanceof VBox columnContainer)) continue;
+                if (!columnContainer.getStyleClass().contains("list_column")) {
+                    continue;
+                }
+                Object columnId = columnNode.getUserData();
 
-                if (!listContainer.getStyleClass().contains("list_column")) continue;
+                if (!(columnId instanceof Long)) continue;
 
-                Object listId = listNode.getUserData();
+                Column column = new Column();
+                column.setColumnId((Long) columnId);
+                column.setColumnPosition(position);
 
-                if (!(listId instanceof Long)) continue;
-
-                json = Json.JsonBuilder(Map.of("listPosition", position));
-
-                HTTPHandler.PATCH(
-                        json,
-                        "lists/" + listId + "/modular?section=POSITION"
-                );
-
+                columnsToUpdate.add(column);
                 position++;
+            }
+
+            if (!columnsToUpdate.isEmpty()) {
+                columnService.updateColumnPositions(columnsToUpdate);
             }
         }
     }
 
-    private void addOrLoadLists(Mode mode) {
+    private void addOrLoadColumns(Mode mode) {
         boolean isLoad = mode == Mode.LOAD;
         if (isLoad) {
-            listData = HTTPHandler.GET("lists/all/" + boardID + "/condition?status=ACTIVE", List.class);
-            listData.sort(Comparator.comparing(List::getListPosition));
+            columnData = columnService.findByStatus(boardID, Enums.LS.ACTIVE);
+            columnData.sort(Comparator.comparing(Column::getColumnPosition));
 
         } else {
-            listData = new ArrayList<>();
-            listData.add(new List());
+            columnData = new ArrayList<>();
+            columnData.add(new Column());
         }
 
 
-        listData.forEach(list -> {
+        columnData.forEach(column -> {
             VBox listContainer = new VBox();
-            listContainer.setUserData(list.getListId());
+            listContainer.setUserData(column.getColumnId());
             listContainer.getStyleClass().add("list_column");
             listContainer.setAlignment(Pos.TOP_CENTER);
             listContainer.setPrefWidth(275);
@@ -612,7 +608,7 @@ public class KanbanFX {
             headerSection.getStyleClass().add("header_section");
 
 
-            TextField headerTitle = new TextField(list.getTitle());
+            TextField headerTitle = new TextField(column.getTitle());
             headerTitle.getStyleClass().add("header_TF");
             HBox.setHgrow(headerTitle,Priority.ALWAYS);
             if (isLoad) {
@@ -626,11 +622,10 @@ public class KanbanFX {
                     headerTitle.setEditable(false);
                     headerTitle.setDisable(true);
                     String title = headerTitle.getText() == null || headerTitle.getText().isEmpty() ? "Untitled" : headerTitle.getText();
-                    if(!title.equals(list.getTitle())){
-                        list.setTitle(title);
+                    if(!title.equals(column.getTitle())){
+                        column.setTitle(title);
                         headerTitle.setText(title);
-                        json = Json.JsonBuilder(Map.of("title", title));
-                        HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
+                        columnService.updateColumnSection(column.getColumnId(),Enums.Section.TITLE, title);
                     }
                 }
             });
@@ -639,25 +634,21 @@ public class KanbanFX {
                 headerTitle.setDisable(true);
                 headerTitle.deselect();
                 String title = headerTitle.getText() == null || headerTitle.getText().isEmpty() ? "Untitled" : headerTitle.getText();
-                if(!title.equals(list.getTitle())){
+                if(!title.equals(column.getTitle())){
                     if (!isLoad){
-                        json = Json.JsonBuilder(Map.of(
-                                "boardId", boardID,
-                                "listPosition", boardHBox.getChildren().size()-2,
-                                "title", title,
-                                "hexColor", "#FFFFFF",
-                                "status", Enum.LS.ACTIVE
-                        ));
-                        HTTPHandler.POST("lists", json);
+                        columnService.create(
+                                Column.builder().boardId(boardID)
+                                        .columnPosition((long) boardHBox.getChildren().size()-2).title(title)
+                                        .hexColor("#FFFFFF").status(Enums.LS.ACTIVE).build());
                         headerTitle.setText(title);
                         boardHBox.getChildren().clear();
-                        Platform.runLater(() ->{addOrLoadLists(Mode.LOAD);});
+                        Platform.runLater(() ->{
+                            addOrLoadColumns(Mode.LOAD);});
                         //Lazy solution: the issue of duplicates being saved when reediting a new list is still there.
                     } else {
-                        list.setTitle(title);
+                        column.setTitle(title);
                         headerTitle.setText(title);
-                        json = Json.JsonBuilder(Map.of("title", title));
-                        HTTPHandler.PATCH(json, "lists/" + list.getListId() + "/modular?section=TITLE");
+                        columnService.updateColumnSection(column.getColumnId(), Enums.Section.TITLE,title);
                     }
 
                 }
@@ -677,7 +668,7 @@ public class KanbanFX {
 
 
             ColorPicker colorPicker = new ColorPicker(Color.web(
-                    list.getHexColor() == null ? "#FFFFFF" : list.getHexColor()
+                    column.getHexColor() == null ? "#FFFFFF" : column.getHexColor()
             ));
 
             colorPicker.setMaxWidth(Double.MAX_VALUE);
@@ -695,25 +686,23 @@ public class KanbanFX {
             });
             archive.setOnAction(e-> {
                 boardHBox.getChildren().remove(listContainer);
-                json = Json.JsonBuilder(Map.of("status",Enum.LS.ARCHIVED));
-                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=ARCHIVED");
-                HTTPHandler.PATCH("cards/list/" + list.getListId() + "/archive");
+                columnService.updateColumnSection(column.getColumnId(), Enums.Section.STATUS, Enums.LS.ARCHIVED);
+                cardService.updateCardsToParentArchived(column.getColumnId());
             });
             delete.setOnAction(e -> {
                 boardHBox.getChildren().remove(listContainer);
-                json = Json.JsonBuilder(Map.of("status",Enum.LS.DELETED));
-                HTTPHandler.PATCH(json, "lists/"+list.getListId()+"/status?status=DELETED");
-                HTTPHandler.PATCH("cards/list/" + list.getListId() + "/delete");
+                columnService.updateColumnSection(column.getColumnId(), Enums.Section.STATUS, Enums.LS.DELETED);
+                cardService.updateCardsToParentDeleted(column.getColumnId());
                 reorderIndices(boardHBox);
             });
 
             headerSection.getChildren().addAll(headerTitle, listOptionsBtn);
             VBox visibleList = new VBox();
             visibleList.getStyleClass().add("visible_list");
-            visibleList.setUserData(list.getListId());
+            visibleList.setUserData(column.getColumnId());
 
             if (isLoad) {
-                addOrLoadCards(visibleList, Mode.LOAD, Enum.Section.LIST);
+                addOrLoadCards(visibleList, Mode.LOAD, Enums.Section.LIST);
             }
             addCard.setOnAction(event -> {
                 addOrLoadCards(visibleList, Mode.ADD, null);
@@ -735,7 +724,7 @@ public class KanbanFX {
             addCardBtn.getStyleClass().add("add_button");
             addCardBtn.setPrefWidth(275);
             addCardBtn.setOnAction(e ->
-                    addOrLoadCards(visibleList, Mode.ADD, Enum.Section.LIST)
+                    addOrLoadCards(visibleList, Mode.ADD, Enums.Section.LIST)
             );
 
             addCardSection.getChildren().add(addCardBtn);
@@ -750,25 +739,20 @@ public class KanbanFX {
                         (int) (selectedColor.getBlue() * 255)
                 );
 
-                list.setHexColor(hexColor);
+                column.setHexColor(hexColor);
 
                 headerSection.setStyle("-fx-background-color: " + hexColor + ";");
                 visibleList.setStyle("-fx-background-color: " + hexColor + ";");
                 addCardSection.setStyle("-fx-background-color: " + hexColor + ";");
 
-                json = Json.JsonBuilder(Map.of("hexColor", hexColor));
-
-                HTTPHandler.PATCH(
-                        json,
-                        "lists/" + list.getListId() + "/modular?section=COLOR"
-                );
+                columnService.updateColumnSection(column.getColumnId(), Enums.Section.COLOR,hexColor);
                 colorPicker.hide();
                 listOptionsBtn.hide();
             });
 
-            headerSection.setStyle("-fx-background-color: " + list.getHexColor() + ";");
-            visibleList.setStyle("-fx-background-color: " + list.getHexColor() + ";");
-            addCardSection.setStyle("-fx-background-color: " + list.getHexColor() + ";");
+            headerSection.setStyle("-fx-background-color: " + column.getHexColor() + ";");
+            visibleList.setStyle("-fx-background-color: " + column.getHexColor() + ";");
+            addCardSection.setStyle("-fx-background-color: " + column.getHexColor() + ";");
 
             listContainer.getChildren().addAll(
                     headerSection,
@@ -776,7 +760,7 @@ public class KanbanFX {
                     addCardSection
             );
 
-            makeListDraggable(list, listContainer, headerSection, listScrollPane, addCardSection);
+            makeListDraggable(column, listContainer, headerSection, listScrollPane, addCardSection);
 
             if (isLoad) {
                 boardHBox.getChildren().add(listContainer);
@@ -804,7 +788,7 @@ public class KanbanFX {
 
             addListButton.setGraphic(plusIcon);
             addListButton.setOnAction(e ->
-                    addOrLoadLists(Mode.ADD)
+                    addOrLoadColumns(Mode.ADD)
             );
 
             boardHBox.getChildren().add(addListButton);
@@ -814,34 +798,38 @@ public class KanbanFX {
     }
 
     private void addOrLoadReminders(Mode mode, Reminder reminderInfo) {
-        boolean isAdd = mode == Mode.ADD;
-
-        if (isAdd) {
-            HTTPHandler.POST("reminders", reminderInfo);
+        if (mode == Mode.ADD) {
+            reminderService.create(reminderInfo);
             addOrLoadReminders(Mode.LOAD, null);
             return;
         }
 
         if (reminderInfo != null && reminderInfo.getReminderId() != null) {
-            HTTPHandler.PUT("reminders/" + reminderInfo.getReminderId(), reminderInfo);
+            Map<Enums.Section, Object> updates = new HashMap<>();
+            updates.put(Enums.Section.TITLE, reminderInfo.getReminderTitle());
+            updates.put(Enums.Section.DESCRIPTION, reminderInfo.getDescription());
+            updates.put(Enums.Section.PRIORITY, reminderInfo.getPriority());
+            updates.put(Enums.Section.DUE_DATE, reminderInfo.getDueDate());
+
+            reminderService.updateReminderSections(
+                    reminderInfo.getReminderId(),
+                    updates
+            );
+
             addOrLoadReminders(Mode.LOAD, null);
             return;
         }
 
         sidebarContentVbox.getChildren().clear();
 
-        java.util.List<Reminder> reminderData = HTTPHandler.GET(
-                "reminders/board/" + boardID,
-                Reminder.class
-        );
-
-        if (reminderData == null || reminderData.isEmpty()) {
-            return;
-        }
+        List<Reminder> reminderData = reminderService.findByBoardId(boardID);
+        if (reminderData == null || reminderData.isEmpty()) return;
 
         reminderData.sort(
-                Comparator.comparing(Reminder::getReminderId, Comparator.nullsLast(Long::compareTo))
-                        .reversed()
+                Comparator.comparing(
+                        Reminder::getReminderId,
+                        Comparator.nullsLast(Long::compareTo)
+                ).reversed()
         );
 
         for (Reminder reminder : reminderData) {
@@ -851,16 +839,20 @@ public class KanbanFX {
             reminderPane.setExpanded(false);
             reminderPane.setMaxWidth(Double.MAX_VALUE);
             reminderPane.setMinWidth(0);
-            reminderPane.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(8));
+            reminderPane.prefWidthProperty().bind(
+                    sidebarContentVbox.widthProperty().subtract(8)
+            );
 
             HBox header = new HBox(6);
             header.setAlignment(Pos.CENTER_LEFT);
-            header.setPadding(new Insets(10, 10, 10, 10));
+            header.setPadding(new Insets(10));
             header.setMinHeight(70);
             header.setPrefHeight(Region.USE_COMPUTED_SIZE);
             header.setMaxHeight(Region.USE_PREF_SIZE);
             header.setMinWidth(0);
-            header.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(35));
+            header.prefWidthProperty().bind(
+                    sidebarContentVbox.widthProperty().subtract(35)
+            );
 
             HBox priorityBox = new HBox(2);
             priorityBox.setAlignment(Pos.CENTER_LEFT);
@@ -876,7 +868,9 @@ public class KanbanFX {
 
             for (int i = 0; i < priorityCount; i++) {
                 ImageView icon = new ImageView(
-                        new Image(getClass().getResource("/Images/exclamation.png").toExternalForm())
+                        new Image(getClass()
+                                .getResource("/Images/exclamation.png")
+                                .toExternalForm())
                 );
                 icon.setFitWidth(12);
                 icon.setFitHeight(12);
@@ -900,10 +894,8 @@ public class KanbanFX {
             reminderPane.setGraphic(header);
 
             ContextMenu reminderContextMenu = new ContextMenu();
-
             MenuItem edit = new MenuItem("Edit");
             MenuItem delete = new MenuItem("Delete");
-
             reminderContextMenu.getItems().addAll(edit, delete);
 
             reminderPane.setOnContextMenuRequested(e -> {
@@ -924,17 +916,19 @@ public class KanbanFX {
             description.setWrapText(true);
             description.setMinWidth(0);
             description.setMaxWidth(Double.MAX_VALUE);
-            description.prefWidthProperty().bind(sidebarContentVbox.widthProperty().subtract(25));
+            description.prefWidthProperty().bind(
+                    sidebarContentVbox.widthProperty().subtract(25)
+            );
 
             Label timestamp = new Label();
 
-            if (reminder.getDueDate() != null) {
+            if (reminder.getDueDate() != null)
                 timestamp.setText(
                         reminder.getDueDate().toLocalTime().format(formatter)
                                 + " "
-                                + reminder.getDueDate().toLocalDate().format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                                + reminder.getDueDate().toLocalDate()
+                                .format(DateTimeFormatter.ofPattern("M/d/yyyy"))
                 );
-            }
 
             timestamp.setWrapText(true);
             timestamp.setMinWidth(0);
@@ -943,40 +937,33 @@ public class KanbanFX {
             contentBox.getChildren().addAll(description, timestamp);
             reminderPane.setContent(contentBox);
 
-            edit.setOnAction(e -> remindersPopup(Boolean.TRUE, reminder));
+            edit.setOnAction(e -> remindersPopup(true, reminder));
 
             delete.setOnAction(e -> {
+                reminderService.delete(reminder.getReminderId());
                 sidebarContentVbox.getChildren().remove(reminderPane);
-                HTTPHandler.DELETE("reminders/" + reminder.getReminderId());
             });
 
             sidebarContentVbox.getChildren().add(reminderPane);
         }
     }
 
-    private void addOrLoadCards(VBox visibleList, Mode mode, Enum.Section section) {
+    private void addOrLoadCards(VBox visibleList, Mode mode, Enums.Section section) {
         /*
         TODO: New cards should be saved on ENTER not patched.
         * */
         boolean isAdd = mode == Mode.ADD;
         if (!isAdd) {
 
-            if (section == Enum.Section.LIST) {
-                cardData = HTTPHandler.GET(
-                        "cards/lists/" + visibleList.getUserData() + "/cards",
-                        Card.class
-                );
+            if (section == Enums.Section.LIST) {
+                cardData = cardService.findAllCardsByColumnId((Long) visibleList.getUserData());
+
             }
-            else if (section == Enum.Section.INBOX) {
-                cardData = HTTPHandler.GET(
-                        "cards/"+boardID+"/status?cardStatus=INBOXED",
-                        Card.class
-                );
+            else if (section == Enums.Section.INBOX) {
+                cardData = cardService.findByStatus(boardID, Enums.CS.INBOXED);
             }
 
-            if (cardData == null || cardData.isEmpty()) {
-                return;
-            }
+            if (cardData == null || cardData.isEmpty()) return;
 
             cardData.forEach(cardData -> {
                 StackPane card = buildCardUI(
@@ -993,11 +980,7 @@ public class KanbanFX {
         Card newCard = new Card();
         newCard.setDescription("Untitled");
 
-        StackPane card = buildCardUI(
-                visibleList,
-                newCard,
-                true
-        );
+        StackPane card = buildCardUI(visibleList, newCard, true);
 
         visibleList.getChildren().add(0, card);
     }
@@ -1027,18 +1010,14 @@ public class KanbanFX {
                 String description = text.getText().isEmpty() ? "Untitled" : text.getText();
                 if (cardData.getCardId() == null) {
                     boolean creatingInboxCard = visibleList == sidebarContentVbox;
-
-                    Card transferCard = new Card(
-                            null,
-                            creatingInboxCard ? null : (Long) visibleList.getUserData(),
-                            boardID,
-                            creatingInboxCard ? null : 0L,
-                            description,
-                            "#FFFFFF",
-                            creatingInboxCard ? Enum.CS.INBOXED : Enum.CS.ACTIVE
-                    );
-
-                    Card createdCard = HTTPHandler.POST("cards", transferCard, Card.class);
+                    Card transferCard = Card.builder()
+                            .columnId(creatingInboxCard ? null : (Long) visibleList.getUserData())
+                            .boardId(boardID).cardPosition(creatingInboxCard ? null : 0L)
+                            .description(description)
+                            .hexColor("#FFFFFF")
+                            .status(creatingInboxCard ? Enums.CS.INBOXED : Enums.CS.ACTIVE)
+                            .build();
+                    Card createdCard = cardService.createCard(transferCard);
                     cardData.setCardId(createdCard.getCardId());
                     card.setUserData(createdCard.getCardId());
                     if (visibleList != sidebarContentVbox) {
@@ -1046,16 +1025,7 @@ public class KanbanFX {
                     }
                     card.requestFocus();
                 } else {
-
-                json = Json.JsonBuilder(
-                        Map.of("description", text.getText())
-                );
-
-                HTTPHandler.PATCH(
-                        json,
-                        "cards/" + cardData.getCardId() +
-                                "/modular?section=DESCRIPTION"
-                );
+                cardService.updateCardSection(cardData.getCardId(), text.getText(), Enums.Section.DESCRIPTION);
             }
                 ke.consume();
             }
@@ -1085,7 +1055,7 @@ public class KanbanFX {
                     reorderIndices(currentParent);
                 }
             }
-            HTTPHandler.DELETE("cards/" + cardData.getCardId());
+            cardService.deleteCard(cardData.getCardId());
         });
         inbox.setOnAction(e->{
             if (card.getParent() instanceof VBox currentParent) {
@@ -1095,7 +1065,8 @@ public class KanbanFX {
                     reorderIndices(currentParent);
                 }
             }
-            HTTPHandler.PATCH("cards/" + cardData.getCardId() + "/inbox");
+            cardService.updateCardToInboxed(cardData.getCardId());
+
         });
 
         cardOptions.getItems().addAll(edit, delete, inbox, color);
@@ -1135,7 +1106,7 @@ public class KanbanFX {
         return area;
     }
 
-    public void addOrLoadArchiveContent(ArrayList<List> archivedLists, ArrayList<Card> archivedCards, Mode mode) {
+    public void addOrLoadArchiveContent(ArrayList<Column> archivedColumns, ArrayList<Card> archivedCards, Mode mode) {
 
         if (mode != Mode.LOAD) {
             return;
@@ -1148,22 +1119,22 @@ public class KanbanFX {
 
         for (Card card : archivedCards) {
 
-            if (card.getStatus() == Enum.CS.PARENT_ARCHIVED) {
+            if (card.getStatus() == Enums.CS.PARENT_ARCHIVED) {
                 cardsByListId
-                        .computeIfAbsent(card.getListId(), k -> new ArrayList<>())
+                        .computeIfAbsent(card.getColumnId(), k -> new ArrayList<>())
                         .add(card);
             }
-            else if (card.getStatus() == Enum.CS.ARCHIVED) {
+            else if (card.getStatus() == Enums.CS.ARCHIVED) {
                 standaloneArchivedCards.add(card);
             }
         }
 
-        if (!archivedLists.isEmpty()) {
+        if (!archivedColumns.isEmpty()) {
 
-            for (List list : archivedLists) {
+            for (Column column : archivedColumns) {
 
                 TitledPane archivePane = new TitledPane();
-                archivePane.setText(list.getTitle());
+                archivePane.setText(column.getTitle());
                 archivePane.getStyleClass().add("archive_list");
 
                 ContextMenu contextMenu = new ContextMenu();
@@ -1181,7 +1152,7 @@ public class KanbanFX {
                 double topOffset = 0;
 
                 ArrayList<Card> listCards =
-                        cardsByListId.getOrDefault(list.getListId(), new ArrayList<>());
+                        cardsByListId.getOrDefault(column.getColumnId(), new ArrayList<>());
 
                 for (Card card : listCards) {
 
@@ -1206,7 +1177,7 @@ public class KanbanFX {
         }
     }
 
-    private void makeListDraggable(List list, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
+    private void makeListDraggable(Column column, VBox listContainer, HBox headerSection, ScrollPane listScrollPane, HBox addCardSection) {
 
         listContainer.setOnMousePressed(e -> {
             draggedList = listContainer;
@@ -1407,30 +1378,21 @@ public class KanbanFX {
                         Object targetListIdObject = targetList.getUserData();
 
                         if (targetListIdObject instanceof Long newListId) {
-                            HTTPHandler.PATCH(
-                                    Json.JsonBuilder(Map.of("listId", newListId)),
-                                    "cards/" + cardId + "/modular?section=ID"
-                            );
-
-                            HTTPHandler.PATCH(
-                                    Json.JsonBuilder(Map.of("status", Enum.CS.ACTIVE)),
-                                    "cards/" + cardId + "/modular?section=STATUS"
-                            );
+                            cardService.updateCardSections(cardId,Map.of(
+                                    Enums.Section.ID, newListId,
+                                    Enums.Section.STATUS, Enums.CS.ACTIVE));
                         }
                     }
 
                     if (movedFromListToInbox) {
-                        HTTPHandler.PATCH("cards/" + cardId + "/inbox");
+                        cardService.updateCardToInboxed(cardId);
                     }
 
                     if (movedListToList && sourceList != targetList) {
                         Object targetListIdObject = targetList.getUserData();
 
                         if (targetListIdObject instanceof Long newListId) {
-                            HTTPHandler.PATCH(
-                                    Json.JsonBuilder(Map.of("listId", newListId)),
-                                    "cards/" + cardId + "/modular?section=ID"
-                            );
+                            cardService.updateCardSection(cardId, newListId, Enums.Section.ID);
                         }
                     }
                 }

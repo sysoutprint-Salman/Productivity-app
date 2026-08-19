@@ -1,22 +1,23 @@
-package kanban.list;
+package kanban.column;
 
 import database.DatabaseManager;
+import kanban.Enums;
 
 import java.sql.*;
 import java.util.ArrayList;
-import kanban.list.List;
+import java.util.List;
 
-public class ListRepo {
+public class ColumnRepo {
 
     private final ListMapper listMapper = new ListMapper();
 
-    public List<List> findByStatus(Long boardId, Enum.LS status) {
+    public List<Column> findByStatus(Long boardId, Enums.LS status) {
         String sql = """
                 SELECT * FROM lists
                 WHERE board_id = ? AND status = ?
                 """;
 
-        List<List> lists = new ArrayList<>();
+        List<Column> lists = new ArrayList<>();
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -37,7 +38,7 @@ public class ListRepo {
         }
     }
 
-    public void create(List list) {
+    public void create(Column column) {
         String sql = """
                 INSERT INTO lists
                     (board_id, list_position, title, hex_color, status)
@@ -49,23 +50,23 @@ public class ListRepo {
                      sql,
                      Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setLong(1, list.getBoardId());
+            stmt.setLong(1, column.getBoardId());
 
-            if (list.getListPosition() == null) {
+            if (column.getColumnPosition() == null) {
                 stmt.setNull(2, Types.INTEGER);
             } else {
-                stmt.setLong(2, list.getListPosition());
+                stmt.setLong(2, column.getColumnPosition());
             }
 
-            stmt.setString(3, list.getTitle());
-            stmt.setString(4, list.getHexColor());
-            stmt.setString(5, list.getStatus().name());
+            stmt.setString(3, column.getTitle());
+            stmt.setString(4, column.getHexColor());
+            stmt.setString(5, column.getStatus().name());
 
             stmt.executeUpdate();
 
             try (ResultSet keys = stmt.getGeneratedKeys()) {
                 if (keys.next()) {
-                    list.setListId(keys.getLong(1));
+                    column.setColumnId(keys.getLong(1));
                 }
             }
 
@@ -74,7 +75,7 @@ public class ListRepo {
         }
     }
 
-    public void updateList(Long listId, List newListInfo) {
+    public void updateColumn(Long listId, Column newColumnInfo) {
         String sql = """
                 UPDATE lists
                 SET board_id = ?,
@@ -88,17 +89,17 @@ public class ListRepo {
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setLong(1, newListInfo.getBoardId());
+            stmt.setLong(1, newColumnInfo.getBoardId());
 
-            if (newListInfo.getListPosition() == null) {
+            if (newColumnInfo.getColumnPosition() == null) {
                 stmt.setNull(2, Types.INTEGER);
             } else {
-                stmt.setLong(2, newListInfo.getListPosition());
+                stmt.setLong(2, newColumnInfo.getColumnPosition());
             }
 
-            stmt.setString(3, newListInfo.getTitle());
-            stmt.setString(4, newListInfo.getHexColor());
-            stmt.setString(5, newListInfo.getStatus().name());
+            stmt.setString(3, newColumnInfo.getTitle());
+            stmt.setString(4, newColumnInfo.getHexColor());
+            stmt.setString(5, newColumnInfo.getStatus().name());
             stmt.setLong(6, listId);
 
             stmt.executeUpdate();
@@ -108,10 +109,7 @@ public class ListRepo {
         }
     }
 
-    public void updateListSection(
-            Long listId,
-            Enum.Section section,
-            Object value) {
+    public void updateColumnSection(Long listId, Enums.Section section, Object value) {
 
         String sql;
 
@@ -149,10 +147,7 @@ public class ListRepo {
         }
     }
 
-    public void updateStatusAndPosition(
-            Long listId,
-            Enum.LS status,
-            Long position) {
+    public void updateStatusAndPosition(Long listId, Enums.LS status, Long position) {
 
         String sql;
 
@@ -192,21 +187,13 @@ public class ListRepo {
         }
     }
 
-    public void updateListPositions(
-            List<Long> listIds,
-            List<Long> listPositions) {
-
-        if (listIds.size() != listPositions.size()) {
-            throw new IllegalArgumentException(
-                    "ListId and listPosition lists must be the same length."
-            );
-        }
+    public void updateColumnPositions(List<Column> columnsToUpdate) {
 
         String sql = """
-                UPDATE lists
-                SET list_position = ?
-                WHERE list_id = ?
-                """;
+            UPDATE lists
+            SET list_position = ?
+            WHERE list_id = ?
+            """;
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -214,15 +201,23 @@ public class ListRepo {
             conn.setAutoCommit(false);
 
             try {
-                for (int i = 0; i < listIds.size(); i++) {
 
-                    if (listPositions.get(i) == null) {
+                for (Column column : columnsToUpdate) {
+
+                    if (column.getColumnPosition() == null) {
                         stmt.setNull(1, Types.INTEGER);
                     } else {
-                        stmt.setLong(1, listPositions.get(i));
+                        stmt.setLong(
+                                1,
+                                column.getColumnPosition()
+                        );
                     }
 
-                    stmt.setLong(2, listIds.get(i));
+                    stmt.setLong(
+                            2,
+                            column.getColumnId()
+                    );
+
                     stmt.addBatch();
                 }
 
@@ -232,19 +227,20 @@ public class ListRepo {
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
+
             } finally {
                 conn.setAutoCommit(true);
             }
 
         } catch (SQLException e) {
             throw new RuntimeException(
-                    "Failed to update list positions",
+                    "Failed to update column positions",
                     e
             );
         }
     }
 
-    public void deleteList(Long listId) {
+    public void deleteColumn(Long listId) {
         String sql = "DELETE FROM lists WHERE list_id = ?";
 
         try (Connection conn = DatabaseManager.connect();
@@ -258,10 +254,10 @@ public class ListRepo {
         }
     }
 
-    public List<List> findAllListsByBoardId(Long boardId) {
+    public List<Column> findAllColumnsByBoardId(Long boardId) {
         String sql = "SELECT * FROM lists WHERE board_id = ?";
 
-        List<List> lists = new ArrayList<>();
+        List<Column> lists = new ArrayList<>();
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -284,7 +280,7 @@ public class ListRepo {
         }
     }
 
-    public List findListById(Long listId) {
+    public Column findColumnById(Long listId) {
         String sql = "SELECT * FROM lists WHERE list_id = ?";
 
         try (Connection conn = DatabaseManager.connect();
@@ -308,27 +304,22 @@ public class ListRepo {
 
 class ListMapper {
 
-    public List mapRow(ResultSet rs) throws SQLException {
+    public Column mapRow(ResultSet rs) throws SQLException {
 
-        kanban.list.List list = new kanban.list.List();
+        Column column = new Column();
 
-        list.setListId(rs.getLong("list_id"));
-        list.setBoardId(rs.getLong("board_id"));
+        column.setColumnId(rs.getLong("list_id"));
+        column.setBoardId(rs.getLong("board_id"));
 
         long position = rs.getLong("list_position");
 
-        if (rs.wasNull()) {
-            list.setListPosition(null);
-        } else {
-            list.setListPosition(position);
-        }
+        if (rs.wasNull()) column.setColumnPosition(null);
+        else column.setColumnPosition(position);
 
-        list.setTitle(rs.getString("title"));
-        list.setHexColor(rs.getString("hex_color"));
-        list.setStatus(
-                Enum.LS.valueOf(rs.getString("status"))
-        );
+        column.setTitle(rs.getString("title"));
+        column.setHexColor(rs.getString("hex_color"));
+        column.setStatus(Enums.LS.valueOf(rs.getString("status")));
 
-        return list;
+        return column;
     }
 }

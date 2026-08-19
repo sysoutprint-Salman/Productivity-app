@@ -1,6 +1,6 @@
 package JavaFX;
 
-import SpringBoot.User;
+import user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.format.DateTimeFormatter;
