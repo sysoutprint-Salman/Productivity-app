@@ -96,7 +96,7 @@ public class SwitchScenes {
                 curStage.show();
                 Platform.runLater(FXHandler::getByPosted);
             } catch (IOException | RuntimeException ex) {
-                System.err.println("Error trying to load switchToTasks.");
+                System.err.println("Error trying to load switchToTasks. 1");
                 ex.printStackTrace();
             }
     }
@@ -119,17 +119,17 @@ public class SwitchScenes {
     }
     public void switchScene(Stage curStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/kanbanBoard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
             Parent root = loader.load();
-            KanbanFX FXHandler = loader.getController();
+            ToDoFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             curStage.setTitle(stageTitle);
             curStage.setScene(scene);
             curStage.centerOnScreen();
             curStage.show();
-            //Platform.runLater(FXHandler::);
+            Platform.runLater(FXHandler::getByPosted);
         } catch (IOException | RuntimeException ex) {
-            System.err.println("Error trying to load switchToTasks.");
+            System.err.println("Error trying to load switchToTasks. 2");
             ex.printStackTrace();
         }
     }

@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="610.0" prefWidth="600.0" styleClass="chatbox_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ai_chat.AI_AssistantFX">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" styleClass="chatbox_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ai_chat.AI_AssistantFX">
    <children>
        <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
            <menus>
@@ -59,7 +59,7 @@
                </Menu>
            </menus>
        </MenuBar>
-      <BorderPane layoutX="15.2" layoutY="52.0" prefHeight="546.0" prefWidth="571.0" styleClass="main_pane" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="52.0">
+      <BorderPane layoutX="72.8" layoutY="52.0" prefHeight="704.0" prefWidth="1175.0" styleClass="main_pane" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="73.0" AnchorPane.rightAnchor="118.0" AnchorPane.topAnchor="52.0">
          <bottom>
             <HBox fx:id="messageAreaHbox" alignment="CENTER" prefHeight="71.0" prefWidth="486.0" styleClass="hbox_container" BorderPane.alignment="CENTER">
                <children>
@@ -91,7 +91,7 @@
             </HBox>
          </bottom>
          <center>
-            <ScrollPane fx:id="messageScrollPane" fitToWidth="true" pannable="true" prefHeight="473.0" prefWidth="571.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
+            <ScrollPane fx:id="messageScrollPane" fitToWidth="true" pannable="true" prefHeight="473.0" prefWidth="1302.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
               <content>
                   <VBox fx:id="chatBoxVbox" alignment="CENTER_LEFT" prefWidth="566.0" spacing="15.0" styleClass="chatbox">
                      <padding>

@@ -71,7 +71,10 @@ public class ToDoFX {
     public void initialize(){
         //this.tasks = AppState.getTasks();
 
+
     }
+    private record TaskUI(TitledPane card, RadioButton radio, DatePicker datePicker,
+            Button dateButton, TextArea descriptionArea) {}
 
     public void createTask(TextField text, DatePicker picker) {
             String title = text.getText();
@@ -260,18 +263,33 @@ public class ToDoFX {
         });
     }
 
-    public HBox taskCreationBar(){
-        HBox bar = new HBox(5);
+    public HBox taskCreationBar() {
+        HBox bar = new HBox(8);
+
         TextField taskField = new TextField();
+
         if (datePicker == null) {
             datePicker = new DatePicker();
             datePicker.getStyleClass().add("hidden_dateP");
         }
+
         Button dateButton = new Button();
-        ImageView calenderImg = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/Images/calendar.png"))));
+        ImageView calenderImg = new ImageView(
+                new Image(Objects.requireNonNull(
+                        getClass().getResourceAsStream("/Images/calendar (3).png")
+                ))
+        );
+
         StackPane datePane = new StackPane(dateButton, datePicker);
+
         Button addTaskButton = new Button();
-        ImageView plusImg = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/Images/plusButton.png"))));
+        ImageView plusImg = new ImageView(
+                new Image(Objects.requireNonNull(
+                        getClass().getResourceAsStream("/Images/plus (6).png")
+                ))
+        );
+
+        taskField.setPromptText("Create a task by typing here!");
 
         taskField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -280,170 +298,256 @@ public class ToDoFX {
         });
 
         addTaskButton.setDefaultButton(true);
-        addTaskButton.setOnAction(e -> {
-            createTask(taskField,datePicker);
-        });
-        taskField.setPromptText("Create a task by typing here!");
+        addTaskButton.setOnAction(e -> createTask(taskField, datePicker));
+
         dateButton.setGraphic(calenderImg);
         addTaskButton.setGraphic(plusImg);
+
         taskField.getStyleClass().add("task_creation_field");
         datePicker.getStyleClass().add("hidden_dateP");
-        addTaskButton.getStyleClass().add("new_task_button");
         dateButton.getStyleClass().add("new_task_button");
+        addTaskButton.getStyleClass().add("new_task_button");
         bar.getStyleClass().add("task_creation_Hbar");
+
+        HBox.setHgrow(taskField, Priority.ALWAYS);
+        taskField.setMaxWidth(Double.MAX_VALUE);
+
         bar.getChildren().addAll(taskField, datePane, addTaskButton);
         return bar;
     }
 
-    public void todo(Task.Status status){
-        try{
+    private TaskUI buildTaskUI(Task task) {
+        TitledPane taskCard = new TitledPane();
+
+        RadioButton radio = new RadioButton();
+        ToggleGroup group = new ToggleGroup();
+        radio.setToggleGroup(group);
+        radio.setPrefWidth(30);
+
+        DatePicker datePicker = new DatePicker();
+        datePicker.getStyleClass().add("hidden_dateP");
+
+        Button dateButton = new Button("Due: " + task.getDate().format(dateFormatter));
+
+        Label taskTitle = new Label(task.getTitle());
+
+        TextArea descriptionArea = new TextArea(task.getDescription());
+        descriptionArea.setWrapText(true);
+        descriptionArea.setPrefHeight(50);
+        descriptionArea.getStyleClass().add("task_description");
+        descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
+            double initialHeight = 50;
+
+            Text helper = new Text(newText);
+            helper.setFont(descriptionArea.getFont());
+            helper.setWrappingWidth(descriptionArea.getWidth() - 20);
+
+            double newHeight = helper.getLayoutBounds().getHeight() + 20;
+
+            descriptionArea.setPrefHeight(
+                    Math.max(newHeight, initialHeight)
+            );
+        });
+        VBox.setVgrow(descriptionArea, Priority.NEVER);
+        StackPane datePane = new StackPane(dateButton, datePicker);
+
+        HBox taskHbox = new HBox(
+                10,
+                radio,
+                taskTitle,
+                datePane
+        );
+
+        VBox taskContent = new VBox(8);
+
+        taskHbox.setAlignment(Pos.CENTER);
+        taskHbox.setFillHeight(true);
+        taskHbox.setMaxWidth(Double.MAX_VALUE);
+        taskHbox.getStyleClass().add("task_hbox");
+
+        HBox.setHgrow(taskTitle, Priority.ALWAYS);
+        taskTitle.setMaxWidth(Double.MAX_VALUE);
+
+        taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
+        taskCard.setMaxWidth(Double.MAX_VALUE);
+
+        taskCard.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+            taskHbox.setPrefWidth(newWidth.doubleValue() - 65);
+        });
+        taskCard.setExpanded(false);
+        taskCard.setGraphic(taskHbox);
+        taskCard.setContent(taskContent);
+        mainTaskVbox.setFillWidth(true);
+        taskCard.setMaxWidth(Double.MAX_VALUE);
+        taskCard.setUserData(task.getId());
+        taskCard.getStyleClass().add("task");
+
+        return new TaskUI(taskCard, radio, datePicker, dateButton, descriptionArea);
+    }
+
+    public void todo(Task.Status status) {
+        try {
             mainBorderPane.setBottom(null);
             mainTaskVbox.getChildren().clear();
-            List<Task> tasks =
-                    todoService.getByUserIdAndStatus(
-                            User.getUserId(),
-                            status
-                    );
+
+            List<Task> tasks = todoService.getByUserIdAndStatus(
+                    User.getUserId(),
+                    status
+            );
+
             tasks = sort(tasks, currentSortOption);
-            if(status.equals(Task.Status.POSTED)){
+
+            if (status.equals(Task.Status.POSTED)) {
                 mainBorderPane.setBottom(taskCreationBar());
             }
+
+            taskLabel.setText(
+                    status.equals(Task.Status.POSTED) ? LocalDate.now()
+                            .format(DateTimeFormatter.ofPattern("EEEE, MMMM d")) :
+                            status.equals(Task.Status.COMPLETED) ? "Completed" :
+                                    "Deleted"
+            );
+
+            sortButton.setVisible(status.equals(Task.Status.POSTED));
+
             if (tasks.isEmpty()) {
                 Label emptyLabel = new Label(
-                        status.equals(Task.Status.POSTED) ? "Your todo list looks empty. You can add some tasks by pressing the \"New Task\" button." :
-                                status.equals(Task.Status.DELETED) ? "Deleted tasks can be recovered here. After 30 days, they will be permanently deleted." :
-                                        "This is where completed tasks are, hooray!");
+                        status.equals(Task.Status.POSTED)
+                                ? "Your todo list looks empty. You can add some tasks by pressing the \"New Task\" button."
+                                : status.equals(Task.Status.DELETED)
+                                ? "Deleted tasks can be recovered here. After 30 days, they will be permanently deleted."
+                                : "This is where completed tasks are, hooray!"
+                );
+
                 emptyLabel.setWrapText(true);
                 emptyLabel.getStyleClass().add("emptyLabel");
                 mainTaskVbox.getChildren().add(emptyLabel);
-                taskLabel.setText(
-                        status.equals(Task.Status.POSTED) ? "To Do" :
-                                status.equals(Task.Status.COMPLETED) ? "Completed" :
-                                        "Deleted"
-                );
-                sortButton.setVisible(status.equals(Task.Status.POSTED));
+                return;
             }
-            else {
-                tasks.forEach(task -> {
-                TitledPane taskCard = new TitledPane();
-                RadioButton radio = new RadioButton(); radio.setPrefWidth(30);
-                ToggleGroup group = new ToggleGroup();
-                DatePicker datePicker = new DatePicker();
-                Button dateButton  = new Button("Due: " + task.getDate().format(dateFormatter));
-                Label taskTitle = new Label(task.getTitle()); taskTitle.setPrefWidth(Region.USE_COMPUTED_SIZE);
-                TextArea descriptionArea = new TextArea(task.getDescription());
-                VBox taskContent = new VBox();
-                StackPane stackPane = new StackPane(dateButton, datePicker);
-                HBox taskHbox = new HBox(10, radio, taskTitle, stackPane);
 
-                datePicker.getStyleClass().add("hidden_dateP");
-                radio.setToggleGroup(group);
-                taskHbox.getStyleClass().add("task_hbox");
-                taskHbox.setAlignment(Pos.CENTER);
-                taskHbox.prefWidthProperty().bind(taskCard.widthProperty().subtract(35));
-                HBox.setHgrow(taskTitle, Priority.ALWAYS);
-                taskTitle.setMaxWidth(Double.MAX_VALUE);
+            for (Task task : tasks) {
+                TaskUI ui = buildTaskUI(task);
 
-                taskCard.setExpanded(false);
-                taskCard.setGraphic(taskHbox);
-                taskCard.getStyleClass().add("task");
+                if (status.equals(Task.Status.POSTED)) {
+                    ui.descriptionArea.setOnKeyReleased(e ->
+                            autoUpdateDescription(ui.descriptionArea, task.getId())
+                    );
 
-                descriptionArea.getStyleClass().add("task_description");
-                descriptionArea.setWrapText(true);
-                descriptionArea.maxWidthProperty().bind(taskContent.widthProperty());
-                descriptionArea.setPrefHeight(50);
-                descriptionArea.textProperty().addListener((obs, oldText, newText) -> {
-                    double initialHeight = 50;
-                    Text helper = new Text(newText);
-                    helper.setFont(descriptionArea.getFont());
-                    helper.setWrappingWidth(descriptionArea.getWidth() - 20);
-                    double newHeight = helper.getLayoutBounds().getHeight() + 20;
-                    // Prevent shrinking below initial height
-                    descriptionArea.setPrefHeight(Math.max(newHeight, initialHeight));
-                });
+                    ui.datePicker.setOnAction(e ->
+                            editDate(
+                                    task.getId(),
+                                    ui.datePicker.getValue(),
+                                    ui.dateButton
+                            )
+                    );
 
-                taskContent.setSpacing(8);
-                taskCard.setContent(taskContent);
-
-                sortTodo();
-                if (status.equals(Task.Status.POSTED)){
-                    taskLabel.setText("To Do");
-                    sortButton.setVisible(true);
-                    taskContent.getChildren().addAll(new Label("Description:"), descriptionArea);
-                    descriptionArea.setOnKeyReleased(e->{
-                        autoUpdateDescription(descriptionArea,task.getId());
-                    });
-                    datePicker.setOnAction(e -> {
-                        editDate(task.getId(), datePicker.getValue(), dateButton);
-                    });
-                    radio.setOnAction(f -> {
-                        if (radio.isSelected()){
+                    ui.radio.setOnAction(e -> {
+                        if (ui.radio.isSelected()) {
                             task.setStatus(Task.Status.COMPLETED);
-                            todoService.updateSection(task.getId(), "status", task);
-                            mainTaskVbox.getChildren().remove(taskCard);
+                            todoService.updateSection(
+                                    task.getId(),
+                                    "status",
+                                    task
+                            );
+
+                            mainTaskVbox.getChildren().remove(ui.card);
                         }
                     });
+
                     ContextMenu rightClickMenu = new ContextMenu();
+
                     MenuItem completeItem = new MenuItem("Complete");
                     MenuItem editItem = new MenuItem("Edit");
                     MenuItem deleteItem = new MenuItem("Delete");
-                    rightClickMenu.getItems().addAll(completeItem, editItem, deleteItem);
-                    taskCard.setOnContextMenuRequested(e -> {
-                        rightClickMenu.show(taskCard, e.getScreenX(), e.getScreenY());
-                        completeItem.setOnAction(f -> {
-                            task.setStatus(Task.Status.COMPLETED);
-                            todoService.updateSection(task.getId(), "status", task);
-                            this.completedTaskTime = LocalDateTime.now();
-                            mainTaskVbox.getChildren().remove(taskCard);
-                        });
-                        editItem.setOnAction(f -> {
-                            editTask(task);
-                        });
-                        deleteItem.setOnAction(f -> {
-                            task.setStatus(Task.Status.DELETED);
-                            todoService.updateSection(task.getId(), "status", task);
-                            mainTaskVbox.getChildren().remove(taskCard);
-                        });
+
+                    rightClickMenu.getItems().addAll(
+                            completeItem,
+                            editItem,
+                            deleteItem
+                    );
+
+                    completeItem.setOnAction(e -> {
+                        task.setStatus(Task.Status.COMPLETED);
+                        todoService.updateSection(
+                                task.getId(),
+                                "status",
+                                task
+                        );
+
+                        completedTaskTime = LocalDateTime.now();
+                        mainTaskVbox.getChildren().remove(ui.card);
                     });
+
+                    editItem.setOnAction(e ->
+                            editTask(task)
+                    );
+
+                    deleteItem.setOnAction(e -> {
+                        task.setStatus(Task.Status.DELETED);
+                        todoService.updateSection(
+                                task.getId(),
+                                "status",
+                                task
+                        );
+
+                        mainTaskVbox.getChildren().remove(ui.card);
+                    });
+
+                    ui.card.setContextMenu(rightClickMenu);
                 }
 
-                else if (status.equals(Task.Status.DELETED)){
-                    taskLabel.setText("Deleted");
-                    sortButton.setVisible(false);
-                    taskHbox.getChildren().remove(radio);
-                    taskTitle.setText("Deleted: " + task.getTitle());
-                    descriptionArea.setDisable(true);
-                    taskContent.getChildren().addAll(
-                            new Label("Due: " + task.getDate().format(dateFormatter),
-                                    descriptionArea));
+                else if (status.equals(Task.Status.DELETED)) {
+                    ui.card.setGraphic(
+                            ((HBox) ui.card.getGraphic())
+                    );
+
+                    ui.radio.setVisible(false);
+                    ui.radio.setManaged(false);
+
+                    ui.datePicker.setDisable(true);
+                    ui.descriptionArea.setDisable(true);
+
+                    ui.card.setContextMenu(null);
 
                     ContextMenu rightClickMenu = new ContextMenu();
                     MenuItem recoverItem = new MenuItem("Recover");
+
                     rightClickMenu.getItems().add(recoverItem);
-                    recoverItem.setOnAction(f -> {
+
+                    recoverItem.setOnAction(e -> {
                         recoverItem.setDisable(true);
+
+                        // Keep your existing behavior here.
                         task.setStatus(Task.Status.DELETED);
-                        todoService.updateSection(task.getId(), "status", task);
-                        mainTaskVbox.getChildren().remove(taskCard);
+
+                        todoService.updateSection(
+                                task.getId(),
+                                "status",
+                                task
+                        );
+
+                        mainTaskVbox.getChildren().remove(ui.card);
                     });
-                    taskCard.setContextMenu(rightClickMenu);
+
+                    ui.card.setContextMenu(rightClickMenu);
                 }
 
-                else if (status.equals(Task.Status.COMPLETED)){
-                    taskLabel.setText("Completed");
-                    sortButton.setVisible(false);
-                    dateButton.setText("Completed");
-                    taskHbox.getChildren().remove(radio);
-                    descriptionArea.setText(task.getDescription());
-                    descriptionArea.setDisable(true);
-                    taskContent.getChildren().add(descriptionArea);
+                else if (status.equals(Task.Status.COMPLETED)) {
+                    ui.radio.setVisible(false);
+                    ui.radio.setManaged(false);
+
+                    ui.dateButton.setText("Completed");
+
+                    ui.datePicker.setDisable(true);
+                    ui.descriptionArea.setDisable(true);
                 }
 
-                taskCard.setUserData(task.getId());
-                mainTaskVbox.getChildren().add(taskCard);
-            });
-                }
-        }catch (Exception e){
+                mainTaskVbox.getChildren().add(ui.card);
+            }
+
+            sortTodo();
+
+        } catch (Exception e) {
             System.err.println("JavaFX: Error occurred trying to load tasks.");
             e.printStackTrace();
         }

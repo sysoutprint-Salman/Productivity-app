@@ -37,6 +37,7 @@ public class UI extends Application {
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();
+            primaryStage.setMaximized(true);
             primaryStage.setAlwaysOnTop(false);
             primaryStage.getIcons().add(new Image("/Images/App Icon.png"));
             primaryStage.setOnCloseRequest(event -> shutdown());

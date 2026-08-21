@@ -1,36 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="tasks_main" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="610.0" prefWidth="600.0" styleClass="tasks_main" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="to_do.ToDoFX">
+<AnchorPane fx:id="tasks_main" prefHeight="768.0" prefWidth="1366.0" styleClass="tasks_main" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="to_do.ToDoFX">
    <children>
-      <BorderPane fx:id="mainBorderPane" layoutX="52.0" layoutY="85.0" prefHeight="508.0" prefWidth="495.0" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="52.0" AnchorPane.rightAnchor="53.0" AnchorPane.topAnchor="85.0">
+      <BorderPane fx:id="mainBorderPane" layoutX="352.8" layoutY="144.8" prefHeight="580.0" prefWidth="669.0" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="353.0" AnchorPane.rightAnchor="344.0" AnchorPane.topAnchor="145.0">
          <center>
             <ScrollPane fx:id="mainScrollpane" fitToHeight="true" fitToWidth="true" prefHeight="474.0" prefWidth="518.0" styleClass="tasks_scroll_pane" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
                <content>
-                  <VBox fx:id="mainTaskVbox" prefHeight="497.0" prefWidth="456.0" spacing="10.0" styleClass="tasks_vbox" />
+                   <VBox fx:id="mainTaskVbox" prefWidth="1029.0" spacing="10.0" styleClass="tasks_vbox">
+
+                       <children>
+
+                           <TitledPane styleClass="task">
+
+                               <graphic>
+                                   <HBox alignment="CENTER" spacing="10.0" styleClass="task_hbox">
+
+                                       <children>
+
+                                           <RadioButton selected="false">
+                                               <toggleGroup>
+                                                   <ToggleGroup fx:id="sampleTaskGroup" />
+                                               </toggleGroup>
+                                           </RadioButton>
+
+                                           <Label maxWidth="1.7976931348623157E308" text="Finish SQLite migration" HBox.hgrow="ALWAYS" />
+                                    <Region maxWidth="1.7976931348623157E308" minWidth="66.0" prefHeight="26.0" prefWidth="66.0" HBox.hgrow="ALWAYS" />
+
+                                           <Button text="Due: Aug 25, 2026" />
+
+                                       </children>
+
+                                   </HBox>
+                               </graphic>
+
+                               <content>
+                                   <VBox spacing="8.0">
+
+                                       <children>
+
+                                           <Label text="Description:" />
+
+                                           <TextArea fx:id="sampleDescription" prefHeight="100.0" styleClass="task_description" text="Finish migrating the remaining tables from PostgreSQL to SQLite and verify that all CRUD operations are working correctly." wrapText="true" />
+
+                                       </children>
+
+                                   </VBox>
+                               </content>
+
+                           </TitledPane>
+
+                       </children>
+
+                   </VBox>
                </content>
             </ScrollPane>
          </center>
       </BorderPane>
-      <Label fx:id="taskLabel" alignment="CENTER" layoutY="44.2" prefHeight="35.0" prefWidth="600.0" styleClass="tasks_label" text="To Do" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="44.2">
+      <Label fx:id="taskLabel" alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="35.0" prefWidth="600.0" styleClass="tasks_label" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="60.0">
          <font>
             <Font size="24.0" />
          </font></Label>
-      <MenuButton fx:id="sortButton" layoutX="497.59999999999997" layoutY="49.0" mnemonicParsing="false" text="Sort" textFill="WHITE" AnchorPane.rightAnchor="49.60000000000002" AnchorPane.topAnchor="49.0">
+      <MenuButton fx:id="sortButton" layoutX="1585.0" layoutY="90.0" mnemonicParsing="false" text="Sort" textFill="WHITE" AnchorPane.rightAnchor="282.20000000000005" AnchorPane.topAnchor="90.0">
         <items>
             <RadioMenuItem fx:id="A_Z" mnemonicParsing="false" text="A_Z" />
             <RadioMenuItem fx:id="Due_Date" mnemonicParsing="false" text="Due Date" />
