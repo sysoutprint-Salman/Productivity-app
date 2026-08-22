@@ -15,7 +15,7 @@ import java.util.Map;
 
 
 public class HTTPHandler {
-    public static int port = PortHandler.getCurrentPort();
+    public static int port = SpringBoot.PortHandler.getCurrentPort();
     public static void POST(String path, String JSON) {
         try {
             URL url = new URL("http://localhost:" + port + "/");
@@ -35,7 +35,7 @@ public class HTTPHandler {
     } //Old
     public static void POST(String path, Object object) {
         try {
-            String json = Json.MAPPER.writeValueAsString(object);
+            String json = SpringBoot.Json.MAPPER.writeValueAsString(object);
 
             URL url = new URL("http://localhost:" + port + "/");
 
@@ -63,7 +63,7 @@ public class HTTPHandler {
     }
     public static <T, R> R POST(String path, T object, Class<R> objectType) {
         try {
-            String JSON = Json.MAPPER.writeValueAsString(object);
+            String JSON = SpringBoot.Json.MAPPER.writeValueAsString(object);
             URI uri = URI.create("http://localhost:" + port + "/" + path);
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -82,7 +82,7 @@ public class HTTPHandler {
                 System.out.println("HTTP: Empty response received. Returning null.");
                 return null;
             }
-            return Json.MAPPER.readValue(response.body(), objectType);
+            return SpringBoot.Json.MAPPER.readValue(response.body(), objectType);
 
         } catch (Exception ex) {
             System.out.println("HTTP: An issue arose with POST request.");
@@ -112,11 +112,11 @@ public class HTTPHandler {
                     .uri(URI.create(url)).GET().build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             String json = response.body();
-            JsonNode rootNode = Json.MAPPER.readTree(json);
+            JsonNode rootNode = SpringBoot.Json.MAPPER.readTree(json);
             if (rootNode.isArray()) {
-                return Json.MAPPER.readValue(json, Json.MAPPER.getTypeFactory().constructCollectionType(List.class, objectType));
+                return SpringBoot.Json.MAPPER.readValue(json, SpringBoot.Json.MAPPER.getTypeFactory().constructCollectionType(List.class, objectType));
             } else if (rootNode.isObject()) {
-                T singleObject = Json.MAPPER.treeToValue(rootNode, objectType);
+                T singleObject = SpringBoot.Json.MAPPER.treeToValue(rootNode, objectType);
                 return List.of(singleObject);
             }
         }catch(Exception e){
@@ -156,7 +156,7 @@ public class HTTPHandler {
     } //Old
     public static void PUT(String path, Object object) {
         try {
-            String json = Json.MAPPER.writeValueAsString(object);
+            String json = SpringBoot.Json.MAPPER.writeValueAsString(object);
 
             String url = "http://localhost:" + port + "/" + path;
 
@@ -215,7 +215,7 @@ public class HTTPHandler {
     }
     public static void PATCH(List<Map<String, Object>> jsonList, String path) {
         try {
-            String json = Json.MAPPER.writeValueAsString(jsonList);
+            String json = SpringBoot.Json.MAPPER.writeValueAsString(jsonList);
             PATCH(json, path);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to build batch PATCH JSON", e);

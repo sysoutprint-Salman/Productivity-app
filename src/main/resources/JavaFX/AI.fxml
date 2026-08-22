@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="768.0" prefWidth="1366.0" styleClass="chatbox_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ai_chat.AI_AssistantFX">
    <children>
@@ -60,36 +59,30 @@
            </menus>
        </MenuBar>
       <BorderPane layoutX="72.8" layoutY="52.0" prefHeight="704.0" prefWidth="1175.0" styleClass="main_pane" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="73.0" AnchorPane.rightAnchor="118.0" AnchorPane.topAnchor="52.0">
-         <bottom>
-            <HBox fx:id="messageAreaHbox" alignment="CENTER" prefHeight="71.0" prefWidth="486.0" styleClass="hbox_container" BorderPane.alignment="CENTER">
-               <children>
-                  <HBox alignment="CENTER" maxHeight="-Infinity" prefHeight="5.0" prefWidth="474.0" styleClass="prompt_area">
-                     <children>
-                        <TextField fx:id="userTextField" prefHeight="30.0" prefWidth="439.0" promptText="Ask something to the AI assistant." styleClass="prompt_textfield">
-                           <font>
-                              <Font size="13.0" />
-                           </font>
-                        </TextField>
-                        <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" prefHeight="34.0" prefWidth="42.0" styleClass="send_button">
-                           <graphic>
-                              <ImageView fx:id="uploadIcon" styleClass="upload_icon">
-                                 <image>
-                                    <Image url="@../Images/up-arrow.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                     </children>
-                     <padding>
-                        <Insets left="8.0" right="2.0" />
-                     </padding>
-                  </HBox>
-               </children>
-               <BorderPane.margin>
-                  <Insets />
-               </BorderPane.margin>
-            </HBox>
-         </bottom>
+          <bottom>
+              <HBox fx:id="messageAreaHbox" alignment="CENTER" styleClass="hbox_container" BorderPane.alignment="CENTER">
+                  <children>
+                      <HBox alignment="CENTER" maxWidth="900.0" prefHeight="52.0" prefWidth="781.0" styleClass="prompt_area">
+                          <children>
+                              <TextField fx:id="userTextField" promptText="Ask something to the AI assistant." styleClass="prompt_textfield" HBox.hgrow="ALWAYS" />
+
+                              <Button fx:id="sendButton" mnemonicParsing="false" onAction="#onSendMessage" styleClass="send_button">
+                                  <graphic>
+                                      <ImageView fx:id="uploadIcon" styleClass="upload_icon">
+                                          <image>
+                                              <Image url="@../Images/up-arrow.png" />
+                                          </image>
+                                      </ImageView>
+                                  </graphic>
+                              </Button>
+                          </children>
+                          <padding>
+                              <Insets bottom="4.0" left="12.0" right="6.0" top="4.0" />
+                          </padding>
+                      </HBox>
+                  </children>
+              </HBox>
+          </bottom>
          <center>
             <ScrollPane fx:id="messageScrollPane" fitToWidth="true" pannable="true" prefHeight="473.0" prefWidth="1302.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
               <content>

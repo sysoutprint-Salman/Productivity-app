@@ -1,75 +1,117 @@
-.chatbox_stage{ /*Anchor pane*/
+/* -------Main layout-------*/
+.chatbox_stage {
+    -fx-background-color: #ffffff;
+}
 
+.main_pane {
+    -fx-background-color: #ffffff;
 }
-.main_pane{ //Border pane
-    //-fx-background-color: black;
-}
-.main_pane .scroll-pane{
-    -fx-border-color: gray;
-}
-.main_pane .scroll-pane .viewport{ /*window on-top of scroll pane*/
-    //-fx-border-color: gray;
-    -fx-background-color: white;
-}
-.main_pane .scroll-pane .chatbox { /*Chatbox vbox*/
 
+.main_pane .scroll-pane {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
-.main_pane .scroll-pane .chatbox .response { /*Responses*/
-    -fx-border-color: grey;
-    -fx-border-width: 0.5;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 10;
-    -fx-background-color: #ECECEC;
+
+.main_pane .scroll-pane .viewport {
+    -fx-background-color: #ffffff;
 }
-.main_pane .scroll-pane .chatbox .prompt { /*User prompt*/
-    -fx-border-color: grey;
-    -fx-border-width: 0.5;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 10;
-    -fx-background-color: #E6EBF0;
-    -fx-alignment: center_right;
+
+.main_pane .scroll-pane .content {
+    -fx-background-color: #ffffff;
 }
+
+.main_pane .scroll-pane .chatbox {
+    -fx-background-color: #ffffff;
+    -fx-spacing: 18;
+}
+
+/* -------Messages-------*/
+.main_pane .scroll-pane .chatbox .prompt {
+    -fx-background-color: #f1f1f1;
+    -fx-background-radius: 18;
+    -fx-border-color: #e3e3e3;
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-padding: 12 16;
+    -fx-font-size: 14;
+    -fx-text-fill: #202020;
+}
+
+.main_pane .scroll-pane .chatbox .response {
+    -fx-background-color: #e3f8ff;
+    -fx-background-radius: 18;
+    -fx-border-color: #bdf0ff;
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-padding: 12 16;
+    -fx-font-size: 14;
+    -fx-text-fill: #202020;
+}
+
+/* -------Empty chat-------*/
 .emptyLabel {
-    -fx-font-size: 15px;
-    //-fx-padding: 25 0 0 0;
+    -fx-font-size: 15;
     -fx-font-family: "Arial";
-    -fx-text-fill: grey;
+    -fx-text-fill: #8a8a8a;
     -fx-text-alignment: center;
 }
 
-/*Prompt field and send button*/
-.hbox_container{
-
+/* -------Prompt area-------*/
+.hbox_container {
+    -fx-alignment: center;
+    -fx-padding: 10 0 18 0;
 }
-.prompt_textfield{
-    -fx-background-color: white;
-    //-fx-border-color: #e6e6e6;
 
-    -fx-border-radius:100;
+.prompt_area {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24;
+    -fx-border-color: #d9d9d9;
+    -fx-border-width: 1;
+    -fx-border-radius: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 8, 0, 0, 2);
 }
-.send_button{
+
+.prompt_textfield {
     -fx-background-color: transparent;
-    -fx-padding: 0;
+    -fx-border-color: transparent;
     -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-background-radius:100;
+    -fx-padding: 10 8;
+    -fx-font-size: 14;
+    -fx-text-fill: #202020;
+    -fx-prompt-text-fill: #8a8a8a;
 }
-.send_button:hover{
-    -fx-background-color: #E3E3E3;
-    -fx-background-radius:100;
 
+.prompt_textfield:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
-.upload_icon{
-    //-fx-background-color:red;
-    -fx-fit-height:40;
-    -fx-fit-width:40;
-    -fx-opacity: 0.2;
+
+/* -------Send button-------*/
+.send_button {
+    -fx-background-color: #f1f1f1;
+    -fx-background-radius: 50;
+    -fx-border-color: transparent;
+    -fx-padding: 8;
+    -fx-pref-width: 38;
+    -fx-pref-height: 38;
 }
-.prompt_area{
-    -fx-background-color:white;
-    -fx-border-color: #737373;
-    -fx-border-radius:100;
-    -fx-background-radius:100;
+
+.send_button:hover {
+    -fx-background-color: #e5e5e5;
+}
+
+.send_button:pressed {
+    -fx-background-color: #d8d8d8;
+}
+
+.upload_icon {
+    -fx-fit-width: 18;
+    -fx-fit-height: 18;
+    -fx-opacity: 0.65;
+}
+.response_date {
+    -fx-opacity: 0.5;
+    -fx-font-size: 12;
 }

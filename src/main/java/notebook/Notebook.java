@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,4 +19,5 @@ public class Notebook {
     private String tabTitle;
     private String hexColor;
     private String notebookText;
+    private LocalDate creationDate;
 }

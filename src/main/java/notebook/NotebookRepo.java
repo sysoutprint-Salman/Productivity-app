@@ -3,6 +3,9 @@ package notebook;
 import database.DatabaseManager;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +34,7 @@ public class NotebookRepo {
     }
 
     public List<Notebook> findByUserId(Long userId) {
-        String sql = "SELECT * FROM notebooks WHERE user_id = ?";
+        String sql = "SELECT * FROM notebooks WHERE user_id = ? order by creation_date desc";
 
         List<Notebook> notebooks = new ArrayList<>();
 
@@ -77,11 +80,11 @@ public class NotebookRepo {
         }
     }
 
-    public void createNotebook(Notebook notebook) {
+    public Notebook createNotebook(Notebook notebook) {
         String sql = """
                 INSERT INTO notebooks
-                    (tab_title, notebook_text, user_id, hex_color)
-                VALUES (?, ?, ?, ?)
+                    (tab_title, notebook_text, user_id, hex_color, creation_date)
+                VALUES (?, ?, ?, ?, ?)
                 """;
 
         try (Connection conn = DatabaseManager.connect();
@@ -93,6 +96,10 @@ public class NotebookRepo {
             stmt.setString(2, notebook.getNotebookText() != null ? notebook.getNotebookText() : "");
             stmt.setLong(3, notebook.getUserId());
             stmt.setString(4, notebook.getHexColor());
+            if (notebook.getCreationDate() == null) stmt.setNull(5, Types.VARCHAR);
+            else {
+                stmt.setString(5, notebook.getCreationDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            }
 
             stmt.executeUpdate();
 
@@ -105,6 +112,7 @@ public class NotebookRepo {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create notebook", e);
         }
+        return notebook;
     }
 
     public void updateNotebookText(Long id, Notebook notebook) {
@@ -178,6 +186,11 @@ class NotebookMapper {
         notebook.setTabTitle(rs.getString("tab_title"));
         notebook.setNotebookText(rs.getString("notebook_text"));
         notebook.setHexColor(rs.getString("hex_color"));
+        String creationDate = rs.getString("creation_date");
+
+        if (creationDate != null) {
+            notebook.setCreationDate(LocalDate.parse(creationDate, DateTimeFormatter.ISO_LOCAL_DATE));
+        }
 
         return notebook;
     }

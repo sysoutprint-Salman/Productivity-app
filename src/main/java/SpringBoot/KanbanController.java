@@ -166,7 +166,7 @@ class KListController {
         }
     }
     @PatchMapping("/reorder")
-    protected void updateListPositions(@RequestBody DTO.ListReorder listDTO){
+    protected void updateListPositions(@RequestBody SpringBoot.DTO.ListReorder listDTO){
         System.out.println("Controller test" + listDTO.getListIds() + "\n" + listDTO.getListPositions());
         listRepository.updateListPositions(listDTO.getListIds(), listDTO.getListPositions());
     }

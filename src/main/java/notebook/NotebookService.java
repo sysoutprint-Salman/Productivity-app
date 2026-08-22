@@ -29,8 +29,8 @@ public class NotebookService {
         return notebookRepo.findByUserId(userId);
     }
 
-    public void createNotebook(Notebook notebook) {
-        notebookRepo.createNotebook(notebook);
+    public Notebook createNotebook(Notebook notebook) {
+        return notebookRepo.createNotebook(notebook);
     }
 
     public boolean updateNotebookTab(Long id, Notebook notebook) {

@@ -27,21 +27,30 @@
 }
 
 /* -------Tab header-------*/
-
+.tabs_header .title .label{
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
 .tabs_header .title{
     -fx-background-color: #454545;
     -fx-border-color: transparent transparent gray transparent;
 }
 .tabs_header .title .button{
-    -fx-background-color:  white ;
-    -fx-border-radius: 1;
-    -fx-padding: 5.5;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-background-radius:100;
+    -fx-background-color: #f3f4f6;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-padding: 7;
+    -fx-text-fill: #6b7280;
 }
+
 .tabs_header .title .button:hover{
-    -fx-background-color: #C8C7C7;
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #111827;
+}
+
+.tabs_header .title .button:pressed{
+    -fx-background-color: #e5e7eb;
 }
 .tabs_header .title .menu-button{
     -fx-background-color: #F6F5F5;
@@ -63,31 +72,80 @@
 }
 
 /* -------Tabs-------*/
-.tab{
-    -fx-pref-height: 40;
-    -fx-pref-width: 200;
-    -fx-alignment: baseline-left;
-    -fx-background-color: #f9f9f9;
-   /*-fx-border-color: transparent transparent gray transparent;*/
-    -fx-border-width: 0 0 1 4;
+.tabs_container{
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent #e5e7eb transparent transparent;
+    -fx-border-width: 0 1 0 0;
 }
 
-.tab:selected, .tab:hover{
-   -fx-background-color: #d5d5d5;
+.tabs_vbox{
+    -fx-background-color: #ffffff;
+    -fx-padding: 10 8 10 8;
+    -fx-spacing: 5;
+}
+
+.scrollpane{
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.scrollpane > .viewport{
+    -fx-background-color: transparent;
+}
+
+.tab{
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-min-width: 180;
+    -fx-background-color: transparent;
+    -fx-background-radius: 9;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 13;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 14px;
+    -fx-font-family: "System";
+}
+
+.tab:hover{
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #1f2937;
+}
+
+.tab:selected{
+    -fx-background-color: #eef1f4;
+    -fx-text-fill: #111827;
+    -fx-font-weight: bold;
+}
+
+.tab:pressed{
+    -fx-background-color: #e7eaee;
 }
 
 /* -------Notepad-------*/
 .notepad{
+    -fx-background-color: #ffffff;
+    -fx-control-inner-background: #ffffff;
     -fx-background-insets: 0;
-    -fx-background-color:white;
-    -fx-control-inner-background:white;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 24;
+    -fx-font-size: 15px;
+    -fx-text-fill: #374151;
+}
+
+.notepad:focused{
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-border-color: #cfcfcf;
-    -fx-padding: 10;
 }
-.notepad .content {
-    -fx-background-color: transparent;
+
+.notepad .content{
+    -fx-background-color: #ffffff;
 }
 .notepad_scroll_pane .viewport{
     -fx-background-color: white;
@@ -98,6 +156,39 @@
 }
 .notepad_scroll_pane .notebook_textarea .content{
     //-fx-background-color: white;
+}
+/* -------Tabs Scrollbar-------*/
+.tabs_scrollpane .scroll-bar:vertical{
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+    -fx-padding: 2 2 2 2;
+}
+
+.tabs_scrollpane .scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+}
+
+.tabs_scrollpane .scroll-bar:vertical .thumb{
+    -fx-background-color: #cbd0d6;
+    -fx-background-radius: 10;
+    -fx-background-insets: 1;
+}
+
+.tabs_scrollpane .scroll-bar:vertical .thumb:hover{
+    -fx-background-color: #aeb4bc;
+}
+
+.tabs_scrollpane .scroll-bar:vertical .increment-button,
+.tabs_scrollpane .scroll-bar:vertical .decrement-button{
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+}
+
+.tabs_scrollpane .scroll-bar:vertical .increment-arrow,
+.tabs_scrollpane .scroll-bar:vertical .decrement-arrow{
+    -fx-padding: 0;
 }
 
 

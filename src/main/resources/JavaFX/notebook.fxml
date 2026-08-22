@@ -15,10 +15,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="610.0" prefWidth="600.0" styleClass="main_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="notebook.NotebookFX">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" styleClass="main_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="notebook.NotebookFX">
     <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
             <Menu mnemonicParsing="false" text="To Do">
@@ -60,9 +61,9 @@
          </Menu>
         </menus>
     </MenuBar>
-   <BorderPane layoutX="15.0" layoutY="47.2" prefHeight="549.0" prefWidth="570.0" styleClass="main_notebook" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="47.0">
+   <BorderPane layoutX="37.0" layoutY="68.0" prefHeight="664.0" prefWidth="1294.0" styleClass="main_notebook" AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="37.0" AnchorPane.rightAnchor="35.0" AnchorPane.topAnchor="68.0">
       <left>
-         <ScrollPane fx:id="tabsScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="350.0" prefWidth="169.0" BorderPane.alignment="CENTER">
+         <ScrollPane fx:id="tabsScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="706.0" prefWidth="293.0" BorderPane.alignment="CENTER">
             <content>
                <VBox styleClass="tabs_container">
                   <children>
@@ -74,9 +75,9 @@
                            <Insets />
                         </VBox.margin>
                         <graphic>
-                           <HBox alignment="CENTER" prefHeight="31.0" prefWidth="147.0">
+                           <HBox alignment="CENTER" prefHeight="31.0">
                               <children>
-                                 <Label prefHeight="24.0" prefWidth="112.0" text="Tabs" textFill="WHITE">
+                                 <Label prefHeight="26.0" prefWidth="44.0" text="Tabs" textFill="WHITE">
                                     <padding>
                                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
                                     </padding>
@@ -84,6 +85,7 @@
                                        <Font name="System Bold" size="14.0" />
                                     </font>
                                  </Label>
+                                 <Region prefHeight="200.0" prefWidth="200.0" />
                                  <Button mnemonicParsing="false" onAction="#createNewTab">
                                     <graphic>
                                        <ImageView fitHeight="15.0" fitWidth="15.0" styleClass="add_icon">

@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import to_do.ToDoFX;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -41,12 +42,31 @@ public class NotebookFX{
     private Scene scene;
     public MenuItem gptMenuItem;
     public MenuItem mainTasks;
+    private Notebook activeNotebook;
+    private Timeline saveDebouncer;
     private final NotebookService notebookService = new NotebookService();
 
     public NotebookFX(){}
 
     public void initialize(){
-        //this.notebooks = AppState.getNotebooks();
+        notepadArea.setWrapText(true);
+        notepadArea.setOnKeyTyped(e -> {
+            if (activeNotebook == null) return;
+            if (saveDebouncer != null) saveDebouncer.stop();
+
+            saveDebouncer = new Timeline(
+                    new KeyFrame(Duration.millis(DELAY), event -> {
+                        try {
+                            activeNotebook.setNotebookText(notepadArea.getText());
+                            notebookService.updateNotebookText(activeNotebook.getNotebookId(), activeNotebook);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    })
+            );
+            saveDebouncer.setCycleCount(1);
+            saveDebouncer.playFromStart();
+        });
     }
 
     public void createNewTab(){
@@ -77,9 +97,10 @@ public class NotebookFX{
             String hexColor = colorPicker.isDisabled() ? null : hexColorFormatter(colorPicker.getValue());
             if (!title.isEmpty()){
                 try {
-                    Notebook newNB = Notebook.builder().tabTitle(title)
-                                    .hexColor(hexColor).userId(User.getUserId()).build();
-                    notebookService.createNotebook(newNB);
+                    notebookService.createNotebook(
+                            Notebook.builder().tabTitle(title)
+                            .hexColor(hexColor).userId(User.getUserId())
+                            .creationDate(LocalDate.now()).build());
                     popupStage.close();
                     tabsVbox.getChildren().clear();
                     GETNotebooks();
@@ -169,7 +190,9 @@ public class NotebookFX{
             notepadArea.setVisible(false);
             notepadArea.setWrapText(true);
             notepadArea.setPromptText("Type anything you want.");
-            notepadArea.getStyleClass().add("notepad");
+            if (!notepadArea.getStyleClass().contains("notepad")) notepadArea.getStyleClass().add("notepad");
+
+            tabsVbox.setFillWidth(true);
             ToggleGroup tabsGroup = new ToggleGroup();
 
             if (notebooks.isEmpty()){
@@ -178,86 +201,44 @@ public class NotebookFX{
                 userIndicator.getStyleClass().add("emptyLabel");
                 tabsVbox.getChildren().add(userIndicator);
             } else {
-            notebooks.forEach((notebook ->{
-                ToggleButton tabButton = new ToggleButton();
-                tabButton.setText(notebook.getTabTitle());
-                tabButton.setMaxWidth(Double.MAX_VALUE);
-                tabButton.getStyleClass().add("tab");
-                tabButton.setToggleGroup(tabsGroup);
-                tabButton.setWrapText(true);
-                tabButton.setStyle("-fx-border-color: transparent transparent #cfcfcf " +
-                        (notebook.getHexColor() != null ? notebook.getHexColor() + ";" : "transparent;"));
-                tabButton.setOnMouseClicked(e ->{
-                    notepadArea.setText(notebook.getNotebookText());
-                    notepadArea.setVisible(true);
-                    autoUpdateNotebookText(notebook.getNotebookId(), notebook);
-                    //tabButton.setSelected(true);
+                notebooks.forEach(notebook -> {
+                    ToggleButton tabButton = new ToggleButton(notebook.getTabTitle());
+                    tabButton.setMinWidth(180);
+                    tabButton.setMaxWidth(Double.MAX_VALUE);
+                    tabButton.setPrefHeight(44);
+                    tabButton.setToggleGroup(tabsGroup);
+                    tabButton.getStyleClass().add("tab");
+                    tabButton.setStyle("-fx-border-color: transparent transparent transparent " +
+                            (notebook.getHexColor() != null ? notebook.getHexColor() + ";" : "transparent;"));
+
+                    tabButton.setOnMouseClicked(e -> {
+                        activeNotebook = notebook;
+                        notepadArea.setText(notebook.getNotebookText());
+                        notepadArea.setVisible(true);
+                    });
+
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem editTab = new MenuItem("Edit Tab");
+                    MenuItem deleteTab = new MenuItem("Delete Tab");
+                    contextMenu.getItems().addAll(editTab, deleteTab);
+
+                    editTab.setOnAction(event ->
+                            editNewTab(notebook.getTabTitle(), notebook.getNotebookId(), notebook, tabButton));
+
+                    deleteTab.setOnAction(event -> {
+                        notebookService.deleteNotebook(notebook.getNotebookId());
+                        tabsVbox.getChildren().remove(tabButton);
+                        notepadArea.clear();
+                        notepadArea.setVisible(false);
+                    });
+
+                    tabButton.setContextMenu(contextMenu);
+                    tabsVbox.getChildren().add(tabButton);
                 });
-                ContextMenu contextMenu = new ContextMenu();
-                MenuItem editTab = new MenuItem("Edit Tab");
-                MenuItem deleteTab = new MenuItem("Delete Tab");
-                contextMenu.getItems().addAll(editTab, deleteTab);
-                editTab.setOnAction(event -> {
-                    editNewTab(notebook.getTabTitle(), notebook.getNotebookId(), notebook, tabButton);});
-                deleteTab.setOnAction(event -> {
-                    notebookService.deleteNotebook(notebook.getNotebookId());
-                    tabsVbox.getChildren().remove(tabButton);
-                    notepadArea.setVisible(false);});
-                tabButton.setContextMenu(contextMenu);
-                tabsVbox.getChildren().add(tabButton);
-            }));}
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void autoUpdateNotebookText(Long notebookId, Notebook notebook) {
-            Timeline debouncer = new Timeline(
-                    new KeyFrame(Duration.millis(DELAY), e -> {
-                        try {
-                            notebook.setNotebookText(notepadArea.getText());
-                            notebookService.updateNotebookText(notebookId, notebook);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    })
-            );
-            debouncer.setCycleCount(1); //Performs the above task once each time it fires
-        notepadArea.setOnKeyTyped(e -> {
-            debouncer.stop(); //Stops any previous running timelines
-            debouncer.playFromStart(); //Restarts
-        });
-    }
-
-    public MenuButton colorOptions(List<Color> colors, Consumer<Color> onColorSelected){
-
-        MenuButton button = new MenuButton();
-        button.setPrefWidth(40);
-        button.setPrefHeight(30);
-
-
-        Rectangle preview = new Rectangle(20, 20, colors.get(0));
-        preview.setStroke(Color.GRAY);
-        button.setGraphic(preview);
-
-        for (Color color : colors) {
-            CustomMenuItem item = new CustomMenuItem();
-
-            Rectangle swatch = new Rectangle(25, 25, color);
-            swatch.setStroke(Color.BLACK);
-
-            item.setContent(swatch);
-            item.setHideOnClick(true);
-
-            item.setOnAction(e -> {
-                preview.setFill(color);
-                onColorSelected.accept(color);
-            });
-
-            button.getItems().add(item);
-        }
-
-        return button;
     }
 
     public String hexColorFormatter(Color color){

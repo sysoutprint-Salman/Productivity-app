@@ -1,7 +1,7 @@
 package JavaFX;
 
 
-import SpringBoot.Rest;
+import ai_chat.AI_AssistantFX;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -12,8 +12,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import kanban.boards.BoardFX;
-import kanban.KanbanFX;
-import org.springframework.context.ConfigurableApplicationContext;
+import notebook.NotebookFX;
 import to_do.ToDoFX;
 
 import java.io.IOException;
@@ -57,7 +56,7 @@ public class SwitchScenes {
                     return;
                 }
             }
-
+            stage.setMaximized(true);
             stage.setScene(new Scene(root));
             stage.show();
 
@@ -92,6 +91,7 @@ public class SwitchScenes {
                 Scene scene = new Scene(root);
                 curStage.setTitle(stageTitle);
                 curStage.setScene(scene);
+                curStage.setMaximized(true);
                 curStage.centerOnScreen();
                 curStage.show();
                 Platform.runLater(FXHandler::getByPosted);
@@ -119,15 +119,15 @@ public class SwitchScenes {
     }
     public void switchScene(Stage curStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
             Parent root = loader.load();
-            ToDoFX FXHandler = loader.getController();
+            NotebookFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             curStage.setTitle(stageTitle);
             curStage.setScene(scene);
             curStage.centerOnScreen();
             curStage.show();
-            Platform.runLater(FXHandler::getByPosted);
+            Platform.runLater(FXHandler::GETNotebooks);
         } catch (IOException | RuntimeException ex) {
             System.err.println("Error trying to load switchToTasks. 2");
             ex.printStackTrace();
