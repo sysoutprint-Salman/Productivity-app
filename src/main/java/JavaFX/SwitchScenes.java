@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import kanban.KanbanFX;
 import kanban.boards.BoardFX;
 import notebook.NotebookFX;
 import to_do.ToDoFX;
@@ -119,15 +120,15 @@ public class SwitchScenes {
     }
     public void switchScene(Stage curStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/notebook.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/kanbanBoard.fxml"));
             Parent root = loader.load();
-            NotebookFX FXHandler = loader.getController();
+            KanbanFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
             curStage.setTitle(stageTitle);
             curStage.setScene(scene);
             curStage.centerOnScreen();
             curStage.show();
-            Platform.runLater(FXHandler::GETNotebooks);
+            //Platform.runLater(FXHandler::);
         } catch (IOException | RuntimeException ex) {
             System.err.println("Error trying to load switchToTasks. 2");
             ex.printStackTrace();

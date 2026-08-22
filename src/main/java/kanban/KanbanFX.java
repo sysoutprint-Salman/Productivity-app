@@ -24,6 +24,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -355,10 +356,9 @@ public class KanbanFX {
 
         String timestampText = "";
         if (date != null && time != null) {
-            timestampText =
-                    time.format(DateTimeFormatter.ofPattern("h:mma"))
-                            + " "
-                            + date.format(DateTimeFormatter.ofPattern("M/d/yyyy"));
+            timestampText = "Due Date: "
+                    + date.format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                    + " " + time.format(DateTimeFormatter.ofPattern("h:mma"));
         }
 
         Label timestamp = new Label(timestampText);
@@ -437,7 +437,7 @@ public class KanbanFX {
 
                 sidebarExpansionVbox.toFront();
 
-                Timeline expand = animateSidebar(sidebarExpansionVbox.getWidth(), 275);
+                Timeline expand = animateSidebar(sidebarExpansionVbox.getWidth(), 344);
 
                 expand.setOnFinished(e -> {
                     sidebarExpansionVbox.getChildren().setAll(sidebarHeader, sidebarScrollPane);
@@ -597,9 +597,9 @@ public class KanbanFX {
         columnData.forEach(column -> {
             VBox listContainer = new VBox();
             listContainer.setUserData(column.getColumnId());
-            listContainer.getStyleClass().add("list_column");
+            //listContainer.getStyleClass().add("list_column");
             listContainer.setAlignment(Pos.TOP_CENTER);
-            listContainer.setPrefWidth(275);
+            listContainer.setPrefWidth(330);
             listContainer.setMinWidth(Region.USE_PREF_SIZE);
             listContainer.setMaxWidth(Region.USE_PREF_SIZE);
             listContainer.maxHeightProperty().bind(boardHBox.heightProperty());
@@ -722,7 +722,7 @@ public class KanbanFX {
 
             Button addCardBtn = new Button("Add card");
             addCardBtn.getStyleClass().add("add_button");
-            addCardBtn.setPrefWidth(275);
+            addCardBtn.setPrefWidth(330);
             addCardBtn.setOnAction(e ->
                     addOrLoadCards(visibleList, Mode.ADD, Enums.Section.LIST)
             );
@@ -933,6 +933,8 @@ public class KanbanFX {
             timestamp.setWrapText(true);
             timestamp.setMinWidth(0);
             timestamp.setMaxWidth(Double.MAX_VALUE);
+            timestamp.getStyleClass().add("reminder_timestamp");
+            description.getStyleClass().add("reminder_description");
 
             contentBox.getChildren().addAll(description, timestamp);
             reminderPane.setContent(contentBox);
@@ -985,6 +987,24 @@ public class KanbanFX {
         visibleList.getChildren().add(0, card);
     }
 
+    private void bindCardAutoHeight(TextArea textArea) {
+        Text measurer = new Text();
+        measurer.setFont(textArea.getFont());
+        measurer.textProperty().bind(textArea.textProperty());
+
+        Runnable recalc = () -> {
+            double width = textArea.getWidth();
+            if (width <= 0) return;
+            measurer.setWrappingWidth(Math.max(0, width - 24));
+            double textHeight = measurer.getLayoutBounds().getHeight();
+            textArea.setPrefHeight(Math.max(50, textHeight + 24));
+        };
+
+        textArea.textProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(recalc));
+        textArea.widthProperty().addListener((obs, oldVal, newVal) -> recalc.run());
+        Platform.runLater(recalc);
+    }
+
     private StackPane buildCardUI(VBox visibleList, Card cardData, boolean startEditing) {
         StackPane card = new StackPane();
         card.getStyleClass().add("card");
@@ -996,8 +1016,8 @@ public class KanbanFX {
         text.getStyleClass().add("card_textA");
         text.setWrapText(true);
         text.setPrefRowCount(1);
-        text.setMinHeight(Region.USE_PREF_SIZE);
-        text.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        text.setMinHeight(50);
+        bindCardAutoHeight(text);
         text.setMaxHeight(Double.MAX_VALUE);
         text.setEditable(startEditing);
         text.setMouseTransparent(!startEditing);
