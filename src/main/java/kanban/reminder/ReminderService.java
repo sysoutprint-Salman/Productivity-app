@@ -1,6 +1,6 @@
 package kanban.reminder;
 
-import kanban.Enums;
+import JavaFX.Enums;
 
 import java.util.List;
 import java.util.Map;

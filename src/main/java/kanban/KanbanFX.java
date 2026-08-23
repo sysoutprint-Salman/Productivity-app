@@ -1,6 +1,7 @@
 package kanban;
 
 
+import JavaFX.Enums;
 import JavaFX.SwitchScenes;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;

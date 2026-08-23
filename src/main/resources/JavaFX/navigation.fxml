@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="90.0" prefWidth="600.0" styleClass="navigation-container" stylesheets="@../CSS/Navigation.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NavigationFX">
+
+    <children>
+      <VBox prefHeight="86.0" prefWidth="586.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <MenuBar>
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Delete" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About" />
+                  </items>
+                </Menu>
+                  <Menu mnemonicParsing="false" text="Settings">
+                     <items>
+                        <MenuItem mnemonicParsing="false" text="About" />
+                     </items>
+                  </Menu>
+              </menus>
+            </MenuBar>
+              <HBox prefHeight="60.0" prefWidth="266.0" styleClass="navigation-bar" VBox.vgrow="ALWAYS">
+      
+                  <children>
+      
+                      <ToggleButton fx:id="toDoButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openToDo" prefWidth="115.0" styleClass="navigation-button" text="To Do">
+                          <toggleGroup>
+                              <ToggleGroup fx:id="navigation" />
+                          </toggleGroup>
+                          <graphic>
+                              <ImageView styleClass="icon">
+                                  <image>
+                                      <Image url="@../Images/check.png" />
+                                  </image>
+                              </ImageView>
+                          </graphic>
+                      </ToggleButton>
+      
+                      <ToggleButton fx:id="aiChatButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openAIChat" prefWidth="115.0" styleClass="navigation-button" text="AI Chat" toggleGroup="$navigation">
+                          <graphic>
+                              <ImageView styleClass="icon">
+                                  <image>
+                                      <Image url="@../Images/user.png" />
+                                  </image>
+                              </ImageView>
+                          </graphic>
+                      </ToggleButton>
+      
+                      <ToggleButton fx:id="notebookButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openNotebook" prefWidth="115.0" styleClass="navigation-button" text="Notebook" toggleGroup="$navigation">
+                          <graphic>
+                              <ImageView styleClass="icon">
+                                  <image>
+                                      <Image url="@../Images/notepad.png" />
+                                  </image>
+                              </ImageView>
+                          </graphic>
+                      </ToggleButton>
+      
+                      <ToggleButton fx:id="kanbanButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openKanban" prefWidth="115.0" styleClass="navigation-button" text="Kanban" toggleGroup="$navigation">
+                          <graphic>
+                              <ImageView styleClass="icon">
+                                  <image>
+                                      <Image url="@../Images/kanban.png" />
+                                  </image>
+                              </ImageView>
+                          </graphic>
+                      </ToggleButton>
+      
+                  </children>
+              </HBox>
+         </children>
+      </VBox>
+    </children>
+</AnchorPane>

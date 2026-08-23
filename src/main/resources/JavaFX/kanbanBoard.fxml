@@ -3,9 +3,6 @@
 <?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -17,63 +14,9 @@
 <AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="kanban.KanbanFX">
 
     <children>
-          <MenuBar prefHeight="26.0" prefWidth="950.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-              <menus>
-                  <Menu text="To Do">
-                      <items>
-                          <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
-                          <MenuItem mnemonicParsing="false" text="Close" />
-                      </items>
-                      <graphic>
-                          <ImageView styleClass="icon">
-                              <image>
-                                  <Image url="@../Images/check.png" />
-                              </image>
-                          </ImageView>
-                      </graphic>
-                  </Menu>
+        <fx:include fx:id="nav" source="navigation.fxml" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-                  <Menu text="AI Chat">
-                      <items>
-                          <MenuItem fx:id="gptMenuItem" onAction="#switchToGPT" text="Chat with AI assistant" />
-                      </items>
-                      <graphic>
-                          <ImageView styleClass="icon">
-                              <image>
-                                  <Image url="@../Images/user.png" />
-                              </image>
-                          </ImageView>
-                      </graphic>
-                  </Menu>
-
-                  <Menu text="Notebook">
-                      <items>
-                          <MenuItem fx:id="viewNotebook" onAction="#switchToNotebook" text="View Notebook" />
-                      </items>
-                      <graphic>
-                          <ImageView styleClass="icon">
-                              <image>
-                                  <Image url="@../Images/notepad.png" />
-                              </image>
-                          </ImageView>
-                      </graphic>
-                  </Menu>
-
-                  <Menu text="Kanban">
-                      <graphic>
-                          <ImageView styleClass="icon">
-                              <image>
-                                  <Image url="@../Images/kanban.png" />
-                              </image>
-                          </ImageView>
-                      </graphic>
-               <items>
-                  <MenuItem fx:id="viewNotebook1" onAction="#switchToNotebook" text="Kanban Board" />
-               </items>
-                  </Menu>
-              </menus>
-          </MenuBar>
-        <BorderPane layoutY="39.2" prefHeight="571.0" prefWidth="950.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="39.0">
+        <BorderPane layoutY="90.4" prefHeight="678.0" prefWidth="1366.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="90.0">
 
             <left>
                 <AnchorPane prefHeight="572.0">

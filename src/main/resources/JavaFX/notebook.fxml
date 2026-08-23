@@ -4,9 +4,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
@@ -20,54 +17,16 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="768.0" prefWidth="1366.0" styleClass="main_stage" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="notebook.NotebookFX">
-    <MenuBar prefHeight="26.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <menus>
-            <Menu mnemonicParsing="false" text="To Do">
-                <items>
-                    <MenuItem fx:id="mainTasks" mnemonicParsing="false" onAction="#switchToTasks" text="View Tasks" />
-                    <MenuItem mnemonicParsing="false" text="Close" />
-                </items>
-            <graphic>
-               <ImageView styleClass="icon">
-                  <image>
-                     <Image url="@../Images/check.png" />
-                  </image>
-               </ImageView>
-            </graphic>
-            </Menu>
-            <Menu mnemonicParsing="false" text="AI Chat">
-                <items>
-                    <MenuItem fx:id="gptMenuItem" mnemonicParsing="false" onAction="#switchToGPT" text="Chat with AI assistant" />
-                </items>
-            <graphic>
-               <ImageView styleClass="icon">
-                  <image>
-                     <Image url="@../Images/user.png" />
-                  </image>
-               </ImageView>
-            </graphic>
-            </Menu>
-         <Menu mnemonicParsing="false" text="Notebook">
-           <items>
-             <MenuItem fx:id="newTabsItem" mnemonicParsing="false" onAction="#createNewTab" text="New Tab" />
-           </items>
-            <graphic>
-               <ImageView styleClass="icon">
-                  <image>
-                     <Image url="@../Images/notepad.png" />
-                  </image>
-               </ImageView>
-            </graphic>
-         </Menu>
-        </menus>
-    </MenuBar>
-   <BorderPane layoutX="37.0" layoutY="68.0" prefHeight="664.0" prefWidth="1294.0" styleClass="main_notebook" AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="37.0" AnchorPane.rightAnchor="35.0" AnchorPane.topAnchor="68.0">
+    <fx:include fx:id="nav" source="navigation.fxml" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+   <BorderPane layoutX="37.0" layoutY="107.2" prefHeight="637.0" prefWidth="1294.0" styleClass="main_notebook" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="37.0" AnchorPane.rightAnchor="35.0" AnchorPane.topAnchor="107.0">
       <left>
          <ScrollPane fx:id="tabsScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="706.0" prefWidth="293.0" BorderPane.alignment="CENTER">
             <content>
                <VBox styleClass="tabs_container">
                   <children>
-                     <TitledPane animated="false" collapsible="false" contentDisplay="RIGHT" expanded="false" prefHeight="32.0" prefWidth="168.0" styleClass="tabs_header">
+
+                      <TitledPane animated="false" collapsible="false" contentDisplay="RIGHT" expanded="false" prefHeight="32.0" prefWidth="168.0" styleClass="tabs_header">
                        <content>
                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                        </content>
@@ -108,7 +67,7 @@
          </ScrollPane>
       </left>
       <center>
-         <ScrollPane fx:id="notebookScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="350.0" prefWidth="401.0" styleClass="notepad_scroll_pane" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
+         <ScrollPane fx:id="notebookScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="350.0" prefWidth="990.0" styleClass="notepad_scroll_pane" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
             <content>
                <TextArea prefHeight="200.0" prefWidth="200.0" styleClass="notepad" visible="false" />
             </content></ScrollPane>

@@ -1,6 +1,6 @@
 package kanban.column;
 
-import kanban.Enums;
+import JavaFX.Enums;
 import org.junit.Test;
 
 import java.util.List;

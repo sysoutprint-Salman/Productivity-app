@@ -3,7 +3,7 @@ package kanban.card;
 
 
 import database.DatabaseManager;
-import kanban.Enums;
+import JavaFX.Enums;
 
 import java.sql.*;
 import java.util.ArrayList;

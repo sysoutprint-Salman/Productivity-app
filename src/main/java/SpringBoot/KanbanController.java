@@ -1,6 +1,6 @@
 package SpringBoot;
 
-import kanban.Enums;
+import JavaFX.Enums;
 import kanban.boards.Board;
 import kanban.card.Card;
 import kanban.column.Column;

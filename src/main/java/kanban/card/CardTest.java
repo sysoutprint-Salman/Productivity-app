@@ -1,6 +1,6 @@
 package kanban.card;
 
-import kanban.Enums;
+import JavaFX.Enums;
 import kanban.column.Column;
 import kanban.column.ColumnService;
 import org.junit.Test;

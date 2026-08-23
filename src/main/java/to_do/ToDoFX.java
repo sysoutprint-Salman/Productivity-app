@@ -1,6 +1,7 @@
 package to_do;
 
 import JavaFX.*;
+import javafx.scene.Scene;
 import user.User;
 import ai_chat.AI_AssistantFX;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +10,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 @Data
-public class ToDoFX {
+public class ToDoFX extends AbstractFX{
     @FXML
     public VBox mainTaskVbox;
     @FXML
@@ -66,13 +66,20 @@ public class ToDoFX {
     public BorderPane mainBorderPane;
     public DatePicker datePicker;
 
+
+
     public ToDoFX(){}
 
-    public void initialize(){
-        //this.tasks = AppState.getTasks();
-
-
+    @Override
+    protected Enums.Scene getViewType() {
+        return Enums.Scene.TO_DO;
     }
+
+    public void initialize(){
+        super.initialize();
+        getByPosted();
+    }
+
     private record TaskUI(TitledPane card, RadioButton radio, DatePicker datePicker,
             Button dateButton, TextArea descriptionArea) {}
 

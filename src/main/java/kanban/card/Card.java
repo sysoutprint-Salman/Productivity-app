@@ -1,6 +1,6 @@
 package kanban.card;
 
-import kanban.Enums;
+import JavaFX.Enums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

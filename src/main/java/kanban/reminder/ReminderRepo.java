@@ -2,7 +2,7 @@ package kanban.reminder;
 
 
 import database.DatabaseManager;
-import kanban.Enums;
+import JavaFX.Enums;
 
 import java.sql.*;
 import java.time.LocalDateTime;

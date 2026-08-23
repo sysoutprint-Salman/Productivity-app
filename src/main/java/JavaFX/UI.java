@@ -3,23 +3,11 @@ package JavaFX;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.bind.annotation.RestController;
+
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.prefs.Preferences;
 
 
 @Slf4j
@@ -33,7 +21,8 @@ public class UI extends Application {
     public void start(Stage primaryStage) throws IOException {
         try {
             //logInFX.autoLogIn(primaryStage);
-            new SwitchScenes().switchScene(primaryStage);
+            ViewManager.getInstance().setStage(primaryStage);
+            ViewManager.getInstance().switchScene(Enums.Scene.TO_DO);
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();

@@ -1,5 +1,9 @@
 package ai_chat;
 
+import JavaFX.AbstractFX;
+import JavaFX.Enums;
+import JavaFX.NavigationFX;
+import javafx.fxml.FXML;
 import notebook.NotebookFX;
 import JavaFX.SwitchScenes;
 import user.User;
@@ -28,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class AI_AssistantFX {
+public class AI_AssistantFX extends AbstractFX {
     public VBox chatBoxVbox;
     public Button sendButton;
     public TextField userTextField;
@@ -42,6 +46,12 @@ public class AI_AssistantFX {
     private NotebookFX notebooks;
     public Label emptyLogsMessage;
     private final AIService aiService = new AIService();
+
+    @Override
+    protected Enums.Scene getViewType() {
+        return Enums.Scene.AI_CHAT;
+    }
+
     public AI_AssistantFX(){}
 
     public void initialize(){
@@ -60,6 +70,8 @@ public class AI_AssistantFX {
             }
         });
         //this.chatLogs = AppState.getChats();
+        super.initialize();
+        GETChatlogs();
     }
 
     public void streamGPT(String prompt, Consumer<String> onToken, Runnable onComplete, Consumer<Exception> onError) {

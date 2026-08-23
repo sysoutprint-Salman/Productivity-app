@@ -1,0 +1,66 @@
+/* Navigation container */
+.navigation-container {
+    -fx-background-color: transparent;
+}
+
+/* Navigation bar */
+.navigation-bar {
+    -fx-background-color: white;
+    -fx-padding: 4px 6px;
+    -fx-spacing: 3px;
+    -fx-alignment: center-left;
+}
+
+/* Navigation buttons */
+.navigation-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 7px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 7px;
+    -fx-padding: 7px 13px;
+    -fx-text-fill: #5f6368;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+/* Navigation button hover */
+.navigation-button:hover {
+    -fx-background-color: #e8eaed;
+    -fx-text-fill: #202124;
+}
+
+/* Navigation button pressed */
+.navigation-button:pressed {
+    -fx-background-color: #dfe1e5;
+}
+
+/* Selected navigation button */
+.navigation-button:selected {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #202124;
+    -fx-font-weight: 600;
+}
+
+/* Selected navigation button elevation */
+.navigation-button:selected {
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(0, 0, 0, 0.20),
+        8,
+        0.20,
+        0,
+        2
+    );
+}
+
+/* Navigation icons */
+.navigation-button .icon {
+    -fx-fit-width: 16px;
+    -fx-fit-height: 16px;
+}
+
+/* Keep icons slightly separated from text */
+.navigation-button {
+    -fx-graphic-text-gap: 7px;
+}

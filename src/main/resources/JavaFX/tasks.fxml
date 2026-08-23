@@ -2,22 +2,19 @@
 
 <?import java.net.URL?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="tasks_main" prefHeight="768.0" prefWidth="1366.0" styleClass="tasks_main" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="to_do.ToDoFX">
-   <children>
-      <BorderPane fx:id="mainBorderPane" layoutX="352.8" layoutY="144.8" prefHeight="580.0" prefWidth="669.0" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="353.0" AnchorPane.rightAnchor="344.0" AnchorPane.topAnchor="145.0">
+
+    <children>
+        <fx:include fx:id="nav" source="navigation.fxml" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <BorderPane fx:id="mainBorderPane" layoutX="352.8" layoutY="155.2" prefHeight="570.0" prefWidth="669.0" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="353.0" AnchorPane.rightAnchor="344.0" AnchorPane.topAnchor="155.0">
          <center>
             <ScrollPane fx:id="mainScrollpane" fitToHeight="true" fitToWidth="true" prefHeight="474.0" prefWidth="518.0" styleClass="tasks_scroll_pane" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
                <content>
@@ -26,72 +23,17 @@
             </ScrollPane>
          </center>
       </BorderPane>
-      <Label fx:id="taskLabel" alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="35.0" prefWidth="600.0" styleClass="tasks_label" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="60.0">
+      <Label fx:id="taskLabel" alignment="CENTER" layoutX="4.0" layoutY="105.0" prefHeight="35.0" prefWidth="600.0" styleClass="tasks_label" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="105.0">
          <font>
             <Font size="24.0" />
          </font></Label>
-      <MenuButton fx:id="sortButton" layoutX="1585.0" layoutY="90.0" mnemonicParsing="false" text="Sort" textFill="WHITE" AnchorPane.rightAnchor="282.20000000000005" AnchorPane.topAnchor="90.0">
+      <MenuButton fx:id="sortButton" layoutX="1059.0" layoutY="154.0" mnemonicParsing="false" text="Sort" textFill="WHITE" AnchorPane.rightAnchor="254.20000000000005" AnchorPane.topAnchor="154.0">
         <items>
             <RadioMenuItem fx:id="A_Z" mnemonicParsing="false" text="A_Z" />
             <RadioMenuItem fx:id="Due_Date" mnemonicParsing="false" text="Due Date" />
             <RadioMenuItem fx:id="Newest" mnemonicParsing="false" text="Newest" />
         </items>
       </MenuButton>
-      <MenuBar layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <menus>
-            <Menu text="To Do">
-               <items>
-                  <MenuItem onAction="#getByPosted" text="View Tasks" />
-                  <MenuItem onAction="#getByDeleted" text="Deleted Tasks" />
-                  <MenuItem onAction="#getByCompleted" text="Completed Tasks" />
-                  <MenuItem text="Close" />
-               </items>
-               <graphic>
-                  <ImageView styleClass="icon">
-                     <image>
-                        <Image url="@../Images/check.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Menu>
-            <Menu text="AI Chat">
-               <items>
-                  <MenuItem fx:id="gptMenuItem1" onAction="#switchToGPT" text="Chat with AI assistant" />
-               </items>
-               <graphic>
-                  <ImageView styleClass="icon">
-                     <image>
-                        <Image url="@../Images/user.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Menu>
-            <Menu text="Notebook">
-               <items>
-                  <MenuItem fx:id="viewNotebook2" onAction="#switchToNotebook" text="View Notebook" />
-               </items>
-               <graphic>
-                  <ImageView styleClass="icon">
-                     <image>
-                        <Image url="@../Images/notepad.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Menu>
-            <Menu text="Kanban">
-               <graphic>
-                  <ImageView styleClass="icon">
-                     <image>
-                        <Image url="@../Images/kanban.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-               <items>
-                  <MenuItem onAction="#switchToKanban" text="Kanban Board" />
-               </items>
-            </Menu>
-         </menus>
-      </MenuBar>
    </children>
    <stylesheets>
       <URL value="@../CSS/Tasks.css" />

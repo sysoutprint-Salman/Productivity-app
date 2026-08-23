@@ -1,6 +1,6 @@
 package kanban.column;
 
-import kanban.Enums;
+import JavaFX.Enums;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

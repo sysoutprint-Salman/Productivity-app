@@ -57,8 +57,9 @@ public class SwitchScenes {
                     return;
                 }
             }
-            stage.setMaximized(true);
+
             stage.setScene(new Scene(root));
+            stage.setMaximized(true);
             stage.show();
 
             afterLoad.accept(loader.getController());
@@ -120,7 +121,7 @@ public class SwitchScenes {
     }
     public void switchScene(Stage curStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/kanbanBoard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/JavaFX/tasks.fxml"));
             Parent root = loader.load();
             KanbanFX FXHandler = loader.getController();
             Scene scene = new Scene(root);
