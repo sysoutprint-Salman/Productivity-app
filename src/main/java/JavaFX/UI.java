@@ -26,7 +26,6 @@ public class UI extends Application {
             primaryStage.setAlwaysOnTop(true);
             primaryStage.toFront();
             primaryStage.requestFocus();
-            primaryStage.setMaximized(true);
             primaryStage.setAlwaysOnTop(false);
             primaryStage.getIcons().add(new Image("/Images/App Icon.png"));
             primaryStage.setOnCloseRequest(event -> shutdown());
@@ -38,10 +37,6 @@ public class UI extends Application {
 
 
     private void shutdown() {
-        /*ConfigurableApplicationContext ctx = Rest.getApplicationContext();
-        if (ctx != null) {
-            ctx.close();
-        }*/
         Platform.exit();
         System.exit(0);
     }

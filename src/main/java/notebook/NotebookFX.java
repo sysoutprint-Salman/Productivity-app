@@ -1,5 +1,7 @@
 package notebook;
 
+import JavaFX.AbstractFX;
+import JavaFX.Enums;
 import JavaFX.SwitchScenes;
 import JavaFX.UserPrefs;
 import user.User;
@@ -24,7 +26,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class NotebookFX{
+public class NotebookFX extends AbstractFX {
     public VBox tabsVbox;
     public ScrollPane tabsScrollPane, notebookScrollPane;
     public TextArea notepadArea = new TextArea();
@@ -67,7 +69,10 @@ public class NotebookFX{
             saveDebouncer.setCycleCount(1);
             saveDebouncer.playFromStart();
         });
+        GETNotebooks();
     }
+
+
 
     public void createNewTab(){
         popupStage = new Stage();
@@ -261,5 +266,12 @@ public class NotebookFX{
             ai = (AI_AssistantFX) consumer;
             ai.GETChatlogs();
         });
+    }
+
+
+    @Override
+    public void highlightNav() {
+        navController.getNavigation().selectToggle(null); // deselect everything
+        navController.getNotebookButton().setSelected(true);
     }
 }

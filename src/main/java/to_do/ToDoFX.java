@@ -42,6 +42,13 @@ public class ToDoFX extends AbstractFX{
     private boolean isTaskScheduled = false;
     private final int DELAY = 700;
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public void highlightNav() {
+        navController.getNavigation().selectToggle(null);
+        navController.getToDoButton().setSelected(true);
+    }
+
     public enum Sort {A_Z, DUE_DATE, NEWEST}
     private Sort currentSortOption;
     private final ToggleGroup sortGroup = new ToggleGroup();
@@ -66,17 +73,9 @@ public class ToDoFX extends AbstractFX{
     public BorderPane mainBorderPane;
     public DatePicker datePicker;
 
-
-
     public ToDoFX(){}
 
-    @Override
-    protected Enums.Scene getViewType() {
-        return Enums.Scene.TO_DO;
-    }
-
     public void initialize(){
-        super.initialize();
         getByPosted();
     }
 

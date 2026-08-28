@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="90.0" prefWidth="600.0" styleClass="navigation-container" stylesheets="@../CSS/Navigation.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NavigationFX">
+<AnchorPane   styleClass="navigation-container" stylesheets="@../CSS/Navigation.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="JavaFX.NavigationFX">
 
     <children>
       <VBox prefHeight="86.0" prefWidth="586.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -44,7 +44,7 @@
       
                   <children>
       
-                      <ToggleButton fx:id="toDoButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openToDo" prefWidth="115.0" styleClass="navigation-button" text="To Do">
+                      <ToggleButton fx:id="toDoButton" userData="TO_DO" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openToDo" prefWidth="115.0" styleClass="navigation-button" text="To Do">
                           <toggleGroup>
                               <ToggleGroup fx:id="navigation" />
                           </toggleGroup>
@@ -57,7 +57,7 @@
                           </graphic>
                       </ToggleButton>
       
-                      <ToggleButton fx:id="aiChatButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openAIChat" prefWidth="115.0" styleClass="navigation-button" text="AI Chat" toggleGroup="$navigation">
+                      <ToggleButton fx:id="aiChatButton" userData="AI_CHAT" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openAIChat" prefWidth="115.0" styleClass="navigation-button" text="AI Chat" toggleGroup="$navigation">
                           <graphic>
                               <ImageView styleClass="icon">
                                   <image>
@@ -67,7 +67,7 @@
                           </graphic>
                       </ToggleButton>
       
-                      <ToggleButton fx:id="notebookButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openNotebook" prefWidth="115.0" styleClass="navigation-button" text="Notebook" toggleGroup="$navigation">
+                      <ToggleButton fx:id="notebookButton" userData="NOTEBOOK" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openNotebook" prefWidth="115.0" styleClass="navigation-button" text="Notebook" toggleGroup="$navigation">
                           <graphic>
                               <ImageView styleClass="icon">
                                   <image>
@@ -77,7 +77,7 @@
                           </graphic>
                       </ToggleButton>
       
-                      <ToggleButton fx:id="kanbanButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openKanban" prefWidth="115.0" styleClass="navigation-button" text="Kanban" toggleGroup="$navigation">
+                      <ToggleButton fx:id="kanbanButton" userData="KANBAN" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#openKanban" prefWidth="115.0" styleClass="navigation-button" text="Kanban" toggleGroup="$navigation">
                           <graphic>
                               <ImageView styleClass="icon">
                                   <image>

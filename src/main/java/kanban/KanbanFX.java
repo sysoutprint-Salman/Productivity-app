@@ -1,6 +1,7 @@
 package kanban;
 
 
+import JavaFX.AbstractFX;
 import JavaFX.Enums;
 import JavaFX.SwitchScenes;
 import ai_chat.AI_AssistantFX;
@@ -46,7 +47,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class KanbanFX {
+public class KanbanFX extends AbstractFX {
     @FXML
     private HBox boardHBox;
 
@@ -78,6 +79,12 @@ public class KanbanFX {
     private Stage stage;
     private Scene scene;
     private VBox layoutContainer;
+
+    @Override
+    public void highlightNav() {
+        navController.getNavigation().selectToggle(null);
+        navController.getKanbanButton().setSelected(true);
+    }
 
     private enum Sidebar{ CARDS, ARCHIVE, BOARDS, DELETED, REMINDERS, THEMES }
     public enum Mode { ADD, LOAD }
@@ -143,6 +150,7 @@ public class KanbanFX {
         VBox.setVgrow(sidebarScrollPane,Priority.ALWAYS);
         VBox.setVgrow(sidebarContentVbox, Priority.ALWAYS);
     }
+
 
     private void remindersPopup(Boolean isEdit, Reminder reminderToEdit) {
         stage = new Stage();

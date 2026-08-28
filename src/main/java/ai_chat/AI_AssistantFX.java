@@ -47,10 +47,7 @@ public class AI_AssistantFX extends AbstractFX {
     public Label emptyLogsMessage;
     private final AIService aiService = new AIService();
 
-    @Override
-    protected Enums.Scene getViewType() {
-        return Enums.Scene.AI_CHAT;
-    }
+
 
     public AI_AssistantFX(){}
 
@@ -69,8 +66,7 @@ public class AI_AssistantFX extends AbstractFX {
                 uploadIcon.setStyle("-fx-opacity: 0.2;");
             }
         });
-        //this.chatLogs = AppState.getChats();
-        super.initialize();
+
         GETChatlogs();
     }
 
@@ -242,5 +238,11 @@ public class AI_AssistantFX extends AbstractFX {
             notebooks = (NotebookFX) consumer;
             notebooks.GETNotebooks();
         });
+    }
+
+    @Override
+    public void highlightNav() {
+        navController.getNavigation().selectToggle(null); // deselect everything
+        navController.getAiChatButton().setSelected(true);
     }
 }
